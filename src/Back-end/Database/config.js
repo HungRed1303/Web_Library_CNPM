@@ -1,4 +1,4 @@
-require('dotenv').config(); // Load biến môi trường từ .env
+require('dotenv').config();
 const { Pool } = require('pg');
 
 // Tạo pool kết nối
@@ -10,16 +10,14 @@ const pool = new Pool({
   port: process.env.PGPORT,
 });
 
-// Hàm kết nối DB (kiểm tra kết nối)
-const connectToDB = async () => {
-  try {
-    await pool.connect(); // Gọi connect từ pool đã khởi tạo
-    console.log("Connected to PostgreSQL database");
-    return pool;
-  } catch (err) {
-    console.error("Database connection error:", err);
-    throw err;
+// Kiểm tra kết nối 1 lần khi khởi động
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) {
+    console.error('❌ PostgreSQL connection failed:', err);
+  } else {
+    console.log('✅ PostgreSQL connected at:', res.rows[0].now);
   }
-};
+});
 
-module.exports = connectToDB;
+// Export pool để dùng ở model
+module.exports = pool;
