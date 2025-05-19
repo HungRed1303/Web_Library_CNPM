@@ -1,0 +1,27 @@
+{
+  "name": "web_library_cnpm",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HungRed1303/Web_Library_CNPM.git"
+  },
+  "keywords": [
+    "nodejs",
+    "web"
+  ],
+  "author": "nhom 4",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HungRed1303/Web_Library_CNPM/issues"
+  },
+  "homepage": "https://github.com/HungRed1303/Web_Library_CNPM#readme",
+  "dependencies": {
+    "express": "^4.21.2",
+    "nodemon": "^3.1.9"
+  }
+}

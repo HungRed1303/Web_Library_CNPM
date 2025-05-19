@@ -1,0 +1,28 @@
+{
+  "name": "back-end",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HungRed1303/Web_Library_CNPM.git"
+  },
+  "author": "nhom 4",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/HungRed1303/Web_Library_CNPM/issues"
+  },
+  "homepage": "https://github.com/HungRed1303/Web_Library_CNPM#readme",
+  "description": "",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "nodemon": "^3.1.9",
+    "pg": "^8.16.0"
+  }
+}
