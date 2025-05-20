@@ -3,6 +3,9 @@ const jwt = require('jsonwebtoken');
 const UserModel = require('../models/userModel');
 const CatchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const {ErrorHandler} = require('../middlewares/errorMiddlewares');
+const StudentModel = require('../models/studentModel');
+const LibrarianModel = require('../models/librarianModel');
+const AdminModel = require('../models/adminModel');
 
 const register = CatchAsyncErrors(async (req, res, next) => {
   const { username, email, password, name, role } = req.body;
@@ -14,12 +17,23 @@ const register = CatchAsyncErrors(async (req, res, next) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  // Tạo user chính trong bảng users
   const newUser = await UserModel.createUser(username, hashedPassword, email, name, role);
+
+  // Ghi vào bảng phụ dựa theo role
+  const user_id = newUser.user_id;
+  if (role === 'S') {
+    await StudentModel.createStudent(user_id);
+  } else if (role === 'L') {
+    await LibrarianModel.createLibrarian(user_id);  // bạn cần có hàm này
+  } else if (role === 'A') {
+    await AdminModel.createAdmin(user_id);          // bạn cần có hàm này
+  }
 
   res.status(201).json({
     success: true,
     user: {
-      id: newUser.user_id,
+      id: user_id,
       username: newUser.username,
       email: newUser.email,
       name: newUser.name,
@@ -27,6 +41,7 @@ const register = CatchAsyncErrors(async (req, res, next) => {
     },
   });
 });
+
 
 const login = CatchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;

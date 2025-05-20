@@ -23,18 +23,9 @@ const createUser = async (username, password, email, name, role = 'S') => {
      RETURNING *`,
     [username, password, email, name, role]
   );
-
-  const user_id = result.rows[0].user_id;
-
-  // Ghi vào bảng con tương ứng theo vai trò
-  if (role === 'S') {
-    await pool.query(`INSERT INTO students (user_id) VALUES ($1)`, [user_id]);
-  } else if (role === 'L') {
-    await pool.query(`INSERT INTO librarians (user_id) VALUES ($1)`, [user_id]);
-  } else if (role === 'A') {
-    await pool.query(`INSERT INTO admins (user_id) VALUES ($1)`, [user_id]);
+  if (result.rowCount === 0) {
+    return null; // Không thể tạo user
   }
-
   return result.rows[0];
 };
 
