@@ -23,15 +23,6 @@ const getStudentById = CatchAsyncErrors(async (req, res, next) => {
     });
 });
 
-const createStudent = CatchAsyncErrors(async (req, res, next) => {
-    const { username, password, email, name, class_id } = req.body;
-    const student = await StudentModel.createStudent(username, password, email, name, class_id);
-    res.status(201).json({
-        success: true,
-        data: student
-    });
-});
-
 const updateStudent = CatchAsyncErrors(async (req, res, next) => {
     const student_id = req.params.id;
     const { username, email, name, class_id } = req.body;
@@ -60,7 +51,6 @@ const deleteStudent = CatchAsyncErrors(async (req, res, next) => {
 module.exports = {
     getAllStudent,
     getStudentById,
-    createStudent,
     updateStudent,
     deleteStudent
 };
