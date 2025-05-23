@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { Input } from "@/components/ui/input"
@@ -64,7 +62,7 @@ export default function LoginForm() {
               </label>
             </div>
             <div className="text-sm">
-              <Link href="#" className="font-medium text-pink-400 hover:text-pink-300">
+              <Link to="#" className="font-medium text-pink-400 hover:text-pink-300">
                 Forgot password?
               </Link>
             </div>
