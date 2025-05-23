@@ -1,6 +1,6 @@
-import LoginForm from "@/components/LoginForm"
+import LoginForm from "../components/LoginForm"
 
-export default function Home() {
+const LoginPage = () => {
   return (
     <main className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="absolute inset-0 overflow-hidden">
@@ -11,3 +11,7 @@ export default function Home() {
     </main>
   )
 }
+
+export default LoginPage
+
+

@@ -1,94 +1,139 @@
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import {Link} from "react-router-dom"
 
-export default function LoginForm() {
+const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [rememberMe, setRememberMe] = useState(false)
+
+  interface LoginFormState {
+    email: string
+    password: string
+    rememberMe: boolean
+  }
+
+  const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    const state: LoginFormState = { email, password, rememberMe }
+    console.log("Login attempt:", state)
+    alert("Login form submitted! Check console for details.")
+  }
 
   return (
-    <div className="w-full max-w-md z-10">
-      <div className="bg-black border border-pink-600/30 rounded-2xl shadow-xl shadow-pink-600/10 p-8 backdrop-blur-sm">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-pink-300">Sign in to your account</p>
-        </div>
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-[30%] -left-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-pink-600/20 to-transparent blur-3xl"></div>
+        <div className="absolute -bottom-[30%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-tl from-pink-600/20 to-transparent blur-3xl"></div>
+      </div>
 
-        <form className="space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-pink-100">
-              Email
-            </label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="name@example.com"
-              className="bg-black/50 border-pink-600/30 text-white placeholder:text-pink-300/50 focus-visible:ring-pink-600 focus-visible:border-pink-600"
-            />
+      {/* Login Form */}
+      <div className="w-full max-w-[700px] z-10">
+        <div className="bg-black border border-pink-600/30 rounded-2xl shadow-xl shadow-pink-600/10 pt-6 pb-6 px-40 backdrop-blur-sm">
+          <div className="mb-8 text-center">
+            <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+            <p className="text-pink-300">Sign in to your account</p>
           </div>
 
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium text-pink-100">
-              Password
-            </label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                className="bg-black/50 border-pink-600/30 text-white placeholder:text-pink-300/50 focus-visible:ring-pink-600 focus-visible:border-pink-600 pr-10"
+          <div className="space-y-6">
+            {/* Email Field */}
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium text-pink-100">
+                Email
+              </label>
+              <input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full pr-10 pl-2 py-2 bg-black/50 border border-pink-600/30 rounded-md text-white placeholder:text-pink-300/50 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:border-pink-600 transition-colors"
               />
-              <button
+            </div>
+
+            {/* Password Field */}
+            <div className="space-y-2">
+              <label htmlFor="password" className="text-sm font-medium text-pink-100">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pr-10 pl-2 py-2 bg-black/50 border border-pink-600/30 rounded-md text-white placeholder:text-pink-300/50 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:border-pink-600 transition-colors"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-pink-300 hover:text-pink-100 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  id="remember-me"
+                  name="remember-me"
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-4 w-4 rounded border-pink-600/30 bg-black text-pink-600 focus:ring-pink-600 focus:ring-offset-black accent-pink-600"
+                />
+                <label htmlFor="remember-me" className="ml-2 block text-sm text-pink-100">
+                  Remember me
+                </label>
+              </div>
+              <div className="text-sm">
+                <button 
+                  type="button"
+                  onClick={() => alert("Forgot password functionality would be implemented here")}
+                  className="font-medium text-pink-400 hover:text-pink-300 transition-colors"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            </div>
+
+            {/* Sign In Button */}
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-pink-600/50 transform hover:scale-[1.02] active:scale-[0.98]"
+            >
+              Sign in
+            </button>
+
+            {/* Sign Up Link */}
+            <div className="mt-4 text-center text-sm">
+              <span className="text-pink-300">Don't have an account? </span>
+              <button 
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-pink-300 hover:text-pink-100"
+                onClick={() => alert("Sign up functionality would be implemented here")}
+                className="font-medium text-pink-400 hover:text-pink-300 transition-colors"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                Sign up
               </button>
             </div>
           </div>
+        </div>
 
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 rounded border-pink-600/30 bg-black text-pink-600 focus:ring-pink-600 focus:ring-offset-black"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-pink-100">
-                Remember me
-              </label>
-            </div>
-            <div className="text-sm">
-              <Link to="#" className="font-medium text-pink-400 hover:text-pink-300">
-                Forgot password?
-              </Link>
-            </div>
-          </div>
-
-          <Button
-            type="submit"
-            className="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-pink-600/50"
-          >
-            Sign in
-          </Button>
-
-          <div className="mt-4 text-center text-sm">
-            <span className="text-pink-300">Don&apos;t have an account? </span>
-            <Link to="https://example.com/signup" className="font-medium text-pink-400 hover:text-pink-300">
-              Sign up
-            </Link>
-          </div>
-        </form>
-      </div>
-
-      <div className="mt-8 text-center">
-        <p className="text-xs text-pink-300/70">
-          © {new Date().getFullYear()} BLACKPINK Inspired. All rights reserved.
-        </p>
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-xs text-pink-300/70">
+            © {new Date().getFullYear()} BLACKPINK Inspired. All rights reserved.
+          </p>
+        </div>
       </div>
     </div>
   )
 }
+
+export default LoginForm
