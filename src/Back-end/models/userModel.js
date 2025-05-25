@@ -1,5 +1,6 @@
 const { LogIn } = require('lucide-react');
 const pool = require('../Database/config.js');
+const crypto = require('crypto');
 
 const findUserByEmail = async (email) => {
   const result = await pool.query(
@@ -30,9 +31,65 @@ const createUser = async (username, password, email, name, role = 'S') => {
   return result.rows[0];
 };
 
+function getResetPasswordToken() {
+  const resetToken = crypto.randomBytes(20).toString("hex");
+  const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+  const expires = new Date(Date.now() + 15 * 60 * 1000); // ✅ Phải là Date object
+  return {
+    resetToken,
+    hashedToken,
+    expires,
+  };
+}
+
+async function updateResetToken(email, hashedToken, expires) {
+  const result = await pool.query(`
+    UPDATE users 
+    SET reset_token = $1, reset_token_expire = $2
+    WHERE email = $3
+  `, [hashedToken, expires, email]);
+  return result.rowCount;
+}
+
+
+async function clearResetToken(email) {
+  const result = await pool.query(`
+    UPDATE users
+    SET password = 123456
+    WHERE email = $1
+    RETURNING *;
+  `, [email]);
+  return result.rows[0];
+}
+
+async function findUserByResetToken(token) {
+  const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+  const result = await pool.query(`
+    SELECT * FROM users
+    WHERE reset_token = $1 AND reset_token_expire > NOW()
+  `, [hashedToken]);
+
+  return result.rows[0];
+}
+
+async function updatePassword(email, hashedPassword) {
+  const result = await pool.query(`
+    UPDATE users
+    SET password = $1, reset_token = NULL, reset_token_expire = NULL
+    WHERE email = $2
+  `, [hashedPassword, email]);
+
+  return result.rowCount > 0;
+}
 
 module.exports = {
   findUserByEmail,
   findUserByUsername,
   createUser,
+  getResetPasswordToken,
+  updateResetToken,
+  clearResetToken,
+  findUserByResetToken,
+  updatePassword
 };
