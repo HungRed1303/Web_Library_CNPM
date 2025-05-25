@@ -1,34 +1,59 @@
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
+import {loginUser} from "../service/Services"
+import { useNavigate } from "react-router-dom"
+
+import React from "react"
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [rememberMe, setRememberMe] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+  const Navigate = useNavigate()
 
-  interface LoginFormState {
-    email: string
-    password: string
-    rememberMe: boolean
+const handleLoginSuccess = (role) => {
+    localStorage.setItem('user', JSON.stringify({ isLogged: true, role: role }));
   }
-
-  const handleSubmit = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    const state: LoginFormState = { email, password, rememberMe }
-    console.log("Login attempt:", state)
-    alert("Login form submitted! Check console for details.")
+    setLoading(true);
+    setError('')
+
+    const result = await loginUser(email, password);
+
+    if (result.success)
+    {
+      handleLoginSuccess(result.role);
+      console.log("Login successful");
+      if (result.role === 'A')
+      {
+        Navigate('/A');
+      }
+      else if (result.role === 'S')
+      {
+        Navigate('/S');
+      }
+      else if(result.role === 'L') 
+      {
+        Navigate('/L');
+      }
+    }
+    else {
+      setError(result.error);
+    }
+    setLoading(false);
   }
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-[30%] -left-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-pink-600/20 to-transparent blur-3xl"></div>
         <div className="absolute -bottom-[30%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-tl from-pink-600/20 to-transparent blur-3xl"></div>
       </div>
 
-      {/* Login Form */}
       <div className="w-full max-w-[700px] z-10">
         <div className="bg-black border border-pink-600/30 rounded-2xl shadow-xl shadow-pink-600/10 pt-6 pb-6 px-40 backdrop-blur-sm">
           <div className="mb-8 text-center">
@@ -37,7 +62,6 @@ const LoginForm = () => {
           </div>
 
           <div className="space-y-6">
-            {/* Email Field */}
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-pink-100">
                 Email
@@ -52,7 +76,6 @@ const LoginForm = () => {
               />
             </div>
 
-            {/* Password Field */}
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium text-pink-100">
                 Password
@@ -76,12 +99,10 @@ const LoginForm = () => {
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
               <div className="flex items-center">
                 <input
                   id="remember-me"
-                  name="remember-me"
                   type="checkbox"
                   checked={rememberMe}
                   onChange={(e) => setRememberMe(e.target.checked)}
@@ -92,7 +113,7 @@ const LoginForm = () => {
                 </label>
               </div>
               <div className="text-sm">
-                <button 
+                <button
                   type="button"
                   onClick={() => alert("Forgot password functionality would be implemented here")}
                   className="font-medium text-pink-400 hover:text-pink-300 transition-colors"
@@ -102,7 +123,6 @@ const LoginForm = () => {
               </div>
             </div>
 
-            {/* Sign In Button */}
             <button
               type="button"
               onClick={handleSubmit}
@@ -111,10 +131,9 @@ const LoginForm = () => {
               Sign in
             </button>
 
-            {/* Sign Up Link */}
             <div className="mt-4 text-center text-sm">
               <span className="text-pink-300">Don't have an account? </span>
-              <button 
+              <button
                 type="button"
                 onClick={() => alert("Sign up functionality would be implemented here")}
                 className="font-medium text-pink-400 hover:text-pink-300 transition-colors"
@@ -125,7 +144,6 @@ const LoginForm = () => {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-pink-300/70">
             © {new Date().getFullYear()} BLACKPINK Inspired. All rights reserved.
