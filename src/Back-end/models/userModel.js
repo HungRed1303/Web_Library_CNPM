@@ -1,3 +1,4 @@
+const { LogIn } = require('lucide-react');
 const pool = require('../Database/config.js');
 
 const findUserByEmail = async (email) => {

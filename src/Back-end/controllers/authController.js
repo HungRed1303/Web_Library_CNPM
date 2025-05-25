@@ -20,7 +20,7 @@ const register = CatchAsyncErrors(async (req, res, next) => {
   // Tạo user chính trong bảng users
   const newUser = await UserModel.createUser(username, hashedPassword, email, name, role);
 
-  // Ghi vào bảng phụ dựa theo role
+  // Ghi vào bảng phụ dựa theo role 
   const user_id = newUser.user_id;
   if (role === 'S') {
     await StudentModel.createStudent(user_id);
@@ -44,19 +44,22 @@ const register = CatchAsyncErrors(async (req, res, next) => {
 
 
 const login = CatchAsyncErrors(async (req, res, next) => {
-  const { email, password } = req.body;
-
+  const {email, password} = req.body;
+  if (!email || !password) {
+    return next(new ErrorHandler('Email and password are required', 400));
+  }
   const user = await UserModel.findUserByEmail(email);
-  if (!user) return next(new ErrorHandler('Invalid email or password', 401));
-
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return next(new ErrorHandler('Invalid email or password', 401));
-
-  const token = jwt.sign({ id: user.user_id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: '1d',
+  if (!user) {
+    return next(new ErrorHandler('User not found', 404));
+  }
+  const isPasswordValid = await bcrypt.compare(password, user.password);
+  if (!isPasswordValid) {
+    return next(new ErrorHandler('Invalid password', 401));
+  }
+  const token = jwt.sign({ user_id: user.user_id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: '1h',
   });
-
-  res.json({
+  return res.status(200).json({
     success: true,
     token,
     user: {
@@ -68,6 +71,24 @@ const login = CatchAsyncErrors(async (req, res, next) => {
     },
   });
 });
+
+
+
+const forGotPassword = CatchAsyncErrors(async (req, res, next) => {
+  const { email } = req.body;
+
+  const user = await UserModel.findUserByEmail(email);
+  if (!user) return next(new ErrorHandler('User not found', 404));
+
+  // Generate reset token and send email logic here
+  // ...
+
+  res.status(200).json({
+    success: true,
+    message: 'Reset password link sent to your email',
+  });
+});
+
 
 module.exports = {
   register,

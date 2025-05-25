@@ -6,12 +6,13 @@ const adminRoute = require('./routes/adminRoute');
 const librarianRoute = require('./routes/librarianRoutes');
 const publisherRoute = require('./routes/publisherRoute');
 const {errorMiddleware} = require('./middlewares/errorMiddlewares');
-
-
+const cors = require("cors");
 const app = express();
 const port = 3000;
 
+app.use(cors());
 app.use(express.json());
+
 
 app.use('/api/auth', authRoute);
 app.use('/api/students', studentRoute);
