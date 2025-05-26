@@ -2,13 +2,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const UserModel = require('../models/userModel');
 const CatchAsyncErrors = require('../middlewares/catchAsyncErrors');
-const {ErrorHandler} = require('../middlewares/errorMiddlewares');
+const { ErrorHandler } = require('../middlewares/errorMiddlewares');
 const StudentModel = require('../models/studentModel');
 const LibrarianModel = require('../models/librarianModel');
 const AdminModel = require('../models/adminModel');
 const sendEmail = require('../utils/sendEmail');
 const { generationForgotPasswordEmailTemplate } = require('../utils/emailTemplates');
-const {getResetPasswordToken} = require('../models/userModel');
+const { getResetPasswordToken } = require('../models/userModel');
 
 const register = CatchAsyncErrors(async (req, res, next) => {
   const { username, email, password, name, role } = req.body;
@@ -47,7 +47,7 @@ const register = CatchAsyncErrors(async (req, res, next) => {
 
 
 const login = CatchAsyncErrors(async (req, res, next) => {
-  const {email, password} = req.body;
+  const { email, password } = req.body;
   if (!email || !password) {
     return next(new ErrorHandler('Email and password are required', 400));
   }
@@ -126,23 +126,23 @@ const forGotPassword = CatchAsyncErrors(async (req, res, next) => {
   const resetPasswordUrl = `${process.env.FRONTEND_URL}/password/reset/${resetToken}`;
   const message = await generationForgotPasswordEmailTemplate(resetPasswordUrl);
 
-try {
-  await sendEmail({
-    email: user.email,
-    subject: "Web Librarian Password Recovery",
-    message
-  });
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "Web Librarian Password Recovery",
+      message
+    });
 
-  res.status(200).json({
-    success: true,
-    message: `Email sent to ${user.email} successfully`,
-  });
-} catch (error) {
-  console.error('Error sending reset password email:', error); // Log lỗi chi tiết ra console
-  // Nếu lỗi gửi email, xóa token trong DB
-  await UserModel.clearResetToken(email);
-  return next(new ErrorHandler('Error sending reset password email', 500));
-}
+    res.status(200).json({
+      success: true,
+      message: `Email sent to ${user.email} successfully`,
+    });
+  } catch (error) {
+    console.error('Error sending reset password email:', error); // Log lỗi chi tiết ra console
+    // Nếu lỗi gửi email, xóa token trong DB
+    await UserModel.clearResetToken(email);
+    return next(new ErrorHandler('Error sending reset password email', 500));
+  }
 
 });
 

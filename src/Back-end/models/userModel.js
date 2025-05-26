@@ -34,7 +34,7 @@ const createUser = async (username, password, email, name, role = 'S') => {
 function getResetPasswordToken() {
   const resetToken = crypto.randomBytes(20).toString("hex");
   const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex");
-  const expires = new Date(Date.now() + 15 * 60 * 1000); // ✅ Phải là Date object
+  const expires = new Date(Date.now() + 15 * 60 * 1000);
   return {
     resetToken,
     hashedToken,
@@ -55,7 +55,7 @@ async function updateResetToken(email, hashedToken, expires) {
 async function clearResetToken(email) {
   const result = await pool.query(`
     UPDATE users
-    SET password = 123456
+    SET reset_token = NULL, reset_token_expire = NULL
     WHERE email = $1
     RETURNING *;
   `, [email]);
