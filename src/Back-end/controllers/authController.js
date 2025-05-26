@@ -48,7 +48,7 @@ const login = CatchAsyncErrors(async (req, res, next) => {
 
   const user = await UserModel.findUserByEmail(email);
   if (!user) return next(new ErrorHandler('Invalid email or password', 401));
-
+  
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return next(new ErrorHandler('Invalid email or password', 401));
 
@@ -56,7 +56,14 @@ const login = CatchAsyncErrors(async (req, res, next) => {
     expiresIn: '1d',
   });
 
-  res.json({
+  res
+  .cookie("token",token,{
+    expires: new Date(
+      Date.now() + process.env.COOKIE_EXPIRE*24*60*60*1000
+    ),
+    httpOnly: true
+  })
+  .json({
     success: true,
     token,
     user: {
@@ -69,7 +76,21 @@ const login = CatchAsyncErrors(async (req, res, next) => {
   });
 });
 
+const logout = CatchAsyncErrors(async (req,res,next)=>{
+  res
+  .status(200)
+  .cookie("token", "",{
+    expires: new Date(Date.now()),
+    httpOnly: true,
+  })
+  .json({
+    success: true,
+    message:"Logged out successfully"
+  })
+});
+
 module.exports = {
   register,
   login,
+  logout
 };

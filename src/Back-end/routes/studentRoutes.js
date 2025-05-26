@@ -1,5 +1,6 @@
 const express = require("express");
 const {getAllStudent,getStudentById,deleteStudent,updateStudent } = require("../controllers/studentController");
+const {  isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 
