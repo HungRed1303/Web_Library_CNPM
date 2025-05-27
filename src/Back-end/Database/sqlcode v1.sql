@@ -2,13 +2,12 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 17.4
--- Dumped by pg_dump version 17.4
+-- Dumped from database version 16.1 (Debian 16.1-1.pgdg120+1)
+-- Dumped by pg_dump version 16.1
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -335,7 +334,7 @@ ALTER SEQUENCE public.publishers_publisher_id_seq OWNED BY public.publishers.pub
 CREATE TABLE public.students (
     student_id integer NOT NULL,
     user_id integer NOT NULL,
-    class character varying(10) NOT NULL
+    class_id character varying(10)
 );
 
 
@@ -374,7 +373,9 @@ CREATE TABLE public.users (
     email character varying(100) NOT NULL,
     name character varying(100),
     role character varying(10),
-    CONSTRAINT role_check CHECK (((role)::text = ANY ((ARRAY['A'::character varying, 'L'::character varying, 'S'::character varying])::text[])))
+    reset_token character varying(255),
+    reset_token_expire timestamp without time zone,
+    CONSTRAINT role_check CHECK (((role)::text = ANY (ARRAY[('A'::character varying)::text, ('L'::character varying)::text, ('S'::character varying)::text])))
 );
 
 
@@ -400,6 +401,42 @@ ALTER SEQUENCE public.users_user_id_seq OWNER TO postgres;
 --
 
 ALTER SEQUENCE public.users_user_id_seq OWNED BY public.users.user_id;
+
+
+--
+-- Name: wishlist; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.wishlist (
+    wishlist_id integer NOT NULL,
+    student_id integer NOT NULL,
+    book_id integer NOT NULL,
+    created_date date DEFAULT CURRENT_DATE
+);
+
+
+ALTER TABLE public.wishlist OWNER TO postgres;
+
+--
+-- Name: wishlist_wishlist_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.wishlist_wishlist_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER SEQUENCE public.wishlist_wishlist_id_seq OWNER TO postgres;
+
+--
+-- Name: wishlist_wishlist_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.wishlist_wishlist_id_seq OWNED BY public.wishlist.wishlist_id;
 
 
 --
@@ -473,11 +510,18 @@ ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.u
 
 
 --
+-- Name: wishlist wishlist_id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.wishlist ALTER COLUMN wishlist_id SET DEFAULT nextval('public.wishlist_wishlist_id_seq'::regclass);
+
+
+--
 -- Data for Name: admins; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
 COPY public.admins (admin_id, user_id) FROM stdin;
-1	1
+3	13
 \.
 
 
@@ -489,8 +533,12 @@ COPY public.book_category (book_id, category_id) FROM stdin;
 1	1
 2	2
 3	3
-4	1
-4	3
+12	1
+13	1
+17	1
+18	1
+18	2
+19	1
 \.
 
 
@@ -499,9 +547,10 @@ COPY public.book_category (book_id, category_id) FROM stdin;
 --
 
 COPY public.book_issues (issue_id, book_id, student_id, issue_date, due_date, return_date, fine_amount, status) FROM stdin;
-1	1	1	2023-04-01	2023-04-15	\N	0	issued
 2	2	2	2023-04-05	2023-04-19	2023-04-20	10000	returned
 3	3	3	2023-04-10	2023-04-24	\N	0	issued
+5	1	1	2025-05-25	2025-06-08	\N	\N	pending
+4	1	1	2025-05-25	2025-06-08	2025-05-25	0	completed
 \.
 
 
@@ -510,9 +559,8 @@ COPY public.book_issues (issue_id, book_id, student_id, issue_date, due_date, re
 --
 
 COPY public.book_requests (request_id, book_id, student_id, request_date, status) FROM stdin;
-1	1	2	2023-04-10	pending
 2	3	1	2023-04-11	approved
-3	4	3	2023-04-12	pending
+4	1	1	2025-05-25	approved
 \.
 
 
@@ -521,10 +569,23 @@ COPY public.book_requests (request_id, book_id, student_id, request_date, status
 --
 
 COPY public.books (book_id, title, publisher_id, publication_year, quantity, availability, price, author) FROM stdin;
-1	Book A	1	2020-01-01	10	available	500000	Author A
 2	Book B	2	2019-01-01	5	available	450000	Author B
 3	Book C	3	2018-06-15	3	available	600000	Author C
-4	Book D	1	2021-03-10	7	available	550000	Author D
+6	Book D	1	2025-02-02	4	\N	20000	BKH
+7	Book D	1	2025-02-02	4	\N	20000	BKH
+8	Book D	1	2025-02-02	4	\N	20000	BKH
+9	Book D	1	2025-02-02	4	\N	20000	BKH
+10	Book D	1	2025-02-02	4	\N	20000	BKH
+11	Book D	1	2025-02-02	4	\N	20000	BKH
+12	Book D	1	2025-02-02	4	\N	20000	BKH
+13	Book D	1	2025-02-02	4	\N	20000	BKH
+14	Book D	1	2025-02-02	4	\N	20000	BKH
+15	Book D	1	2025-02-02	4	\N	20000	BKH
+16	Book D	1	2025-02-02	4	\N	20000	BKH
+17	Book D	1	2025-02-02	4	\N	20000	BKH
+18	Book D	1	2025-02-02	4	\N	20000	BKH
+1	Book A	1	2020-01-01	9	available	500000	Author A
+19	Book F	1	2025-02-02	4	\N	20000	BKH
 \.
 
 
@@ -536,6 +597,7 @@ COPY public.categories (category_id, name, description) FROM stdin;
 1	Science	Books related to science
 2	Fiction	Fictional stories and novels
 3	Technology	Books on software and engineering
+5	Romantic	LOVE
 \.
 
 
@@ -544,7 +606,8 @@ COPY public.categories (category_id, name, description) FROM stdin;
 --
 
 COPY public.librarians (librarian_id, user_id, start_date, end_date) FROM stdin;
-1	2	2023-01-01	\N
+2	16	2025-05-27	\N
+3	18	2025-05-27	\N
 \.
 
 
@@ -553,9 +616,9 @@ COPY public.librarians (librarian_id, user_id, start_date, end_date) FROM stdin;
 --
 
 COPY public.library_cards (card_id, student_id, start_date, end_date, status) FROM stdin;
-1	1	2023-01-01	2023-12-31	active
 2	2	2023-02-01	2023-12-31	active
 3	3	2023-03-01	2023-12-31	inactive
+7	1	2025-05-26	2027-05-26	completed
 \.
 
 
@@ -567,6 +630,7 @@ COPY public.publishers (publisher_id, name, address, phone_number) FROM stdin;
 1	Pearson	123 Main St	0123456789
 2	OReilly Media	456 Second St	0987654321
 3	McGraw Hill	789 Third St	0222333444
+4	Gia Hung	HCM CITY	033333333
 \.
 
 
@@ -574,10 +638,9 @@ COPY public.publishers (publisher_id, name, address, phone_number) FROM stdin;
 -- Data for Name: students; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.students (student_id, user_id, class) FROM stdin;
-1	3	CS101
-2	4	CS102
-3	5	CS103
+COPY public.students (student_id, user_id, class_id) FROM stdin;
+6	17	\N
+5	11	CS101
 \.
 
 
@@ -585,12 +648,20 @@ COPY public.students (student_id, user_id, class) FROM stdin;
 -- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.users (user_id, username, password, email, name, role) FROM stdin;
-1	admin01	pass123	admin01@example.com	Admin One	A
-2	librarian01	pass123	lib01@example.com	Lib One	L
-3	student01	pass123	student01@example.com	Student One	S
-4	student02	pass123	student02@example.com	Student Two	S
-5	student03	pass123	student03@example.com	Student Three	S
+COPY public.users (user_id, username, password, email, name, role, reset_token, reset_token_expire) FROM stdin;
+16	hungle	$2b$10$jHPgGH6S7J03BH2v7bTqnOba7y9EYa/PcGJ1CDYRG3TlT58Xn46Ui	leviethung4@gmail.com	VIET HUNG	L	\N	\N
+17	khanhhung	$2b$10$cLGnFyw0nSEQQIF3XOqFyOcJTDCXgcWgT8i41kW6CLj6S0CryWauu	khung@gmail.com	Hung Dien	S	\N	\N
+18	khanhhung1233	$2b$10$gOF/efY5baXezHaWTXGf.eyew6YqFR/iQf9HCtQEmSkGMnSXnKIQu	khung1111@gmail.com	Hung Khah	L	\N	\N
+11	hung	$2b$10$lnJBpgdKJcGB48SDSe.wO.rlKd5UlEa2tkWs.5zb4tpbvIXoehS8m	kh@gmail.com	Bui Hung	S	\N	\N
+13	reddo	$2b$10$Qy9MHoLDnosT8uRNmWUzxuTlOSXpEPUKqxOdes35nUS0VoEjYJ0Qe	leviethung1792k4@gmail.com	LÊ VIET HUNG	A	\N	\N
+\.
+
+
+--
+-- Data for Name: wishlist; Type: TABLE DATA; Schema: public; Owner: postgres
+--
+
+COPY public.wishlist (wishlist_id, student_id, book_id, created_date) FROM stdin;
 \.
 
 
@@ -598,70 +669,77 @@ COPY public.users (user_id, username, password, email, name, role) FROM stdin;
 -- Name: admins_admin_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.admins_admin_id_seq', 1, true);
+SELECT pg_catalog.setval('public.admins_admin_id_seq', 3, true);
 
 
 --
 -- Name: book_issues_issue_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.book_issues_issue_id_seq', 3, true);
+SELECT pg_catalog.setval('public.book_issues_issue_id_seq', 5, true);
 
 
 --
 -- Name: book_requests_request_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.book_requests_request_id_seq', 3, true);
+SELECT pg_catalog.setval('public.book_requests_request_id_seq', 4, true);
 
 
 --
 -- Name: books_book_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.books_book_id_seq', 4, true);
+SELECT pg_catalog.setval('public.books_book_id_seq', 19, true);
 
 
 --
 -- Name: categories_category_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.categories_category_id_seq', 3, true);
+SELECT pg_catalog.setval('public.categories_category_id_seq', 6, true);
 
 
 --
 -- Name: librarians_librarian_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.librarians_librarian_id_seq', 1, true);
+SELECT pg_catalog.setval('public.librarians_librarian_id_seq', 3, true);
 
 
 --
 -- Name: library_cards_card_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.library_cards_card_id_seq', 3, true);
+SELECT pg_catalog.setval('public.library_cards_card_id_seq', 7, true);
 
 
 --
 -- Name: publishers_publisher_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.publishers_publisher_id_seq', 3, true);
+SELECT pg_catalog.setval('public.publishers_publisher_id_seq', 4, true);
 
 
 --
 -- Name: students_student_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.students_student_id_seq', 3, true);
+SELECT pg_catalog.setval('public.students_student_id_seq', 6, true);
 
 
 --
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 5, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 18, true);
+
+
+--
+-- Name: wishlist_wishlist_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('public.wishlist_wishlist_id_seq', 4, true);
 
 
 --
@@ -769,6 +847,14 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: wishlist wishlist_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.wishlist
+    ADD CONSTRAINT wishlist_pkey PRIMARY KEY (wishlist_id);
+
+
+--
 -- Name: book_category fk_book; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -782,14 +868,6 @@ ALTER TABLE ONLY public.book_category
 
 ALTER TABLE ONLY public.book_issues
     ADD CONSTRAINT fk_book_issue_book FOREIGN KEY (book_id) REFERENCES public.books(book_id) ON DELETE CASCADE;
-
-
---
--- Name: book_issues fk_book_issue_student; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.book_issues
-    ADD CONSTRAINT fk_book_issue_student FOREIGN KEY (student_id) REFERENCES public.students(student_id) ON DELETE CASCADE;
 
 
 --
@@ -809,14 +887,6 @@ ALTER TABLE ONLY public.book_requests
 
 
 --
--- Name: book_requests fk_book_request_student; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.book_requests
-    ADD CONSTRAINT fk_book_request_student FOREIGN KEY (student_id) REFERENCES public.students(student_id) ON DELETE CASCADE;
-
-
---
 -- Name: book_category fk_category; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
@@ -825,35 +895,27 @@ ALTER TABLE ONLY public.book_category
 
 
 --
--- Name: library_cards fk_student_card; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.library_cards
-    ADD CONSTRAINT fk_student_card FOREIGN KEY (student_id) REFERENCES public.students(student_id) ON DELETE CASCADE;
-
-
---
--- Name: admins fk_user_admin; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.admins
-    ADD CONSTRAINT fk_user_admin FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
-
-
---
--- Name: librarians fk_user_librarian; Type: FK CONSTRAINT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.librarians
-    ADD CONSTRAINT fk_user_librarian FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
-
-
---
 -- Name: students fk_user_student; Type: FK CONSTRAINT; Schema: public; Owner: postgres
 --
 
 ALTER TABLE ONLY public.students
     ADD CONSTRAINT fk_user_student FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE;
+
+
+--
+-- Name: wishlist fk_wishlist_book; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.wishlist
+    ADD CONSTRAINT fk_wishlist_book FOREIGN KEY (book_id) REFERENCES public.books(book_id) ON DELETE CASCADE;
+
+
+--
+-- Name: wishlist fk_wishlist_student; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.wishlist
+    ADD CONSTRAINT fk_wishlist_student FOREIGN KEY (student_id) REFERENCES public.students(student_id) ON DELETE CASCADE;
 
 
 --

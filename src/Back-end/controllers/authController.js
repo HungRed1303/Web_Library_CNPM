@@ -174,8 +174,6 @@ const resetPassword = CatchAsyncErrors(async (req, res, next) => {
   });
 });
 
-
-
 module.exports = {
   register,
   login,
