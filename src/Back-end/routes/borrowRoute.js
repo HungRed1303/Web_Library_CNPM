@@ -1,6 +1,6 @@
 const express = require("express")
-const {   getAllBookIssue,  getAllBookRequest,getBookIssueById,getBookRequestById,deleteBookIssue,deleteBookRequest,borrowBook, issueBook, returnBook} = require("../controllers/borrowController");
-const {  isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware");
+const {getAllBookIssue,  getAllBookRequest,getBookIssueById,getBookRequestById,deleteBookIssue,deleteBookRequest,borrowBook, issueBook, returnBook} = require("../controllers/borrowController");
+const {isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware");
 const router = express.Router();
 
 // API thêm để xuất request và issue ra màn hình

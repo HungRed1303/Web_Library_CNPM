@@ -2,7 +2,7 @@ const pool = require('../Database/config.js');
 
 const getAllStudent = async () => {
   const result = await pool.query(
-    `SELECT s.student_id, u.username, u.email, u.name, s.class
+    `SELECT s.student_id, u.username, u.email, u.name, s.class_id   
      FROM students s
      JOIN users u ON s.user_id = u.user_id`
   );
@@ -11,7 +11,7 @@ const getAllStudent = async () => {
 
 const getStudentById = async (student_id) => {
   const result = await pool.query(
-    `SELECT s.student_id, u.username, u.email, u.name, s.class
+    `SELECT s.student_id, u.username, u.email, u.name, s.class_id
      FROM students s
      JOIN users u ON s.user_id = u.user_id
      WHERE s.student_id = $1`,

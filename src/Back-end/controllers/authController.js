@@ -11,7 +11,7 @@ const { generationForgotPasswordEmailTemplate } = require('../utils/emailTemplat
 const { getResetPasswordToken } = require('../models/userModel');
 
 const register = CatchAsyncErrors(async (req, res, next) => {
-  const { username, email, password, name, role } = req.body;
+  const { username, email, password, name, role = 'S' } = req.body;
 
   const existingUser = await UserModel.findUserByEmail(email);
   if (existingUser) {

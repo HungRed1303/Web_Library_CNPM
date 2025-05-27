@@ -44,7 +44,6 @@ app.use('/api/report',reportRoute);
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
 
 
 
