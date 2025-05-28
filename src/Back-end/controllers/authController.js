@@ -11,7 +11,7 @@ const { generationForgotPasswordEmailTemplate } = require('../utils/emailTemplat
 const { getResetPasswordToken } = require('../models/userModel');
 
 const register = CatchAsyncErrors(async (req, res, next) => {
-  const { username, email, password, name, role } = req.body;
+  const { username, email, password, name, role = 'S' } = req.body;
 
   const existingUser = await UserModel.findUserByEmail(email);
   if (existingUser) {
@@ -52,17 +52,23 @@ const login = CatchAsyncErrors(async (req, res, next) => {
     return next(new ErrorHandler('Email and password are required', 400));
   }
   const user = await UserModel.findUserByEmail(email);
-  if (!user) {
-    return next(new ErrorHandler('User not found', 404));
-  }
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    return next(new ErrorHandler('Invalid password', 401));
-  }
-  const token = jwt.sign({ user_id: user.user_id, role: user.role }, process.env.JWT_SECRET, {
-    expiresIn: '1h',
+  if (!user) return next(new ErrorHandler('Invalid email or password', 401));
+  
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) return next(new ErrorHandler('Invalid email or password', 401));
+
+  const token = jwt.sign({ id: user.user_id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: '1d',
   });
-  return res.status(200).json({
+
+  res
+  .cookie("token",token,{
+    expires: new Date(
+      Date.now() + process.env.COOKIE_EXPIRE*24*60*60*1000
+    ),
+    httpOnly: true
+  })
+  .json({
     success: true,
     token,
     user: {
@@ -174,11 +180,23 @@ const resetPassword = CatchAsyncErrors(async (req, res, next) => {
   });
 });
 
-
+const logout = CatchAsyncErrors(async (req,res,next)=>{
+  res
+  .status(200)
+  .cookie("token", "",{
+    expires: new Date(Date.now()),
+    httpOnly: true,
+  })
+  .json({
+    success: true,
+    message:"Logged out successfully"
+  })
+});
 
 module.exports = {
   register,
   login,
   forGotPassword,
   resetPassword,
+  logout,
 };

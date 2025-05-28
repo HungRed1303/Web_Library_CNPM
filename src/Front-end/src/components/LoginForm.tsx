@@ -3,8 +3,6 @@ import { Eye, EyeOff } from "lucide-react"
 import {loginUser} from "../service/Services"
 import { useNavigate } from "react-router-dom"
 
-// import React from "react"
-
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
@@ -20,7 +18,7 @@ const handleLoginSuccess = (role) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true);
-    setError('')
+    setError('');
 
     const result = await loginUser(email, password);
 

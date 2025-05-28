@@ -1,0 +1,112 @@
+const pool = require('../Database/config')
+
+const getAllBook = async ()=>{
+    const result = await pool.query(`
+        SELECT b.book_id, b.title,b.publisher_id, b.publication_year, b.quantity, b.availability, b.price, b.author
+        FROM books b
+        `);
+        
+        return result.rows;
+}
+
+const getBookById = async (book_id)=>{
+  
+  const result = await pool.query(`
+    SELECT b.book_id, b.title,b.publisher_id, b.publication_year, b.quantity, b.availability, b.price, b.author
+    FROM books b
+    WHERE b.book_id = $1 
+    `,[book_id]);
+
+    return result.rows[0];
+}
+
+
+const findBooks = async (title, author, category) => {
+  let baseQuery = `
+    SELECT b.*, c.name AS category_name
+    FROM books b
+    JOIN book_category bc ON b.book_id = bc.book_id
+    JOIN categories c ON bc.category_id = c.category_id
+    WHERE 1=1
+  `;
+
+  const params = [];
+  let index = 1;
+
+  if (title) {
+    baseQuery += ` AND LOWER(b.title) LIKE LOWER($${index++})`;
+    params.push(`%${title}%`);
+  }
+  if (author) {
+    baseQuery += ` AND LOWER(b.author) LIKE LOWER($${index++})`;
+    params.push(`%${author}%`);
+  }
+  if (category) {
+    baseQuery += ` AND LOWER(c.name) LIKE LOWER($${index++})`;
+    params.push(`%${category}%`);
+  }
+
+  const result = await pool.query(baseQuery, params);
+  return result.rows;
+};
+
+
+
+
+
+const createBook = async(title, publisher_id,  publication_year, quantity, availability, price, author) =>{
+   const result =await pool.query(`
+    INSERT INTO books (title, publisher_id,  publication_year, quantity, availability, price, author)
+    VALUES ($1,$2,$3,$4,$5,$6,$7)
+    RETURNING book_id
+    `,
+    [title, publisher_id,  publication_year, quantity, availability, price, author]);
+    return result.rows[0]; 
+}
+
+const updateBook = async (book_id, title, publisher_id, publication_year, quantity, availability, price, author)=>{
+  const result = await pool.query(`
+   UPDATE books
+   SET title = $1, publisher_id = $2,  publication_year = $3, quantity = $4, availability = $5, price = $6, author = $7
+   WHERE book_id = $8
+    `,
+    [ title, publisher_id, publication_year, quantity, availability, price, author, book_id]);
+    if(result.rowCount == 0){
+        return null;
+    }
+     
+    return {
+       title, publisher_id, publication_year, quantity, availability, price, author  
+    }
+    
+}
+
+const deleteBook = async (book_id) => {
+   const result = await pool.query(`
+    SELECT *
+    FROM books
+    WHERE books.book_id = $1
+    `,
+    [book_id]);
+
+    if(result.rowCount == 0){
+        return null;
+    }
+
+    await pool.query(`
+        DELETE FROM books 
+        WHERE book_id = $1
+        `,
+        [book_id]);
+
+     return true;
+}
+
+module.exports={
+    getAllBook,
+    getBookById,
+    createBook,
+    updateBook,
+    deleteBook,
+    findBooks
+}
