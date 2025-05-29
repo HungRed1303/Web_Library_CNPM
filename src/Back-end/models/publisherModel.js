@@ -28,13 +28,13 @@ const createPublisher = async (name, address, phone_number) => {
   return result.rows[0];
 }
 
-const updatePublisher = async (publisher_id, name, address, phone_number) => {
+const updatePublisher = async (publisher_id, name, address, phone_number, email) => {
   const result = await pool.query(
     `UPDATE publishers
-     SET name = $1, address = $2, phone_number = $3
-     WHERE publisher_id = $4
+     SET name = $1, address = $2, phone_number = $3, email = $4
+     WHERE publisher_id = $5
      RETURNING *`,
-    [name, address, phone_number, publisher_id]
+    [name, address, phone_number, email, publisher_id]
   );
   return result.rows[0];
 }
