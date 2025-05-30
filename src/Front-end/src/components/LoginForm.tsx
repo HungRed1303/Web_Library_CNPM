@@ -45,111 +45,111 @@ const handleLoginSuccess = (role) => {
     setLoading(false);
   }
 
-  return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-[30%] -left-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-pink-600/20 to-transparent blur-3xl"></div>
-        <div className="absolute -bottom-[30%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-tl from-pink-600/20 to-transparent blur-3xl"></div>
-      </div>
+return (
+  <div className="min-h-screen bg-[#467DA7] flex items-center justify-center p-4">
+    <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute -top-[30%] -left-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-[#FFFCDE]/20 to-transparent blur-3xl"></div>
+      <div className="absolute -bottom-[30%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-tl from-[#FFFCDE]/20 to-transparent blur-3xl"></div>
+    </div>
 
-      <div className="w-full max-w-[700px] z-10">
-        <div className="bg-black border border-pink-600/30 rounded-2xl shadow-xl shadow-pink-600/10 pt-6 pb-6 px-40 backdrop-blur-sm">
-          <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-            <p className="text-pink-300">Sign in to your account</p>
+    <div className="w-full max-w-[700px] z-10">
+      <div className="bg-[#467DA7] border border-[#FFFCDE]/30 rounded-2xl shadow-xl shadow-[#FFFCDE]/10 pt-6 pb-6 px-40 backdrop-blur-sm">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
+          <p className="text-[#FFFCDE]">Sign in to your account</p>
+        </div>
+
+        <div className="space-y-6">
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-sm font-medium text-[#FFFCDE]">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full pr-10 pl-2 py-2 bg-white/10 border border-[#FFFCDE]/30 rounded-md text-white placeholder:text-[#FFFCDE]/50 focus:outline-none focus:ring-2 focus:ring-[#FFFCDE] focus:border-[#FFFCDE] transition-colors"
+            />
           </div>
 
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium text-pink-100">
-                Email
-              </label>
+          <div className="space-y-2">
+            <label htmlFor="password" className="text-sm font-medium text-[#FFFCDE]">
+              Password
+            </label>
+            <div className="relative">
               <input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pr-10 pl-2 py-2 bg-black/50 border border-pink-600/30 rounded-md text-white placeholder:text-pink-300/50 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:border-pink-600 transition-colors"
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pr-10 pl-2 py-2 bg-white/10 border border-[#FFFCDE]/30 rounded-md text-white placeholder:text-[#FFFCDE]/50 focus:outline-none focus:ring-2 focus:ring-[#FFFCDE] focus:border-[#FFFCDE] transition-colors"
               />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium text-pink-100">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pr-10 pl-2 py-2 bg-black/50 border border-pink-600/30 rounded-md text-white placeholder:text-pink-300/50 focus:outline-none focus:ring-2 focus:ring-pink-600 focus:border-pink-600 transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-pink-300 hover:text-pink-100 transition-colors"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-4 w-4 rounded border-pink-600/30 bg-black text-pink-600 focus:ring-pink-600 focus:ring-offset-black accent-pink-600"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-pink-100">
-                  Remember me
-                </label>
-              </div>
-              <div className="text-sm">
-                <button
-                  type="button"
-                  onClick={() => alert("Forgot password functionality would be implemented here")}
-                  className="font-medium text-pink-400 hover:text-pink-300 transition-colors"
-                >
-                  Forgot password?
-                </button>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleSubmit}
-              className="w-full bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-pink-600/50 transform hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Sign in
-            </button>
-
-            <div className="mt-4 text-center text-sm">
-              <span className="text-pink-300">Don't have an account? </span>
               <button
                 type="button"
-                onClick={() => alert("Sign up functionality would be implemented here")}
-                className="font-medium text-pink-400 hover:text-pink-300 transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#FFFCDE] hover:text-white transition-colors"
               >
-                Sign up
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </div>
-        </div>
 
-        <div className="mt-8 text-center">
-          <p className="text-xs text-pink-300/70">
-            © {new Date().getFullYear()} BLACKPINK Inspired. All rights reserved.
-          </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded border-[#FFFCDE]/30 bg-[#467DA7] text-[#FFFCDE] focus:ring-[#FFFCDE] focus:ring-offset-[#467DA7] accent-[#FFFCDE]"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-[#FFFCDE]">
+                Remember me
+              </label>
+            </div>
+            <div className="text-sm">
+              <button
+                type="button"
+                onClick={() => alert("Forgot password functionality would be implemented here")}
+                className="font-medium text-[#FFFCDE] hover:text-white transition-colors"
+              >
+                Forgot password?
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleSubmit}
+            className="w-full bg-[#FFFCDE] hover:bg-[#e5e2c7] text-[#467DA7] font-bold py-3 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-[#FFFCDE]/50 transform hover:scale-[1.02] active:scale-[0.98]"
+          >
+            Sign in
+          </button>
+
+          <div className="mt-4 text-center text-sm">
+            <span className="text-[#FFFCDE]">Don't have an account? </span>
+            <button
+              type="button"
+              onClick={() => alert("Sign up functionality would be implemented here")}
+              className="font-medium text-[#FFFCDE] hover:text-white transition-colors"
+            >
+              Sign up
+            </button>
+          </div>
         </div>
       </div>
+
+      <div className="mt-8 text-center">
+        <p className="text-xs text-[#FFFCDE]/70">
+          © {new Date().getFullYear()} BLUECREAM Inspired. All rights reserved.
+        </p>
+      </div>
     </div>
-  )
+  </div>
+)
 }
 
 export default LoginForm

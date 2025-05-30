@@ -20,12 +20,8 @@ const config = {
     },
     extend: {
       colors: {
-        pink: {
-          '300': '#FF8DC7',
-          '400': '#FF69B4',
-          '600': '#FF1493',
-          '700': '#C71585'
-        },
+        blue: '#467DA7',
+        cream: '#FFFCDE',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
