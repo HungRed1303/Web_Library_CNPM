@@ -9,10 +9,10 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 
 /** ==============================================================
  *  PublisherManagementPage – Add / Edit / Delete
- *  Professional dark theme with restrained neon‑pink accents
- *  Font  : Tahoma – headings 20 px bold uppercase, body 16 px
+ *  Professional dark theme with restrained neon-pink accents
+ *  Font  : Tahoma – headings 20 px bold uppercase, body 16 px
  *  Colors: Deep charcoal bg (#0d0d0d) · Accent #ff2df2 / #e600c8
- *  UX    : Softer shadows, focus rings, mobile‑first responsive
+ *  UX    : Softer shadows, focus rings, mobile-first responsive
  *  NOTE  : Requires lucide-react + TailwindCSS 3
  * ============================================================*/
 
@@ -63,7 +63,12 @@ const PublisherManagementPage: React.FC = () => {
   };
   const openEdit = (p: Publisher) => {
     setActive(p);
-    setForm({ name: p.name, address: p.address, email: p.email, phone_number: p.phone_number });
+    setForm({
+      name: p.name,
+      address: p.address,
+      email: p.email,
+      phone_number: p.phone_number,
+    });
     setFormErrors({});
     setModal("edit");
   };
@@ -160,8 +165,11 @@ const PublisherManagementPage: React.FC = () => {
             <table className="w-full text-sm leading-6">
               <thead className="bg-[#141414] text-pink-200">
                 <tr>
-                  {["ID", "Name", "Email", "Phone", "Actions"].map((h) => (
-                    <th key={h} className="px-3 py-2 border-b border-[#262626] text-left">
+                  {["ID", "Name", "Email", "Phone", "Address", "Actions"].map((h) => (
+                    <th
+                      key={h}
+                      className="px-3 py-2 border-b border-[#262626] text-left"
+                    >
                       {h}
                     </th>
                   ))}
@@ -174,6 +182,7 @@ const PublisherManagementPage: React.FC = () => {
                     <td className="px-3 py-2 border-b">{p.name}</td>
                     <td className="px-3 py-2 border-b">{p.email}</td>
                     <td className="px-3 py-2 border-b">{p.phone_number}</td>
+                    <td className="px-3 py-2 border-b">{p.address}</td>
                     <td className="px-3 py-2 border-b space-x-2">
                       <IconBtn icon={<Pencil size={16} />} onClick={() => openEdit(p)} />
                       <IconBtn icon={<Trash2 size={16} />} onClick={() => openDelete(p)} color="red" />
@@ -187,7 +196,10 @@ const PublisherManagementPage: React.FC = () => {
           {/* ---------- CARDS – MOBILE ---------- */}
           <div className="flex flex-col gap-4 mt-6 md:hidden">
             {publishers.map((p) => (
-              <div key={p.publisher_id} className="bg-[#141414] border border-[#1e1e1e] rounded-lg p-4">
+              <div
+                key={p.publisher_id}
+                className="bg-[#141414] border border-[#1e1e1e] rounded-lg p-4"
+              >
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="font-bold text-pink-200">{p.name}</h3>
                   <div className="flex gap-2">
@@ -197,7 +209,8 @@ const PublisherManagementPage: React.FC = () => {
                 </div>
                 <p className="text-xs mb-1">ID: {p.publisher_id}</p>
                 <p className="text-xs mb-1">Email: {p.email}</p>
-                <p className="text-xs">Phone: {p.phone_number}</p>
+                <p className="text-xs mb-1">Phone: {p.phone_number}</p>
+                <p className="text-xs mb-1">Address: {p.address}</p>
               </div>
             ))}
           </div>
@@ -232,7 +245,9 @@ const PublisherManagementPage: React.FC = () => {
                     className={inputCls(formErrors[f])}
                   />
                 )}
-                {formErrors[f] && <p className="text-xs text-yellow-300 mt-1">{formErrors[f]}</p>}
+                {formErrors[f] && (
+                  <p className="text-xs text-yellow-300 mt-1">{formErrors[f]}</p>
+                )}
               </div>
             ))}
 
@@ -303,7 +318,11 @@ const Backdrop: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   </div>
 );
 
-const IconBtn: React.FC<{ icon: React.ReactElement; onClick: () => void; color?: "red" }> = ({ icon, onClick, color }) => (
+const IconBtn: React.FC<{
+  icon: React.ReactElement;
+  onClick: () => void;
+  color?: "red";
+}> = ({ icon, onClick, color }) => (
   <button
     onClick={onClick}
     className={`p-1 rounded-md hover:bg-${color === "red" ? "red" : "pink"}-500/20 focus-visible:ring-2 focus-visible:ring-${color === "red" ? "red" : "pink"}-400 transition`}
