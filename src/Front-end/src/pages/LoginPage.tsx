@@ -1,5 +1,5 @@
 import LoginForm from "../components/LoginForm"
-
+import Footer from "../components/Footer"
 const LoginPage = () => {
   return (
     <main className="min-h-screen bg-black flex items-center justify-center p-4">
