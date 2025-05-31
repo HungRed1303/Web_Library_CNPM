@@ -141,7 +141,7 @@ const issueBook = CatchAsyncErrors(async (req,res,next)=>{
     }
     
    const quantity = book.quantity - 1;
-   let availability = quantity > 0 ? "available" : "unavailable";
+   let availability = quantity > 0 ? "available" : "Not";
   let publication_year = toSQLDate(book.publication_year);
    const result0 = await BookModel.updateBook(book_id,book.title,book.publisher_id,publication_year,quantity,availability,book.price,book.author);
 
@@ -192,7 +192,7 @@ const returnBook = CatchAsyncErrors(async (req,res,next)=>{
     }
     let quantity = book.quantity + 1;
 
-    let availability = quantity > 0 ? "available" : "unavailable";
+    let availability = quantity > 0 ? "available" : "Not";
     const result0 = await BookModel.updateBook(book_id,book.title,book.publisher_id, toSQLDate(book.publication_year),quantity,availability,book.price,book.author);
     
     const returnDate = toSQLDate(new Date());
