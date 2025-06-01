@@ -16,7 +16,7 @@ const reportRoute = require("./routes/reportRoute")
 const {errorMiddleware} = require('./middlewares/errorMiddlewares');
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const { notifyStudents } = require('./services/notifyStudents');
+// const { notifyStudents } = require('./services/notifyStudents');
 
 const app = express();
 const port = 3000;
@@ -47,5 +47,5 @@ app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
 
-notifyStudents(); 
+// notifyStudents(); 
 
