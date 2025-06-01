@@ -46,22 +46,17 @@ const handleLoginSuccess = (role) => {
   }
 
 return (
-  <div className="min-h-screen bg-[#467DA7] flex items-center justify-center p-4">
-    <div className="absolute inset-0 overflow-hidden">
-      <div className="absolute -top-[30%] -left-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-br from-[#FFFCDE]/20 to-transparent blur-3xl"></div>
-      <div className="absolute -bottom-[30%] -right-[10%] w-[70%] h-[70%] rounded-full bg-gradient-to-tl from-[#FFFCDE]/20 to-transparent blur-3xl"></div>
-    </div>
-
+  <div className="min-h-screen bg-cream flex items-center justify-center p-4">
     <div className="w-full max-w-[700px] z-10">
-      <div className="bg-[#467DA7] border border-[#FFFCDE]/30 rounded-2xl shadow-xl shadow-[#FFFCDE]/10 pt-6 pb-6 px-40 backdrop-blur-sm">
+      <div className="bg-cream border border-blue-600/30 rounded-2xl shadow-xl shadow-blue-600/10 pt-5 pb-5 px-40 backdrop-blur-sm">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-[#FFFCDE]">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-blue-800 mb-2">Welcome Back</h1>
+          <p className="text-blue-600">Sign in to your account</p>
         </div>
 
-        <div className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
-            <label htmlFor="email" className="text-sm font-medium text-[#FFFCDE]">
+            <label htmlFor="email" className="text-sm font-medium text-blue-800">
               Email
             </label>
             <input
@@ -70,12 +65,12 @@ return (
               placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full pr-10 pl-2 py-2 bg-white/10 border border-[#FFFCDE]/30 rounded-md text-white placeholder:text-[#FFFCDE]/50 focus:outline-none focus:ring-2 focus:ring-[#FFFCDE] focus:border-[#FFFCDE] transition-colors"
+              className="w-full pr-10 pl-2 py-2 bg-white border border-blue-600/40 rounded-md text-blue-900 placeholder:text-blue-600/60 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
             />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium text-[#FFFCDE]">
+            <label htmlFor="password" className="text-sm font-medium text-blue-800">
               Password
             </label>
             <div className="relative">
@@ -85,12 +80,12 @@ return (
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full pr-10 pl-2 py-2 bg-white/10 border border-[#FFFCDE]/30 rounded-md text-white placeholder:text-[#FFFCDE]/50 focus:outline-none focus:ring-2 focus:ring-[#FFFCDE] focus:border-[#FFFCDE] transition-colors"
+                className="w-full pr-10 pl-2 py-2 bg-white border border-blue-600/40 rounded-md text-blue-900 placeholder:text-blue-600/60 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#FFFCDE] hover:text-white transition-colors"
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-600 hover:text-blue-800 transition-colors"
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -104,9 +99,9 @@ return (
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
-                className="h-4 w-4 rounded border-[#FFFCDE]/30 bg-[#467DA7] text-[#FFFCDE] focus:ring-[#FFFCDE] focus:ring-offset-[#467DA7] accent-[#FFFCDE]"
+                className="h-4 w-4 rounded border-blue-600/40 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-cream accent-blue-600"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-[#FFFCDE]">
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-blue-800">
                 Remember me
               </label>
             </div>
@@ -114,37 +109,41 @@ return (
               <button
                 type="button"
                 onClick={() => alert("Forgot password functionality would be implemented here")}
-                className="font-medium text-[#FFFCDE] hover:text-white transition-colors"
+                className="font-medium text-blue-600 hover:text-blue-800"
               >
                 Forgot password?
               </button>
             </div>
           </div>
 
+          {error && (
+            <p className="text-red-600 text-sm text-center">{error}</p>
+          )}
+
           <button
-            type="button"
-            onClick={handleSubmit}
-            className="w-full bg-[#FFFCDE] hover:bg-[#e5e2c7] text-[#467DA7] font-bold py-3 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-[#FFFCDE]/50 transform hover:scale-[1.02] active:scale-[0.98]"
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-blue-600/30"
           >
-            Sign in
+            {loading ? 'Signing in...' : 'Sign in'}
           </button>
 
           <div className="mt-4 text-center text-sm">
-            <span className="text-[#FFFCDE]">Don't have an account? </span>
+            <span className="text-blue-700">Don't have an account? </span>
             <button
               type="button"
               onClick={() => alert("Sign up functionality would be implemented here")}
-              className="font-medium text-[#FFFCDE] hover:text-white transition-colors"
+              className="font-medium text-blue-600 hover:text-blue-800"
             >
               Sign up
             </button>
           </div>
-        </div>
+        </form>
       </div>
 
       <div className="mt-8 text-center">
-        <p className="text-xs text-[#FFFCDE]/70">
-          © {new Date().getFullYear()} BLUECREAM Inspired. All rights reserved.
+        <p className="text-xs text-blue-600/70">
+          © {new Date().getFullYear()} Blue Cream Design. All rights reserved.
         </p>
       </div>
     </div>

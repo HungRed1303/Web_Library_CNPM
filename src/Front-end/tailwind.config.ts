@@ -20,8 +20,16 @@ const config = {
     },
     extend: {
       colors: {
-        blue: '#467DA7',
-        cream: '#FFFCDE',
+        cream: "#FEFEFE",
+        blue: {
+          300: "#4A6B8A",
+          400: "#3E5F7E",
+          500: "#325372",
+          600: "#033060",
+          700: "#022754",
+          800: "#021E48",
+          900: "#01153C",
+        },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
