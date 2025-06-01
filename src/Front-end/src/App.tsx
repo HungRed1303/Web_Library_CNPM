@@ -1,20 +1,30 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// src/App.tsx
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+
+import MainLayout from "./components/MainLayout";
 import LoginPage from "./pages/LoginPage";
-import PublisherManagementPage from "./pages/PublisherManagementPage";
+import PublisherManagementPage from "./pages/PublisherManagementPage"; // ví dụ
+import HomePage from "./pages/HomePage.tsx";
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* ----------------------- Public / Auth routes ----------------------- */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path='/admin/publishers' element={<PublisherManagementPage />} />
-        {/* Add more routes here as needed */}
+
+        {/* ----------------------- Protected (Header + Sidebar) ----------------------- */}
+        <Route element={<MainLayout />}>
+          <Route path="/admin/publishers" element={<PublisherManagementPage />} />
+          <Route path="/admin/home" element={<HomePage />} />
+          {/* Thêm các Route con ở đây */}
+        </Route>
+
+        {/* ----------------------- Catch-all ----------------------- */}
+        <Route path="*" element={<Navigate to="/admin/home" replace />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
-
-
-
