@@ -3,8 +3,8 @@ const {getAllBook,getBookById, createBook, updateBook, deleteBook } = require('.
 const {  isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware");
 const router = express.Router();
 
-router.get("/",isAuthenticated,getAllBook);
-router.get("/:id",isAuthenticated,getBookById);
+router.get("/", getAllBook);
+router.get("/:id", getBookById);
 router.post("/",isAuthenticated,isAuthorized("A","L"),createBook);
 router.put("/:id",isAuthenticated,isAuthorized("A","L"),updateBook);
 router.delete("/:id",isAuthenticated,isAuthorized("A","L"),deleteBook);

@@ -3,9 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 
 import MainLayout from "./components/MainLayout";
 import LoginPage from "./pages/LoginPage";
-import PublisherManagementPage from "./pages/PublisherManagementPage"; // ví dụ
+import PublisherManagementPage from "./pages/PublisherManagementPage";
 import HomePage from "./pages/HomePage.tsx";
 import CategoryManagementPage from "./pages/CategoryManagementPage"; 
+import BookManagementPage from "./pages/BookManagementPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/admin/publishers" element={<PublisherManagementPage />} />
           <Route path="/admin/home" element={<HomePage />} />
           <Route path="/admin/category" element={<CategoryManagementPage />} />
+          <Route path="/admin/book" element={<BookManagementPage />} />
           {/* Thêm các Route con ở đây */}
         </Route>
 

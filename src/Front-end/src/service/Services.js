@@ -115,3 +115,66 @@ export const deleteCategoryById = async (id) => {
   });
   if (!res.ok) throw new Error("DELETE /categories/:id failed");
 };
+
+/* ---------------- 4. BOOKS ---------------- */
+/**
+ * @returns {Promise<{ data: object[] }>}
+ */
+export const getAllBooks = async () => {
+  const res = await fetch(`${BASE}/books`);
+  if (!res.ok) throw new Error("GET /books failed");
+  return res.json(); // { data: [...] }
+};
+
+/**
+ * @param {{
+ *   title: string;
+ *   publisher_id: number;
+ *   publication_year: number;
+ *   quantity: number;
+ *   availability: boolean;
+ *   price: number;
+ *   author: string;
+ * }} body
+ */
+export const createBook = async (body) => {
+  const res = await fetch(`${BASE}/books`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error("POST /books failed");
+  return res.json();
+};
+
+/**
+ * @param {number} id
+ * @param {{
+ *   title: string;
+ *   publisher_id: number;
+ *   publication_year: number;
+ *   quantity: number;
+ *   availability: boolean;
+ *   price: number;
+ *   author: string;
+ * }} body
+ */
+export const updateBookById = async (id, body)=> {
+  const res = await fetch(`${BASE}/books/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error("PUT /books/:id failed");
+  return res.json();
+};
+
+/**
+ * @param {number} id
+ */
+export const deleteBookById = async (id) => {
+  const res = await fetch(`${BASE}/books/${id}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error("DELETE /books/:id failed");
+};
