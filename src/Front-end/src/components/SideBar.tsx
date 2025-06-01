@@ -29,6 +29,7 @@ const navItems = [
   { icon: <ListChecks size={20} />, label: "Wishlist", href: "/admin/wishlist" },
   { icon: <BarChart2 size={20} />, label: "Reports", href: "/admin/reports" },
   { icon: <BarChart2 size={20} />, label: "Publisher", href: "/admin/publishers" },
+  { icon: <BarChart2 size={20} />, label: "Category", href: "/admin/category" },
   { icon: <Settings size={20} />, label: "Settings", href: "/admin/settings" },
 ];
 

@@ -2,7 +2,7 @@ const pool = require("../Database/config")
 
 const getAllCategory = async ()=>{
     const result =await pool.query(`
-        SELECT name, description
+        SELECT category_id, name, description
         FROM categories
         `);
 

@@ -5,6 +5,7 @@ import MainLayout from "./components/MainLayout";
 import LoginPage from "./pages/LoginPage";
 import PublisherManagementPage from "./pages/PublisherManagementPage"; // ví dụ
 import HomePage from "./pages/HomePage.tsx";
+import CategoryManagementPage from "./pages/CategoryManagementPage"; 
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/admin/publishers" element={<PublisherManagementPage />} />
           <Route path="/admin/home" element={<HomePage />} />
+          <Route path="/admin/category" element={<CategoryManagementPage />} />
           {/* Thêm các Route con ở đây */}
         </Route>
 
