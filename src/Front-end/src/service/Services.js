@@ -64,7 +64,7 @@ export const forgotPassword = async (email) => {
   }
 
   try {
-    const response = await fetch("http://localhost:3000/api/auth/forgot-password", {
+    const response = await fetch("http://localhost:3000/api/auth/password/forgot", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
@@ -78,6 +78,33 @@ export const forgotPassword = async (email) => {
       return {
         success: false,
         error: result.error || "Không thể gửi yêu cầu đặt lại mật khẩu.",
+      };
+    }
+  } catch (err) {
+    return { success: false, error: "Lỗi mạng hoặc máy chủ không phản hồi." };
+  }
+};
+
+export const resetPassword = async (email, password) => {
+  if (!email || !password) {
+    return { success: false, error: "Email và mật khẩu mới là bắt buộc." };
+  }
+
+  try {
+    const response = await fetch("http://localhost:3000/api/auth/password/reset/:token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      return { success: true, message: "Mật khẩu đã được đặt lại thành công." };
+    } else {
+      return {
+        success: false,
+        error: result.error || "Không thể đặt lại mật khẩu.",
       };
     }
   } catch (err) {

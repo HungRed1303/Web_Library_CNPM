@@ -1,112 +1,96 @@
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "../hooks/use-toast"
-import { useNavigate } from "react-router-dom"
-import { registerUser } from "../service/Services"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { resetPassword } from "../service/Services"
 
-export default function RegisterForm() {
+export default function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [formData, setFormData] = useState({
-    username: "",
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-  })
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [errors, setErrors] = useState({
-    username: "",
-    name: "",
-    email: "",
     password: "",
     confirmPassword: "",
   })
-
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const token = searchParams.get("token")
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }))
-    if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }))
+  useEffect(() => {
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Invalid or missing reset token.",
+        className: "bg-red-600 text-white border-red-400",
+      })
+      navigate("/password/forgot")
     }
-  }
+  }, [token, navigate, toast])
 
   const validateForm = () => {
     let valid = true
     const newErrors = {
-      username: "",
-      name: "",
-      email: "",
       password: "",
       confirmPassword: "",
     }
-    if (!formData.username.trim()) {
-      newErrors.username = "Username is required"
-      valid = false
-    }
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required"
-      valid = false
-    }
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required"
-      valid = false
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid"
-      valid = false
-    }
-    if (!formData.password) {
+
+    if (!password) {
       newErrors.password = "Password is required"
       valid = false
-    } else if (formData.password.length < 6) {
+    } else if (password.length < 6) {
       newErrors.password = "Password must be at least 6 characters"
       valid = false
     }
-    if (formData.password !== formData.confirmPassword) {
+
+    if (password !== confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match"
       valid = false
     }
+
     setErrors(newErrors)
     return valid
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (validateForm()) {
-      const result = await registerUser(formData.username, formData.email, formData.password, formData.name)
+
+    if (!validateForm()) return
+    setIsSubmitting(true)
+
+    try {
+      const result = await resetPassword(token, password)
+      
       if (result.success) {
         toast({
           title: "Success!",
-          description: "New account created!",
+          description: result.message,
           className: "bg-pink-600 text-white border-pink-400",
         })
-        setFormData({
-          username: "",
-          name: "",
-          email: "",
-          password: "",
-          confirmPassword: "",
-        })
+
+        // Redirect to login page after a short delay
         setTimeout(() => {
           navigate("/login")
-        }, 1200)
+        }, 1500)
       } else {
         toast({
-          title: "Registration Failed",
-          description: result.error || "Registration failed.",
+          title: "Error",
+          description: result.error,
           className: "bg-red-600 text-white border-red-400",
         })
       }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred.",
+        className: "bg-red-600 text-white border-red-400",
+      })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -123,74 +107,17 @@ export default function RegisterForm() {
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-xl border border-[#033060] shadow-[0_0_15px_rgba(3,48,96,0.5)] z-10">
         <div className="text-center">
           <h1 className="text-3xl font-bold tracking-tight text-[#033060]" style={{ fontFamily: "Tahoma, sans-serif" }}>
-            REGISTER
+            RESET PASSWORD
           </h1>
           <div className="h-1 w-24 bg-[#033060] mx-auto mt-2 rounded-full shadow-[0_0_10px_rgba(3,48,96,0.7)]"></div>
         </div>
+        <p className="text-gray-300 text-center" style={{ fontFamily: "Tahoma, sans-serif" }}>
+          Create a new password for your account
+        </p>
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-1">
-            <label htmlFor="username" className="text-[#033060] font-medium" style={{ fontFamily: "Tahoma, sans-serif" }}>
-              Username
-            </label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              placeholder="yourusername"
-              value={formData.username}
-              onChange={handleChange}
-              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060] shadow-[0_0_5px_rgba(3,48,96,0.3)] focus:shadow-[0_0_10px_rgba(3,48,96,0.5)]"
-              style={{ fontFamily: "Tahoma, sans-serif" }}
-            />
-            {errors.username && (
-              <p className="text-red-400 text-xs mt-1" style={{ fontFamily: "Tahoma, sans-serif" }}>
-                {errors.username}
-              </p>
-            )}
-          </div>
-          <div className="space-y-1">
-            <label htmlFor="name" className="text-[#033060] font-medium" style={{ fontFamily: "Tahoma, sans-serif" }}>
-              Name
-            </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              placeholder="John Doe"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060] shadow-[0_0_5px_rgba(3,48,96,0.3)] focus:shadow-[0_0_10px_rgba(3,48,96,0.5)]"
-              style={{ fontFamily: "Tahoma, sans-serif" }}
-            />
-            {errors.name && (
-              <p className="text-red-400 text-xs mt-1" style={{ fontFamily: "Tahoma, sans-serif" }}>
-                {errors.name}
-              </p>
-            )}
-          </div>
-          <div className="space-y-1">
-            <label htmlFor="email" className="text-[#033060] font-medium" style={{ fontFamily: "Tahoma, sans-serif" }}>
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="your@email.com"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060] shadow-[0_0_5px_rgba(3,48,96,0.3)] focus:shadow-[0_0_10px_rgba(3,48,96,0.5)]"
-              style={{ fontFamily: "Tahoma, sans-serif" }}
-            />
-            {errors.email && (
-              <p className="text-red-400 text-xs mt-1" style={{ fontFamily: "Tahoma, sans-serif" }}>
-                {errors.email}
-              </p>
-            )}
-          </div>
-          <div className="space-y-1">
             <label htmlFor="password" className="text-[#033060] font-medium" style={{ fontFamily: "Tahoma, sans-serif" }}>
-              Password
+              New Password
             </label>
             <div className="relative">
               <input
@@ -198,8 +125,9 @@ export default function RegisterForm() {
                 name="password"
                 type={showPassword ? "text" : "password"}
                 placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
+                value={password}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                required
                 className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060] shadow-[0_0_5px_rgba(3,48,96,0.3)] focus:shadow-[0_0_10px_rgba(3,48,96,0.5)]"
                 style={{ fontFamily: "Tahoma, sans-serif" }}
               />
@@ -220,7 +148,7 @@ export default function RegisterForm() {
           </div>
           <div className="space-y-1">
             <label htmlFor="confirmPassword" className="text-[#033060] font-medium" style={{ fontFamily: "Tahoma, sans-serif" }}>
-              Confirm Password
+              Confirm New Password
             </label>
             <div className="relative">
               <input
@@ -228,8 +156,9 @@ export default function RegisterForm() {
                 name="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 placeholder="••••••••"
-                value={formData.confirmPassword}
-                onChange={handleChange}
+                value={confirmPassword}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
+                required
                 className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060] shadow-[0_0_5px_rgba(3,48,96,0.3)] focus:shadow-[0_0_10px_rgba(3,48,96,0.5)]"
                 style={{ fontFamily: "Tahoma, sans-serif" }}
               />
@@ -250,15 +179,16 @@ export default function RegisterForm() {
           </div>
           <button
             type="submit"
-            className="w-full bg-[#033060] hover:bg-[#044080] text-white py-2 rounded-md transition-all duration-300 shadow-[0_0_15px_rgba(3,48,96,0.7)] hover:shadow-[0_0_20px_rgba(3,48,96,0.9)] font-bold"
+            disabled={isSubmitting}
+            className="w-full bg-[#033060] hover:bg-[#044080] text-white py-2 rounded-md transition-all duration-300 shadow-[0_0_15px_rgba(3,48,96,0.7)] hover:shadow-[0_0_20px_rgba(3,48,96,0.9)] font-bold disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ fontFamily: "Tahoma, sans-serif" }}
           >
-            REGISTER
+            {isSubmitting ? "RESETTING..." : "RESET PASSWORD"}
           </button>
         </form>
         <div className="pt-4 text-center">
           <p className="text-[#033060] text-sm" style={{ fontFamily: "Tahoma, sans-serif" }}>
-            Already have an account?{" "}
+            Remember your password?{" "}
             <button onClick={goToLogin} className="text-[#033060] hover:text-[#044080] hover:underline transition-colors">
               Login
             </button>
