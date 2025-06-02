@@ -45,6 +45,9 @@ const handleLoginSuccess = (role) => {
     setLoading(false);
   }
 
+  const goToRegister = () => {
+    Navigate("/register")
+  }
 return (
   <div className="min-h-screen bg-cream flex items-center justify-center p-4">
     <div className="w-full max-w-[700px] z-10">
@@ -108,7 +111,7 @@ return (
             <div className="text-sm">
               <button
                 type="button"
-                onClick={() => alert("Forgot password functionality would be implemented here")}
+                onClick={() => Navigate("/password/forgot")}
                 className="font-medium text-blue-600 hover:text-blue-800"
               >
                 Forgot password?
@@ -132,7 +135,7 @@ return (
             <span className="text-blue-700">Don't have an account? </span>
             <button
               type="button"
-              onClick={() => alert("Sign up functionality would be implemented here")}
+              onClick={() => goToRegister()}
               className="font-medium text-blue-600 hover:text-blue-800"
             >
               Sign up

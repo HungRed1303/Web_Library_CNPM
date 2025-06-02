@@ -3,8 +3,9 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "../hooks/use-toast"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { resetPassword } from "../service/Services"
+import { useParams } from "react-router-dom"
 
 export default function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -18,8 +19,7 @@ export default function ResetPasswordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const token = searchParams.get("token")
+  const { token } = useParams()
 
   useEffect(() => {
     if (!token) {
@@ -63,8 +63,16 @@ export default function ResetPasswordForm() {
     setIsSubmitting(true)
 
     try {
-      const result = await resetPassword(token, password)
-      
+      const result = await resetPassword(token, password, confirmPassword)
+      if (!result) {
+        toast({
+          title: "Error",
+          description: "Failed to reset password. Please try again.",
+          className: "bg-red-600 text-white border-red-400",
+        })
+        setIsSubmitting(false)
+        return
+      }
       if (result.success) {
         toast({
           title: "Success!",

@@ -234,29 +234,22 @@ export const forgotPassword = async (email) => {
   }
 };
 
-export const resetPassword = async (email, password) => {
-  if (!email || !password) {
-    return { success: false, error: "Email và mật khẩu mới là bắt buộc." };
-  }
-
+export const resetPassword = async (token, newPassword, confirmPassword) => {
   try {
-    const response = await fetch("http://localhost:3000/api/auth/password/reset/:token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+    const response = await fetch(`http://localhost:3000/api/auth/password/reset/${token}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        newPassword,
+        confirmPassword,
+      }),
     });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      return { success: true, message: "Mật khẩu đã được đặt lại thành công." };
-    } else {
-      return {
-        success: false,
-        error: result.error || "Không thể đặt lại mật khẩu.",
-      };
-    }
-  } catch (err) {
-    return { success: false, error: "Lỗi mạng hoặc máy chủ không phản hồi." };
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return { success: false, error: "Lỗi gửi yêu cầu" };
   }
 };
+

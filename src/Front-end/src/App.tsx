@@ -19,17 +19,16 @@ function App() {
       <Routes>
         {/* ----------------------- Public / Auth routes ----------------------- */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/password/forgot" element={<ForgotPasswordPage />} />
         <Route path="/password/reset/:token" element={<ResetPasswordPage />} />
-        <Route path="/view-report" element={<ViewReportPage />} />
         {/* ----------------------- Protected (Header + Sidebar) ----------------------- */}
         <Route element={<MainLayout />}>
           <Route path="/admin/publishers" element={<PublisherManagementPage />} />
           <Route path="/admin/home" element={<HomePage />} />
           <Route path="/admin/category" element={<CategoryManagementPage />} />
           <Route path="/admin/book" element={<BookManagementPage />} />
+          <Route path="/admin/reports" element={<ViewReportPage />} />
           {/* Thêm các Route con ở đây */}
         </Route>
 
