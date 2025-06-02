@@ -318,220 +318,209 @@ export default function LibraryReports() {
   }
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1
-            className="text-4xl md:text-5xl font-bold text-[#033060] mb-4"
-            style={{ fontFamily: "Tahoma, sans-serif" }}
-          >
-            LIBRARY REPORTS
-          </h1>
-          <div className="h-1 w-32 bg-[#033060] mx-auto rounded-full shadow-[0_0_10px_rgba(3,48,96,0.7)]"></div>
-        </div>
+    <div className="w-full max-w-4xl p-8 space-y-8 bg-white rounded-xl border border-[#033060] shadow-[0_0_15px_rgba(3,48,96,0.5)] z-10">
+      <div className="text-center mb-8">
+        <h1
+          className="text-4xl md:text-5xl font-bold text-[#033060] mb-4"
+          style={{ fontFamily: "Tahoma, sans-serif" }}
+        >
+          LIBRARY REPORTS
+        </h1>
+        <div className="h-1 w-32 bg-[#033060] mx-auto rounded-full shadow-[0_0_10px_rgba(3,48,96,0.7)]"></div>
+      </div>
 
-        {/* Filters Section */}
-        <div className="mb-8 bg-white rounded-xl border border-[#033060] shadow-[0_0_15px_rgba(3,48,96,0.5)] p-6">
-          <h2 className="text-xl font-bold text-[#033060] mb-4" style={{ fontFamily: "Tahoma, sans-serif" }}>
-            Report Filters
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Report Type */}
-            <div className="space-y-2">
-              <label
-                htmlFor="reportType"
-                className="text-[#033060] font-medium"
-                style={{ fontFamily: "Tahoma, sans-serif" }}
-              >
-                Report Type *
-              </label>
-              <select
-                id="reportType"
-                value={reportType}
-                onChange={(e) => setReportType(e.target.value)}
-                className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
-                style={{ fontFamily: "Tahoma, sans-serif" }}
-              >
-                <option value="">Select report type</option>
-                <option value="borrowed-books">Borrowed Books</option>
-                <option value="borrow-date">Borrow Date</option>
-                <option value="due-date">Due Date</option>
-                <option value="overdue-status">Overdue Status</option>
-                <option value="user-statistics">User Statistics</option>
-              </select>
-            </div>
-
-            {/* From Date */}
-            <div className="space-y-2">
-              <label
-                htmlFor="fromDate"
-                className="text-[#033060] font-medium"
-                style={{ fontFamily: "Tahoma, sans-serif" }}
-              >
-                From Date
-              </label>
-              <input
-                id="fromDate"
-                type="date"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
-                style={{ fontFamily: "Tahoma, sans-serif" }}
-              />
-            </div>
-
-            {/* To Date */}
-            <div className="space-y-2">
-              <label
-                htmlFor="toDate"
-                className="text-[#033060] font-medium"
-                style={{ fontFamily: "Tahoma, sans-serif" }}
-              >
-                To Date
-              </label>
-              <input
-                id="toDate"
-                type="date"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
-                style={{ fontFamily: "Tahoma, sans-serif" }}
-              />
-            </div>
-
-            {/* Book Type */}
-            <div className="space-y-2">
-              <label
-                htmlFor="bookType"
-                className="text-[#033060] font-medium"
-                style={{ fontFamily: "Tahoma, sans-serif" }}
-              >
-                Book Type (Optional)
-              </label>
-              <select
-                id="bookType"
-                value={bookType}
-                onChange={(e) => setBookType(e.target.value)}
-                className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
-                style={{ fontFamily: "Tahoma, sans-serif" }}
-              >
-                <option value="">Select book type</option>
-                <option value="fiction">Fiction</option>
-                <option value="non-fiction">Non-Fiction</option>
-                <option value="reference">Reference</option>
-                <option value="textbook">Textbook</option>
-              </select>
-            </div>
-
-            {/* Status */}
-            <div className="space-y-2">
-              <label
-                htmlFor="status"
-                className="text-[#033060] font-medium"
-                style={{ fontFamily: "Tahoma, sans-serif" }}
-              >
-                Status (Optional)
-              </label>
-              <select
-                id="status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
-                style={{ fontFamily: "Tahoma, sans-serif" }}
-              >
-                <option value="">Select status</option>
-                <option value="active">Active</option>
-                <option value="returned">Returned</option>
-                <option value="overdue">Overdue</option>
-                <option value="lost">Lost</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Generate Report Button */}
-          <div className="mt-6">
-            <button
-              onClick={generateReport}
-              disabled={isLoading}
-              className="w-full md:w-auto bg-[#033060] hover:bg-[#044080] text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-[#033060]/50 transform hover:scale-[1.02] active:scale-[0.98]"
+      <div className="mb-8 bg-white rounded-xl border border-[#033060] shadow-[0_0_15px_rgba(3,48,96,0.5)] p-6">
+        <h2 className="text-xl font-bold text-[#033060] mb-4" style={{ fontFamily: "Tahoma, sans-serif" }}>
+          Report Filters
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-2">
+            <label
+              htmlFor="reportType"
+              className="text-[#033060] font-medium"
               style={{ fontFamily: "Tahoma, sans-serif" }}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
-                  Generating Report...
-                </>
-              ) : (
-                <>
-                  <FileText className="mr-2 h-4 w-4 inline" />
-                  Generate Report
-                </>
-              )}
-            </button>
+              Report Type *
+            </label>
+            <select
+              id="reportType"
+              value={reportType}
+              onChange={(e) => setReportType(e.target.value)}
+              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
+              style={{ fontFamily: "Tahoma, sans-serif" }}
+            >
+              <option value="">Select report type</option>
+              <option value="borrowed-books">Borrowed Books</option>
+              <option value="borrow-date">Borrow Date</option>
+              <option value="due-date">Due Date</option>
+              <option value="overdue-status">Overdue Status</option>
+              <option value="user-statistics">User Statistics</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="fromDate"
+              className="text-[#033060] font-medium"
+              style={{ fontFamily: "Tahoma, sans-serif" }}
+            >
+              From Date
+            </label>
+            <input
+              id="fromDate"
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
+              style={{ fontFamily: "Tahoma, sans-serif" }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="toDate"
+              className="text-[#033060] font-medium"
+              style={{ fontFamily: "Tahoma, sans-serif" }}
+            >
+              To Date
+            </label>
+            <input
+              id="toDate"
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
+              style={{ fontFamily: "Tahoma, sans-serif" }}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="bookType"
+              className="text-[#033060] font-medium"
+              style={{ fontFamily: "Tahoma, sans-serif" }}
+            >
+              Book Type (Optional)
+            </label>
+            <select
+              id="bookType"
+              value={bookType}
+              onChange={(e) => setBookType(e.target.value)}
+              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
+              style={{ fontFamily: "Tahoma, sans-serif" }}
+            >
+              <option value="">Select book type</option>
+              <option value="fiction">Fiction</option>
+              <option value="non-fiction">Non-Fiction</option>
+              <option value="reference">Reference</option>
+              <option value="textbook">Textbook</option>
+            </select>
+          </div>
+
+          <div className="space-y-2">
+            <label
+              htmlFor="status"
+              className="text-[#033060] font-medium"
+              style={{ fontFamily: "Tahoma, sans-serif" }}
+            >
+              Status (Optional)
+            </label>
+            <select
+              id="status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
+              style={{ fontFamily: "Tahoma, sans-serif" }}
+            >
+              <option value="">Select status</option>
+              <option value="active">Active</option>
+              <option value="returned">Returned</option>
+              <option value="overdue">Overdue</option>
+              <option value="lost">Lost</option>
+            </select>
           </div>
         </div>
 
-        {/* Results Section */}
-        {hasGeneratedReport && (
-          <div className="bg-white rounded-xl border border-[#033060] shadow-[0_0_15px_rgba(3,48,96,0.5)] p-6">
-            <div className="flex flex-row items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-[#033060]" style={{ fontFamily: "Tahoma, sans-serif" }}>
-                Report Results
-              </h2>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <button
-                  onClick={() => exportReport("csv")}
-                  disabled={!hasGeneratedReport || reportData.length === 0}
-                  className="px-4 py-2 bg-white border border-[#033060] rounded-md text-[#033060] hover:bg-[#033060] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ fontFamily: "Tahoma, sans-serif" }}
-                >
-                  <Download className="mr-2 h-4 w-4 inline" />
-                  Export CSV
-                </button>
-                <button
-                  onClick={() => exportReport("pdf")}
-                  disabled={!hasGeneratedReport || reportData.length === 0}
-                  className="px-4 py-2 bg-white border border-[#033060] rounded-md text-[#033060] hover:bg-[#033060] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ fontFamily: "Tahoma, sans-serif" }}
-                >
-                  <Download className="mr-2 h-4 w-4 inline" />
-                  Export PDF
-                </button>
-              </div>
-            </div>
-            <div>
-              {reportData.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileText className="h-16 w-16 mx-auto text-[#033060] mb-4" />
-                  <p className="text-xl text-[#033060]" style={{ fontFamily: "Tahoma, sans-serif" }}>
-                    No data found.
-                  </p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead>
-                      <tr className="border-b-2 border-[#033060]">
-                        {getTableHeaders().map((header, index) => (
-                          <th
-                            key={index}
-                            className="px-4 py-3 text-left text-sm font-bold text-[#033060] uppercase tracking-wider"
-                            style={{ fontFamily: "Tahoma, sans-serif" }}
-                          >
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>{reportData.map((item) => renderTableRow(item))}</tbody>
-                  </table>
-                </div>
-              )}
+        <div className="mt-6">
+          <button
+            onClick={generateReport}
+            disabled={isLoading}
+            className="w-full md:w-auto bg-[#033060] hover:bg-[#044080] text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-[#033060]/50 transform hover:scale-[1.02] active:scale-[0.98]"
+            style={{ fontFamily: "Tahoma, sans-serif" }}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin inline" />
+                Generating Report...
+              </>
+            ) : (
+              <>
+                <FileText className="mr-2 h-4 w-4 inline" />
+                Generate Report
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {hasGeneratedReport && (
+        <div className="bg-white rounded-xl border border-[#033060] shadow-[0_0_15px_rgba(3,48,96,0.5)] p-6">
+          <div className="flex flex-row items-center justify-between mb-4">
+            <h2 className="text-xl font-bold text-[#033060]" style={{ fontFamily: "Tahoma, sans-serif" }}>
+              Report Results
+            </h2>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={() => exportReport("csv")}
+                disabled={!hasGeneratedReport || reportData.length === 0}
+                className="px-4 py-2 bg-white border border-[#033060] rounded-md text-[#033060] hover:bg-[#033060] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ fontFamily: "Tahoma, sans-serif" }}
+              >
+                <Download className="mr-2 h-4 w-4 inline" />
+                Export CSV
+              </button>
+              <button
+                onClick={() => exportReport("pdf")}
+                disabled={!hasGeneratedReport || reportData.length === 0}
+                className="px-4 py-2 bg-white border border-[#033060] rounded-md text-[#033060] hover:bg-[#033060] hover:text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ fontFamily: "Tahoma, sans-serif" }}
+              >
+                <Download className="mr-2 h-4 w-4 inline" />
+                Export PDF
+              </button>
             </div>
           </div>
-        )}
-      </div>
+          <div>
+            {reportData.length === 0 ? (
+              <div className="text-center py-12">
+                <FileText className="h-16 w-16 mx-auto text-[#033060] mb-4" />
+                <p className="text-xl text-[#033060]" style={{ fontFamily: "Tahoma, sans-serif" }}>
+                  No data found.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b-2 border-[#033060]">
+                      {getTableHeaders().map((header, index) => (
+                        <th
+                          key={index}
+                          className="px-4 py-3 text-left text-sm font-bold text-[#033060] uppercase tracking-wider"
+                          style={{ fontFamily: "Tahoma, sans-serif" }}
+                        >
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>{reportData.map((item) => renderTableRow(item))}</tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
