@@ -3,8 +3,9 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "../hooks/use-toast"
-import { useNavigate, useSearchParams } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 import { resetPassword } from "../service/Services"
+import { useParams } from "react-router-dom"
 
 export default function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -18,8 +19,7 @@ export default function ResetPasswordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const token = searchParams.get("token")
+  const { token } = useParams()
 
   useEffect(() => {
     if (!token) {
@@ -63,8 +63,16 @@ export default function ResetPasswordForm() {
     setIsSubmitting(true)
 
     try {
-      const result = await resetPassword(token, password)
-      
+      const result = await resetPassword(token, password, confirmPassword)
+      if (!result) {
+        toast({
+          title: "Error",
+          description: "Failed to reset password. Please try again.",
+          className: "bg-red-600 text-white border-red-400",
+        })
+        setIsSubmitting(false)
+        return
+      }
       if (result.success) {
         toast({
           title: "Success!",
@@ -105,10 +113,8 @@ export default function ResetPasswordForm() {
           RESET PASSWORD
         </h1>
         <div className="h-1 w-24 bg-[#033060] mx-auto mt-2 rounded-full shadow-[0_0_10px_rgba(3,48,96,0.7)]"></div>
+        <p className="text-[#033060] mt-2">Create a new password for your account</p>
       </div>
-      <p className="text-gray-300 text-center" style={{ fontFamily: "Tahoma, sans-serif" }}>
-        Create a new password for your account
-      </p>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-1">
           <label htmlFor="password" className="text-[#033060] font-medium" style={{ fontFamily: "Tahoma, sans-serif" }}>
@@ -123,7 +129,7 @@ export default function ResetPasswordForm() {
               value={password}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
               required
-              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060] shadow-[0_0_5px_rgba(3,48,96,0.3)] focus:shadow-[0_0_10px_rgba(3,48,96,0.5)]"
+              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
               style={{ fontFamily: "Tahoma, sans-serif" }}
             />
             <button
@@ -154,7 +160,7 @@ export default function ResetPasswordForm() {
               value={confirmPassword}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value)}
               required
-              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060] shadow-[0_0_5px_rgba(3,48,96,0.3)] focus:shadow-[0_0_10px_rgba(3,48,96,0.5)]"
+              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
               style={{ fontFamily: "Tahoma, sans-serif" }}
             />
             <button
@@ -175,7 +181,7 @@ export default function ResetPasswordForm() {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full bg-[#033060] hover:bg-[#044080] text-white py-2 rounded-md transition-all duration-300 shadow-[0_0_15px_rgba(3,48,96,0.7)] hover:shadow-[0_0_20px_rgba(3,48,96,0.9)] font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-[#033060] hover:bg-[#044080] text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-[#033060]/50 transform hover:scale-[1.02] active:scale-[0.98]"
           style={{ fontFamily: "Tahoma, sans-serif" }}
         >
           {isSubmitting ? "RESETTING..." : "RESET PASSWORD"}
@@ -183,7 +189,7 @@ export default function ResetPasswordForm() {
       </form>
       <div className="pt-4 text-center">
         <p className="text-[#033060] text-sm" style={{ fontFamily: "Tahoma, sans-serif" }}>
-          Remember your password?{" "}
+          Remember your password?{' '}
           <button onClick={goToLogin} className="text-[#033060] hover:text-[#044080] hover:underline transition-colors">
             Login
           </button>

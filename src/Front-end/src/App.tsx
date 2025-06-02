@@ -1,23 +1,44 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+// src/App.tsx
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+
+import MainLayout from "./components/MainLayout";
 import LoginPage from "./pages/LoginPage";
+import PublisherManagementPage from "./pages/PublisherManagementPage";
+import HomePage from "./pages/HomePage.tsx";
+import CategoryManagementPage from "./pages/CategoryManagementPage"; 
+import BookManagementPage from "./pages/BookManagementPage";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import ViewReportPage from "./pages/ViewReportPage";
 
+
 function App() {
   return (
     <Router>
       <Routes>
+        {/* ----------------------- Public / Auth routes ----------------------- */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/password/forgot" element={<ForgotPasswordPage />} />
         <Route path="/password/reset/:token" element={<ResetPasswordPage />} />
-        <Route path="/view-report" element={<ViewReportPage />} />
-        {/* Add more routes here as needed */}
+        <Route path="/view-report" element={<ViewReportPage />} /> 
+        {/* ----------------------- Protected (Header + Sidebar) ----------------------- */}
+        <Route element={<MainLayout />}>
+          <Route path="/admin/publishers" element={<PublisherManagementPage />} />
+          <Route path="/admin/home" element={<HomePage />} />
+          <Route path="/admin/category" element={<CategoryManagementPage />} />
+          <Route path="/admin/book" element={<BookManagementPage />} />
+          <Route path="/admin/reports" element={<ViewReportPage />} />
+          {/* Thêm các Route con ở đây */}
+        </Route>
+
+        {/* ----------------------- Catch-all ----------------------- */}
+        <Route path="*" element={<Navigate to="/admin/home" replace />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
+

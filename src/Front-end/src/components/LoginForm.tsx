@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
-import { loginUser } from "../service/Services"
+import {loginUser} from "../service/Services"
 import { useNavigate } from "react-router-dom"
 
 const LoginForm = () => {
@@ -10,133 +10,148 @@ const LoginForm = () => {
   const [rememberMe, setRememberMe] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const navigate = useNavigate()
+  const Navigate = useNavigate()
 
 const handleLoginSuccess = (role: string) => {
     localStorage.setItem('user', JSON.stringify({ isLogged: true, role: role }));
   }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true);
     setError('');
+
     const result = await loginUser(email, password);
-    if (result.success) {
+
+    if (result.success)
+    {
       handleLoginSuccess(result.role);
-      if (result.role === 'A') {
-        navigate('/A');
-      } else if (result.role === 'S') {
-        navigate('/S');
-      } else if (result.role === 'L') {
-        navigate('/L');
+      console.log("Login successful");
+      if (result.role === 'A')
+      {
+        Navigate('/A');
       }
-    } else {
+      else if (result.role === 'S')
+      {
+        Navigate('/S');
+      }
+      else if(result.role === 'L') 
+      {
+        Navigate('/L');
+      }
+    }
+    else {
       setError(result.error);
     }
     setLoading(false);
   }
 
   const goToRegister = () => {
-    navigate("/register")
+    Navigate("/register")
   }
+return (
+  <div className="min-h-screen bg-cream flex items-center justify-center p-4">
+    <div className="w-full max-w-[700px] z-10">
+      <div className="bg-cream border border-blue-600/30 rounded-2xl shadow-xl shadow-blue-600/10 pt-5 pb-5 px-40 backdrop-blur-sm">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-blue-800 mb-2">Welcome Back</h1>
+          <p className="text-blue-600">Sign in to your account</p>
+        </div>
 
-  return (
-    <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-xl border border-[#033060] shadow-[0_0_15px_rgba(3,48,96,0.5)] z-10">
-      <div className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-[#033060]" style={{ fontFamily: "Tahoma, sans-serif" }}>
-          Welcome Back
-        </h1>
-        <div className="h-1 w-24 bg-[#033060] mx-auto mt-2 rounded-full shadow-[0_0_10px_rgba(3,48,96,0.7)]"></div>
-        <p className="text-[#033060] mt-2">Sign in to your account</p>
-      </div>
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-1">
-          <label htmlFor="email" className="text-[#033060] font-medium" style={{ fontFamily: "Tahoma, sans-serif" }}>
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="name@example.com"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
-            style={{ fontFamily: "Tahoma, sans-serif" }}
-          />
-        </div>
-        <div className="space-y-1">
-          <label htmlFor="password" className="text-[#033060] font-medium" style={{ fontFamily: "Tahoma, sans-serif" }}>
-            Password
-          </label>
-          <div className="relative">
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className="w-full pr-10 pl-2 py-2 bg-white border border-[#033060] rounded-md text-[#033060] placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#033060] focus:border-[#033060]"
-              style={{ fontFamily: "Tahoma, sans-serif" }}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-[#033060]"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-            </button>
-          </div>
-        </div>
-        {error && (
-          <p className="text-red-400 text-xs mt-1" style={{ fontFamily: "Tahoma, sans-serif" }}>
-            {error}
-          </p>
-        )}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <input
-              id="remember-me"
-              type="checkbox"
-              checked={rememberMe}
-              onChange={e => setRememberMe(e.target.checked)}
-              className="h-4 w-4 rounded border-[#033060]/30 bg-white text-[#033060] focus:ring-[#033060] focus:ring-offset-white accent-[#033060]"
-            />
-            <label htmlFor="remember-me" className="ml-2 block text-sm text-[#033060]">
-              Remember me
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-sm font-medium text-blue-800">
+              Email
             </label>
+            <input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full pr-10 pl-2 py-2 bg-white border border-blue-600/40 rounded-md text-blue-900 placeholder:text-blue-600/60 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
+            />
           </div>
-          <div className="text-sm">
+
+          <div className="space-y-2">
+            <label htmlFor="password" className="text-sm font-medium text-blue-800">
+              Password
+            </label>
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full pr-10 pl-2 py-2 bg-white border border-blue-600/40 rounded-md text-blue-900 placeholder:text-blue-600/60 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-600 hover:text-blue-800 transition-colors"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 rounded border-blue-600/40 bg-white text-blue-600 focus:ring-blue-600 focus:ring-offset-cream accent-blue-600"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-blue-800">
+                Remember me
+              </label>
+            </div>
+            <div className="text-sm">
+              <button
+                type="button"
+                onClick={() => Navigate("/password/forgot")}
+                className="font-medium text-blue-600 hover:text-blue-800"
+              >
+                Forgot password?
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <p className="text-red-600 text-sm text-center">{error}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-blue-600/30"
+          >
+            {loading ? 'Signing in...' : 'Sign in'}
+          </button>
+
+          <div className="mt-4 text-center text-sm">
+            <span className="text-blue-700">Don't have an account? </span>
             <button
               type="button"
-              onClick={() => navigate("/password/forgot")}
-              className="font-medium text-[#033060] hover:text-[#044080] transition-colors"
+              onClick={() => goToRegister()}
+              className="font-medium text-blue-600 hover:text-blue-800"
             >
-              Forgot password?
+              Sign up
             </button>
           </div>
-        </div>
-        <button
-          type="submit"
-          className="w-full bg-[#033060] hover:bg-[#044080] text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-[#033060]/50 transform hover:scale-[1.02] active:scale-[0.98]"
-          style={{ fontFamily: "Tahoma, sans-serif" }}
-          disabled={loading}
-        >
-          {loading ? "Signing in..." : "Sign in"}
-        </button>
-      </form>
-      <div className="pt-4 text-center">
-        <p className="text-[#033060] text-sm" style={{ fontFamily: "Tahoma, sans-serif" }}>
-          Don't have an account?{' '}
-          <button onClick={goToRegister} className="text-[#033060] hover:text-[#044080] hover:underline transition-colors">
-            Sign up
-          </button>
+        </form>
+      </div>
+
+      <div className="mt-8 text-center">
+        <p className="text-xs text-blue-600/70">
+          © {new Date().getFullYear()} Blue Cream Design. All rights reserved.
         </p>
       </div>
     </div>
-  )
+  </div>
+)
 }
 
 export default LoginForm
