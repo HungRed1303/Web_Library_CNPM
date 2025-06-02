@@ -18,6 +18,7 @@
   "homepage": "https://github.com/HungRed1303/Web_Library_CNPM#readme",
   "description": "",
   "dependencies": {
+    "@radix-ui/react-toast": "^1.2.14",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
