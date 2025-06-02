@@ -178,3 +178,4 @@ export const deleteBookById = async (id) => {
   });
   if (!res.ok) throw new Error("DELETE /books/:id failed");
 };
+
