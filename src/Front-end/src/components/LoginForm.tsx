@@ -29,15 +29,15 @@ const handleLoginSuccess = (role) => {
       console.log("Login successful");
       if (result.role === 'A')
       {
-        Navigate('/A');
+        Navigate('/home');
       }
       else if (result.role === 'S')
       {
-        Navigate('/S');
+        Navigate('/');
       }
       else if(result.role === 'L') 
       {
-        Navigate('/L');
+        Navigate('/home');
       }
     }
     else {

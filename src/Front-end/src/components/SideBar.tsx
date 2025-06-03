@@ -23,15 +23,15 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { icon: <Home size={20} />, label: "Dashboard", href: "/admin/home" },
-  { icon: <Search size={20} />, label: "Find Book", href: "/admin/find-book" },
-  { icon: <BookOpen size={20} />, label: "Borrow Book", href: "/admin/borrow-book" },
-  { icon: <ListChecks size={20} />, label: "Wishlist", href: "/admin/wishlist" },
-  { icon: <BarChart2 size={20} />, label: "Reports", href: "/admin/reports" },
-  { icon: <BarChart2 size={20} />, label: "Book", href: "/admin/book" },
-  { icon: <BarChart2 size={20} />, label: "Publisher", href: "/admin/publishers" },
-  { icon: <BarChart2 size={20} />, label: "Category", href: "/admin/category" },
-  { icon: <Settings size={20} />, label: "Settings", href: "/admin/settings" },
+  { icon: <Home size={20} />, label: "Dashboard", href: "/home" },
+  { icon: <Search size={20} />, label: "Find Book", href: "/find-book" },
+  { icon: <BookOpen size={20} />, label: "Borrow Book", href: "/borrow-book" },
+  { icon: <ListChecks size={20} />, label: "Wishlist", href: "/wishlist" },
+  { icon: <BarChart2 size={20} />, label: "Reports", href: "/reports" },
+  { icon: <BarChart2 size={20} />, label: "Book", href: "/book" },
+  { icon: <BarChart2 size={20} />, label: "Publisher", href: "/publishers" },
+  { icon: <BarChart2 size={20} />, label: "Category", href: "/category" },
+  { icon: <Settings size={20} />, label: "Settings", href: "/settings" },
 ];
 
 export default function Sidebar({
