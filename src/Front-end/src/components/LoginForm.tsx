@@ -15,7 +15,8 @@ const LoginForm = () => {
 const handleLoginSuccess = (role) => {
     localStorage.setItem('user', JSON.stringify({ isLogged: true, role: role }));
   }
-  const handleSubmit = async (e) => {
+  
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true);
     setError('');
