@@ -1,4 +1,3 @@
-// src/pages/BookManagementPage.tsx
 import React, { useEffect, useState } from "react";
 import {
   getAllBooks,
@@ -6,16 +5,7 @@ import {
   updateBookById,
   deleteBookById,
 } from "../service/Services";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-
-/** =============================================================
- *  BookManagementPage – Add / Edit / Delete
- *  Professional modern theme (light background + blue accents)
- *  Font  : "Poppins", fallback sans – headings 24 px bold, body 16 px
- *  Colors: Background #FEFEFE · Accent #467DA7
- *  UX    : Left-aligned content, large rounded corners, subtle shadows
- *  NOTE  : Requires lucide-react + TailwindCSS 3+ with JIT
- * ===========================================================*/
+import { Plus, Pencil, Trash2, Image } from "lucide-react";
 
 export interface Book {
   book_id: number;
@@ -26,6 +16,7 @@ export interface Book {
   availability: boolean;
   price: number;
   author: string;
+  image_url: string;
 }
 
 export type BookDTO = Omit<Book, "book_id">;
@@ -46,10 +37,13 @@ const BookManagementPage: React.FC = () => {
     availability: true,
     price: 0,
     author: "",
+    image_url: "",
   };
   const [form, setForm] = useState<BookDTO>(empty);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null); // Thêm state cho file
 
   // Toast states
   const [toast, setToast] = useState<string | null>(null);
@@ -69,8 +63,11 @@ const BookManagementPage: React.FC = () => {
   const openAdd = () => {
     setForm(empty);
     setFormErrors({});
+    setPreviewImage(null);
+    setSelectedFile(null); // Reset file
     setModal("add");
   };
+  
   const openEdit = (b: Book) => {
     setActive(b);
     setForm({
@@ -81,19 +78,26 @@ const BookManagementPage: React.FC = () => {
       availability: b.availability,
       price: b.price,
       author: b.author,
+      image_url: b.image_url,
     });
+    setPreviewImage(null);
+    setSelectedFile(null); // Reset file
     setFormErrors({});
     setModal("edit");
   };
+  
   const openDelete = (b: Book) => {
     setActive(b);
     setModal("delete");
   };
+  
   const closeModal = () => {
     setModal(false);
     setActive(null);
     setForm(empty);
     setFormErrors({});
+    setPreviewImage(null);
+    setSelectedFile(null); // Reset file
   };
 
   /* ------------------------- VALIDATE -------------------------- */
@@ -108,6 +112,39 @@ const BookManagementPage: React.FC = () => {
     return e;
   };
 
+  /* ------------------------- HELPER FUNCTIONS ------------------------- */
+  const yearToDate = (year: number): string => {
+    if (!year || year <= 0) return '';
+    return `${year}-01-01`;
+  };
+
+  const dateToYear = (dateString: string): number => {
+    if (!dateString) return 0;
+    return new Date(dateString).getFullYear();
+  };
+
+  const getDateInputValue = (year: number): string => {
+    if (!year || year <= 0) return '';
+    return `${year}-01-01`;
+  };
+
+  // Helper function để tạo URL ảnh đúng
+  const getImageUrl = (imageUrl: string): string => {
+    if (!imageUrl) return '';
+    if (imageUrl.startsWith('http')) return imageUrl;
+    const cleanPath = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
+    // Nếu là đường dẫn tương đối từ server (uploads/abc), thêm base URL
+    return `http://localhost:3000/${cleanPath}`;
+  };
+//Test log để kiểm tra dữ liệu sách
+  useEffect(() => {
+  console.log('Books loaded:', books.map(b => ({
+    id: b.book_id,
+    title: b.title,
+    image_url: b.image_url,
+    full_url: getImageUrl(b.image_url)
+  })));
+  }, [books]);
   /* --------------------------- SAVE ---------------------------- */
   const handleSave = async () => {
     const errs = validate();
@@ -116,17 +153,38 @@ const BookManagementPage: React.FC = () => {
 
     setSubmitting(true);
     try {
-      if (modal === "add") {
-        await createBook(form);
-        setToast("Book added successfully");
+      const formData = new FormData();
+      formData.append('title', form.title);
+      formData.append('publisher_id', form.publisher_id.toString());
+      formData.append('publication_year', yearToDate(form.publication_year));
+      formData.append('quantity', form.quantity.toString());
+      formData.append('availability', form.availability === true ? 'true' : 'false');
+      formData.append('price', form.price.toString());
+      formData.append('author', form.author);
+      
+      // Chỉ append image_url nếu không có file mới được chọn
+      if (!selectedFile) {
+        formData.append('image_url', form.image_url);
       }
-      if (modal === "edit" && active) {
-        await updateBookById(active.book_id, form);
+
+      // Thêm file nếu có file mới được chọn
+      if (selectedFile) {
+        formData.append('image', selectedFile);
+      }
+
+      // Sử dụng service functions thay vì fetch trực tiếp
+      if (modal === "add") {
+        await createBook(formData);
+        setToast("Book added successfully");
+      } else if (modal === "edit" && active) {
+        await updateBookById(active.book_id, formData);
         setToast("Book updated successfully");
       }
+
       closeModal();
       load();
-    } catch {
+    } catch (error) {
+      console.error('Save error:', error);
       setToast("Database error – please try later");
     } finally {
       setSubmitting(false);
@@ -149,16 +207,29 @@ const BookManagementPage: React.FC = () => {
     }
   };
 
+  /* ---------------------- HANDLE IMAGE UPLOAD ------------------- */
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file); // Lưu file để upload
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   /* ----------------------- TOAST ANIMATION ---------------------- */
   useEffect(() => {
     if (toast) {
       setShowToast(true);
       const hideTimer = setTimeout(() => {
         setShowToast(false);
-      }, 2500); // Sau 2.5s bắt đầu fade-out
+      }, 2500);
       const clearTimer = setTimeout(() => {
         setToast(null);
-      }, 3000); // Sau 3s remove toast hoàn toàn
+      }, 3000);
       return () => {
         clearTimeout(hideTimer);
         clearTimeout(clearTimer);
@@ -195,6 +266,7 @@ const BookManagementPage: React.FC = () => {
                   <tr>
                     {[
                       "ID",
+                      "Cover",
                       "Title",
                       "Publisher ID",
                       "Year",
@@ -217,12 +289,33 @@ const BookManagementPage: React.FC = () => {
                   {books.map((b, idx) => (
                     <tr
                       key={b.book_id}
-                      className={`${
-                        idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                      } hover:bg-[#467DA7]/10 transition`}
+                      className={`${idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                        } hover:bg-[#467DA7]/10 transition`}
                     >
                       <td className="px-4 py-3 border-b border-gray-200">
                         {b.book_id}
+                      </td>
+                      <td className="px-4 py-3 border-b border-gray-200">
+                        {b.image_url ? (
+                          <img
+                            src={getImageUrl(b.image_url)}
+                            alt={b.title}
+                            className="h-16 w-12 object-cover rounded shadow-sm border border-gray-200"
+                            onError={(e) => {
+                              console.log('Image load error:', getImageUrl(b.image_url));
+                              const target = e.currentTarget;
+                              target.style.display = 'none';
+                              // Tạo placeholder khi ảnh lỗi
+                              const placeholder = target.nextElementSibling as HTMLElement;
+                              if (placeholder) {
+                                placeholder.classList.remove('hidden');
+                              }
+                            }}
+                          />
+                        ) : null}
+                        <div className={`h-16 w-12 bg-gray-100 rounded shadow-sm border border-gray-200 flex items-center justify-center ${b.image_url ? 'hidden' : ''}`}>
+                          <Image size={20} className="text-gray-400" />
+                        </div>
                       </td>
                       <td className="px-4 py-3 border-b">{b.title}</td>
                       <td className="px-4 py-3 border-b">{b.publisher_id}</td>
@@ -256,6 +349,24 @@ const BookManagementPage: React.FC = () => {
                   key={b.book_id}
                   className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
                 >
+                  <div className="mb-3">
+                    {b.image_url ? (
+                      <img
+                        src={getImageUrl(b.image_url)}
+                        alt={b.title}
+                        className="w-full max-h-40 object-contain rounded shadow-sm border border-gray-200"
+                        onError={(e) => {
+                          console.log('Mobile image load error:', getImageUrl(b.image_url));
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-40 bg-gray-100 rounded shadow-sm border border-gray-200 flex items-center justify-center">
+                        <Image size={40} className="text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex justify-between items-center mb-3">
                     <h3 className="font-bold text-[#467DA7] text-lg text-left">
                       {b.title}
@@ -291,14 +402,13 @@ const BookManagementPage: React.FC = () => {
 
       {(modal === "add" || modal === "edit") && (
         <Backdrop>
-          <div className="w-full max-w-md bg-white border-2 border-[#467DA7] rounded-2xl p-8 shadow-xl animate-scale-in text-gray-900">
+          <div className="w-full max-w-md bg-white border-2 border-[#467DA7] rounded-2xl p-8 shadow-xl animate-scale-in text-gray-900 max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-extrabold text-left uppercase mb-6 text-[#467DA7]">
               {modal === "add" ? "Add Book" : "Edit Book"}
             </h2>
 
-            {(
-              Object.keys(empty) as (keyof BookDTO)[]
-            ).map((f) => (
+            {/* Các trường nhập liệu (loại bỏ image_url khỏi form) */}
+            {(Object.keys(empty).filter(key => key !== 'image_url') as (keyof BookDTO)[]).map((f) => (
               <div key={f} className="mb-5">
                 <label className="block text-sm mb-1 font-medium text-gray-700 capitalize">
                   {f.replace("_", " ")}
@@ -306,6 +416,7 @@ const BookManagementPage: React.FC = () => {
                     <span className="text-[#467DA7]"> *</span>
                   )}
                 </label>
+
                 {f === "availability" ? (
                   <select
                     value={form[f] ? "yes" : "no"}
@@ -320,8 +431,21 @@ const BookManagementPage: React.FC = () => {
                     <option value="yes">Yes</option>
                     <option value="no">No</option>
                   </select>
+                ) : f === "publication_year" ? (
+                  <input
+                    type="date"
+                    value={getDateInputValue(form.publication_year)}
+                    onChange={(e) => {
+                      const year = e.target.value ? dateToYear(e.target.value) : 0;
+                      setForm({
+                        ...form,
+                        publication_year: year,
+                      });
+                    }}
+                    className={inputCls(formErrors[f])}
+                    placeholder="Select publication date"
+                  />
                 ) : f === "publisher_id" ||
-                  f === "publication_year" ||
                   f === "quantity" ||
                   f === "price" ? (
                   <input
@@ -351,6 +475,47 @@ const BookManagementPage: React.FC = () => {
                 )}
               </div>
             ))}
+
+            {/* Hiển thị ảnh hiện tại khi edit */}
+            {modal === "edit" && active?.image_url && (
+              <div className="mb-5">
+                <label className="block text-sm mb-1 font-medium text-gray-700">
+                  Current Image
+                </label>
+                <img
+                  src={getImageUrl(active.image_url)}
+                  alt="Current book cover"
+                  className="max-h-32 rounded shadow border border-gray-200"
+                  onError={(e) => {
+                    console.log('Current image load error:', getImageUrl(active.image_url));
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Trường upload ảnh mới */}
+            <div className="mb-5">
+              <label className="block text-sm mb-1 font-medium text-gray-700 capitalize">
+                {modal === "edit" ? "Change Book Cover Image" : "Book Cover Image"}
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className={inputCls()}
+              />
+              {previewImage && (
+                <div className="mt-3">
+                  <p className="text-xs text-gray-600 mb-1">Preview:</p>
+                  <img
+                    src={previewImage}
+                    alt="Preview"
+                    className="max-h-32 rounded shadow border border-gray-200"
+                  />
+                </div>
+              )}
+            </div>
 
             <div className="flex justify-end gap-3 mt-8">
               <button
@@ -398,9 +563,8 @@ const BookManagementPage: React.FC = () => {
 
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 bg-[#467DA7] text-white px-4 py-2 rounded-lg shadow-lg transition-opacity duration-500 ${
-            showToast ? "opacity-100" : "opacity-0"
-          }`}
+          className={`fixed bottom-6 right-6 bg-[#467DA7] text-white px-4 py-2 rounded-lg shadow-lg transition-opacity duration-500 ${showToast ? "opacity-100" : "opacity-0"
+            }`}
         >
           {toast}
         </div>
@@ -424,9 +588,8 @@ const IconBtn: React.FC<{
 }> = ({ icon, onClick, color }) => (
   <button
     onClick={onClick}
-    className={`p-2 rounded-full hover:bg-${
-      color === "red" ? "red" : "[#467DA7]"
-    }/10 focus-visible:ring-2 focus-visible:ring-[#467DA7] transition`}
+    className={`p-2 rounded-full hover:bg-${color === "red" ? "red" : "[#467DA7]"
+      }/10 focus-visible:ring-2 focus-visible:ring-[#467DA7] transition`}
   >
     {icon}
   </button>
@@ -443,6 +606,5 @@ const InfoRow: React.FC<{ label: string; value: React.ReactNode }> = ({
 );
 
 const inputCls = (err?: string) =>
-  `w-full bg-white border ${
-    err ? "border-[#467DA7]" : "border-gray-300"
+  `w-full bg-white border ${err ? "border-[#467DA7]" : "border-gray-300"
   } rounded-lg px-3 py-2 text-sm placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#467DA7] focus:border-[#467DA7] transition`;

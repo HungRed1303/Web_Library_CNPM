@@ -48,7 +48,7 @@ function App() {
         >
           <Route path="/home" element={<HomePage />} />
           <Route path="/category" element={<CategoryManagementPage />} />
-          <Route path="/book" element={<BookManagementPage />} />
+          <Route path="/books" element={<BookManagementPage />} />
           <Route path="/reports" element={<ViewReportPage />} />
         </Route>
 

@@ -31,15 +31,14 @@ app.use(cookieParser());
 
 
 app.use(errorMiddleware);
-app.use(cookieParser()); 
+app.use(cookieParser());
 
-
-app.use("/uploads", express.static(path.join(__dirname, "../public/uploads")));
 app.use('/api/auth', authRoute);
 app.use('/api/students', studentRoute);
 app.use('/api/admins', adminRoute);
 app.use('/api/librarians', librarianRoute);
 app.use('/api/publishers', publisherRoute);
+app.use("/uploads", express.static("public/uploads"));
 app.use('/api/books', bookRoute);
 app.use('/api/categories', categoryRoute);
 app.use('/api/borrow', borrowRoute);

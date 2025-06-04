@@ -2,7 +2,7 @@ const pool = require('../Database/config')
 
 const getAllBook = async ()=>{
     const result = await pool.query(`
-        SELECT b.book_id, b.title,b.publisher_id,  EXTRACT(YEAR FROM b.publication_year) AS publication_year, b.quantity, b.availability, b.price, b.author
+        SELECT b.book_id, b.title,b.publisher_id,  EXTRACT(YEAR FROM b.publication_year) AS publication_year, b.quantity, b.availability, b.price, b.author, b.image_url
         FROM books b
         `);
         

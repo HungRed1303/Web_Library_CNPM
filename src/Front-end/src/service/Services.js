@@ -128,45 +128,46 @@ export const getAllBooks = async () => {
 };
 
 /**
- * @param {{
- *   title: string;
- *   publisher_id: number;
- *   publication_year: number;
- *   quantity: number;
- *   availability: boolean;
- *   price: number;
- *   author: string;
- * }} body
+ * @param {FormData} formData - chứa các trường sách và ảnh
  */
-export const createBook = async (body) => {
+export const createBook = async (formData) => {
+  const token = localStorage.getItem("token"); // nếu có token
   const res = await fetch(`${BASE}/books`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    // Không set Content-Type, fetch tự set boundary multipart/form-data
+    headers: {
+      Authorization: token ? `Bearer ${token}` : "",
+      // "Content-Type": "multipart/form-data"  <-- **Không set dòng này!**
+    },
+    body: formData,
   });
-  if (!res.ok) throw new Error("POST /books failed");
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new Error(err?.message || "POST /books failed");
+  }
   return res.json();
 };
 
 /**
  * @param {number} id
- * @param {{
- *   title: string;
- *   publisher_id: number;
- *   publication_year: number;
- *   quantity: number;
- *   availability: boolean;
- *   price: number;
- *   author: string;
- * }} body
+ * @param {FormData} formData - chứa các trường sách và ảnh
  */
-export const updateBookById = async (id, body)=> {
+export const updateBookById = async (id, formData) => {
+  const token = localStorage.getItem("token");
   const res = await fetch(`${BASE}/books/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    headers: {
+      Authorization: token ? `Bearer ${token}` : "",
+      // Không set Content-Type khi gửi FormData
+    },
+    body: formData,
   });
-  if (!res.ok) throw new Error("PUT /books/:id failed");
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new Error(err?.message || "PUT /books/:id failed");
+  }
   return res.json();
 };
 
