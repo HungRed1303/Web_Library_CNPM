@@ -13,6 +13,7 @@ const wishlistRoute = require("./routes/wishlistRoute")
 const librarycardRoute = require("./routes/librarycardRoute")
 const borrowinghistoryRoute = require("./routes/borrowinghistoryRoute")
 const reportRoute = require("./routes/reportRoute")
+
 const {errorMiddleware} = require('./middlewares/errorMiddlewares');
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
@@ -22,7 +23,12 @@ const app = express();
 const port = 3000;
 
 app.use(cors());
+app.use(cors());
 app.use(express.json());
+app.use(errorMiddleware);
+app.use(cookieParser()); 
+
+
 app.use(errorMiddleware);
 app.use(cookieParser()); 
 

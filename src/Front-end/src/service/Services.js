@@ -30,6 +30,7 @@ export const loginUser = async (email, password) => {
     return { success: false, error: "Lỗi mạng hoặc máy chủ không phản hồi." };
   }
 };
+
 /* ---------------- 2. PUBLISHERS ---------------- */
 const BASE = "http://localhost:3000/api";
 /**
@@ -179,3 +180,338 @@ export const deleteBookById = async (id) => {
   if (!res.ok) throw new Error("DELETE /books/:id failed");
 };
 
+export const registerUser = async (username, email, password, name) => {
+  if (!username || !email || !password || !name) {  
+    return { success: false, error: "Vui lòng nhập đầy đủ thông tin." };
+  }
+
+  try {
+    const response = await fetch("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, email, password, name }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok && result.user) {
+      return { success: true, user: result.user };
+    } else {
+      return {
+        success: false,
+        error: result.error || "Đăng ký thất bại.",
+      };
+    }
+  } catch (err) {
+    return { success: false, error: "Lỗi mạng hoặc máy chủ không phản hồi." };
+  }
+};
+
+export const forgotPassword = async (email) => {
+  if (!email) {
+    return { success: false, error: "Email là bắt buộc." };
+  }
+
+  try {
+    const response = await fetch("http://localhost:3000/api/auth/password/forgot", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      return { success: true, message: "Hướng dẫn đặt lại mật khẩu đã được gửi đến email của bạn." };
+    } else {
+      return {
+        success: false,
+        error: result.error || "Không thể gửi yêu cầu đặt lại mật khẩu.",
+      };
+    }
+  } catch (err) {
+    return { success: false, error: "Lỗi mạng hoặc máy chủ không phản hồi." };
+  }
+};
+
+export const resetPassword = async (token, newPassword, confirmPassword) => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/auth/password/reset/${token}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        newPassword,
+        confirmPassword,
+      }),
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return { success: false, error: "Lỗi gửi yêu cầu" };
+  }
+};
+
+/* ---------------- 5. LIBRARIANS ---------------- */
+// Use a direct URL for the API base in the absence of proper environment variable configuration for the browser
+const API_BASE_URL = "http://localhost:3000/api";
+
+export const getAllLibrarians = async () => {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE_URL}/librarians`, {
+    method: "GET",
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || `GET /librarians failed with status ${res.status}`);
+  }
+  const response = await res.json();
+  return response.data;
+};
+
+export const getLibrarianById = async (id) => {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE_URL}/librarians/${id}`, {
+    method: "GET",
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || `GET /librarians/${id} failed with status ${res.status}`);
+  }
+  const response = await res.json();
+  return response.data;
+};
+
+export const createLibrarian = async (body) => {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE_URL}/librarians`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || `POST /librarians failed with status ${res.status}`);
+  }
+  const response = await res.json();
+  return response.data;
+};
+
+export const updateLibrarianById = async (id, body) => {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE_URL}/librarians/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || `PUT /librarians/${id} failed with status ${res.status}`);
+  }
+  const response = await res.json();
+  return response.data;
+};
+
+export const deleteLibrarianById = async (id) => {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`${API_BASE_URL}/librarians/${id}`, {
+    method: "DELETE",
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || `DELETE /librarians/${id} failed with status ${res.status}`);
+  }
+  const response = await res.json();
+  return response.data;
+};
+
+/* ---------------- 6. STUDENTS ---------------- */
+/**
+ * Fetches all students from the backend.
+ * @returns {Promise<Array<{
+ *   student_id: number;
+ *   username: string;
+ *   email: string;
+ *   name: string;
+ *   class_id: number | null;
+ * }>>} Array of student objects
+ */
+export const getAllStudents = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('Authentication token missing. Please login.');
+  }
+  const res = await fetch(`${API_BASE_URL}/students`, {
+    method: "GET",
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  const responseBody = await res.json();
+  if (!res.ok) {
+    throw new Error(responseBody.message || `GET /students failed with status ${res.status}`);
+  }
+  if (responseBody && responseBody.success && Array.isArray(responseBody.data)) {
+    return responseBody.data;
+  } else {
+    console.error('Unexpected data format from backend for /students:', responseBody);
+    throw new Error(responseBody.message || 'Unexpected response format from server.');
+  }
+};
+
+/**
+ * Fetches a student by ID.
+ * @param {number} id - The student ID
+ * @returns {Promise<{
+ *   student_id: number;
+ *   username: string;
+ *   email: string;
+ *   name: string;
+ *   class_id: number | null;
+ * }>}
+ */
+export const getStudentById = async (id) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('Authentication token missing. Please login.');
+  }
+  const res = await fetch(`${API_BASE_URL}/students/${id}`, {
+    method: "GET",
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  const responseBody = await res.json();
+  if (!res.ok) {
+    throw new Error(responseBody.message || `GET /students/${id} failed with status ${res.status}`);
+  }
+  if (responseBody && responseBody.success && responseBody.data && typeof responseBody.data === 'object') {
+    return responseBody.data;
+  } else {
+    console.error('Unexpected data format from backend for /students/:id:', responseBody);
+    throw new Error(responseBody.message || 'Unexpected response format from server.');
+  }
+};
+
+/**
+ * Creates a new student.
+ * @param {{ username: string; name: string; email: string; class_id: string; }} body - The student data to create
+ * @returns {Promise<{
+ *   student_id: number;
+ *   username: string;
+ *   email: string;
+ *   name: string;
+ *   class_id: number | null;
+ * }>}
+ */
+export const createStudent = async (body) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('Authentication token missing. Please login.');
+  }
+  const res = await fetch(`${API_BASE_URL}/students`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const responseBody = await res.json();
+  if (!res.ok) {
+    throw new Error(responseBody.message || `POST /students failed with status ${res.status}`);
+  }
+  if (responseBody && responseBody.success && responseBody.data && typeof responseBody.data === 'object') {
+    return responseBody.data;
+  } else {
+    console.error('Unexpected data format from backend for POST /students:', responseBody);
+    throw new Error(responseBody.message || 'Unexpected response format from server.');
+  }
+};
+
+/**
+ * Updates a student by ID.
+ * @param {number} id - The student ID
+ * @param {{ username: string; name: string; email: string; class_id: string; }} body - The student data to update
+ * @returns {Promise<{
+ *   student_id: number;
+ *   username: string;
+ *   email: string;
+ *   name: string;
+ *   class_id: number | null;
+ * }>}
+ */
+export const updateStudentById = async (id, body) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('Authentication token missing. Please login.');
+  }
+  const res = await fetch(`${API_BASE_URL}/students/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(body)
+  });
+  const responseBody = await res.json();
+  if (!res.ok) {
+    throw new Error(responseBody.message || `PUT /students/${id} failed with status ${res.status}`);
+  }
+  if (responseBody && responseBody.success && responseBody.data && typeof responseBody.data === 'object') {
+    return responseBody.data;
+  } else {
+    console.error('Unexpected data format from backend for PUT /students/:id:', responseBody);
+    throw new Error(responseBody.message || 'Unexpected response format from server.');
+  }
+};
+
+/**
+ * Deletes a student by ID.
+ * @param {number} id - The student ID
+ * @returns {Promise<{
+ *   student_id?: number; // Assuming backend might return the deleted ID or a success object
+ *   success?: boolean;
+ * }>}
+ */
+export const deleteStudentById = async (id) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('Authentication token missing. Please login.');
+  }
+  const res = await fetch(`${API_BASE_URL}/students/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  const responseBody = await res.json();
+  if (!res.ok) {
+    throw new Error(responseBody.message || `DELETE /students/${id} failed with status ${res.status}`);
+  }
+  // Assuming backend returns { success: true, data: ... } or similar on successful delete
+  // If backend returns data on successful delete, return responseBody.data
+  return responseBody.data; // Or return responseBody if backend doesn't wrap in data
+};
