@@ -1,5 +1,6 @@
 const express = require("express");
 const {getAllAdmin,getAdminById,deleteAdmin,updateAdmin } = require("../controllers/adminController");
+const {  isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware");
 
 const router = express.Router();
 router.get("/", getAllAdmin);

@@ -1,35 +1,48 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+// src/App.tsx
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+
+import MainLayout from "./components/MainLayout";
+import LoginPage from "./pages/LoginPage";
+import PublisherManagementPage from "./pages/PublisherManagementPage";
+import HomePage from "./pages/HomePage.tsx";
+import CategoryManagementPage from "./pages/CategoryManagementPage"; 
+import BookManagementPage from "./pages/BookManagementPage";
+import LibrarianManagementPage from "./pages/LibrarianManagementPage.tsx";
+import StudentManagementPage from "./pages/StudentManagementPage";
+import ViewBorrowingHistoryPage from "./pages/ViewBorrowingHistoryPage";
+
+import RegisterPage from "./pages/RegisterPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ViewReportPage from "./pages/ViewReportPage";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Router>
+      <Routes>
+        {/* ----------------------- Public / Auth routes ----------------------- */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/librarians" element={<LibrarianManagementPage />} />
+        <Route path="/students" element={<StudentManagementPage />} />
+        <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/password/forgot" element={<ForgotPasswordPage />} />
+        <Route path="/password/reset/:token" element={<ResetPasswordPage />} />
+        {/* ----------------------- Protected (Header + Sidebar) ----------------------- */}
+        <Route element={<MainLayout />}>
+          <Route path="/admin/publishers" element={<PublisherManagementPage />} />
+          <Route path="/admin/home" element={<HomePage />} />
+          <Route path="/admin/category" element={<CategoryManagementPage />} />
+          <Route path="/admin/book" element={<BookManagementPage />} />
+          <Route path="/admin/reports" element={<ViewReportPage />} />
+          {/* Thêm các Route con ở đây */}
+        </Route>
+        {/* ----------------------- Catch-all ----------------------- */}
+        <Route path="*" element={<Navigate to="/admin/home" replace />} />
+      </Routes>
+    </Router>
+  );
 }
 
-export default App
+export default App;
+

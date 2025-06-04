@@ -18,11 +18,19 @@
   "homepage": "https://github.com/HungRed1303/Web_Library_CNPM#readme",
   "description": "",
   "dependencies": {
+    "@radix-ui/react-toast": "^1.2.14",
     "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "cron": "^4.3.1",
+    "crypto": "^1.0.1",
     "dotenv": "^16.5.0",
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
-    "nodemon": "^3.1.9",
+    "lucide-react": "^0.511.0",
+    "node-cron": "^4.1.0",
+    "nodemailer": "^7.0.3",
+    "nodemon": "^3.1.10",
     "pg": "^8.16.0"
   }
 }
