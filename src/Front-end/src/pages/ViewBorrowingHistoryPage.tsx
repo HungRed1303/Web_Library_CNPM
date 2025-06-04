@@ -1,11 +1,13 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Book, Calendar, DollarSign, Search } from "lucide-react"
+import { useSearchParams } from "react-router-dom"
 
 // Sample borrowing history data
 const borrowingHistory = [
   {
+    student_id: 1,
     title: "Clean Code",
     borrowed: "2025-04-01",
     returned: "2025-04-10",
@@ -13,6 +15,7 @@ const borrowingHistory = [
     fine: "$0",
   },
   {
+    student_id: 1,
     title: "JavaScript: The Good Parts",
     borrowed: "2025-03-15",
     returned: "2025-03-25",
@@ -20,6 +23,7 @@ const borrowingHistory = [
     fine: "$5",
   },
   {
+    student_id: 2,
     title: "The Pragmatic Programmer",
     borrowed: "2025-02-20",
     returned: "2025-03-02",
@@ -65,16 +69,23 @@ const borrowingHistory = [
 
 export default function LibraryHistory() {
   const [searchTerm, setSearchTerm] = useState("")
+  const searchParams = useSearchParams()
+  const studentId = searchParams.get('studentId')
 
-  const totalFines = borrowingHistory.reduce((sum, record) => {
+  // Filter history based on studentId if provided
+  const filteredByStudent = studentId 
+    ? borrowingHistory.filter(record => record.student_id === parseInt(studentId))
+    : borrowingHistory
+
+  const totalFines = filteredByStudent.reduce((sum, record) => {
     const fine = Number.parseFloat(record.fine.replace("$", ""))
     return sum + fine
   }, 0)
 
-  const onTimeCount = borrowingHistory.filter((record) => record.status === "On Time").length
-  const lateCount = borrowingHistory.filter((record) => record.status === "Late").length
+  const onTimeCount = filteredByStudent.filter((record) => record.status === "On Time").length
+  const lateCount = filteredByStudent.filter((record) => record.status === "Late").length
 
-  const filteredHistory = borrowingHistory.filter((record) =>
+  const filteredHistory = filteredByStudent.filter((record) =>
     record.title.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
@@ -84,9 +95,15 @@ export default function LibraryHistory() {
       <div className="w-full max-w-7xl bg-gradient-to-b from-[#eaf3fb] to-[#dbeafe] rounded-2xl shadow-lg p-10 mb-10 border border-[#dbeafe] flex flex-col items-center" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
         <div className="flex items-center mb-1">
           <Book className="h-12 w-12 text-[#033060] mr-3" />
-          <h1 className="text-5xl font-extrabold text-[#033060] drop-shadow" style={{letterSpacing: '1px', textShadow: '0 2px 8px #b6c6e3'}}>Borrowing History</h1>
+          <h1 className="text-5xl font-extrabold text-[#033060] drop-shadow" style={{letterSpacing: '1px', textShadow: '0 2px 8px #b6c6e3'}}>
+            {studentId ? "Student Borrowing History" : "Borrowing History"}
+          </h1>
         </div>
-        <p className="text-gray-600 text-lg">View your complete borrowing history and track your fines</p>
+        <p className="text-gray-600 text-lg">
+          {studentId 
+            ? "View the complete borrowing history for this student"
+            : "View your complete borrowing history and track your fines"}
+        </p>
       </div>
 
       {/* Search Bar */}
@@ -111,7 +128,7 @@ export default function LibraryHistory() {
             <h3 className="text-[#033060] font-semibold text-base">Total Books Borrowed</h3>
             <Book className="h-6 w-6 text-[#033060]" />
           </div>
-          <div className="text-2xl font-bold text-[#033060]">{borrowingHistory.length}</div>
+          <div className="text-2xl font-bold text-[#033060]">{filteredByStudent.length}</div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-4" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>

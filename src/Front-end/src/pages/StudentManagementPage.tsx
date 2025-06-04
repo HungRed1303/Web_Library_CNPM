@@ -1,66 +1,265 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Pencil, Trash2, Search, CheckCircle, XCircle, Users, UserPlus } from "lucide-react"
+import { Pencil, Trash2, Search, CheckCircle, XCircle, Users, UserPlus, History } from "lucide-react"
+import { 
+  getAllStudents, 
+  getStudentById, 
+  updateStudentById, 
+  deleteStudentById, 
+  createStudent 
+} from "../service/Services"
+import { useNavigate } from "react-router-dom"
 
 interface Student {
-  id: string
-  name: string
-  dateOfBirth: string
-  gender: string
-  address: string
-  classId: string
+  student_id: number
+  username: string
   email: string
+  name: string
+  class_id: number | null
+}
+
+interface FormData {
+  username: string
+  name: string
+  email: string
+  class_id: string | null
+}
+
+interface ValidationErrors {
+  username?: string
+  name?: string
+  email?: string
+  class_id?: string
 }
 
 export default function StudentManagementPage() {
-  const [students, setStudents] = useState<Student[]>([
-    {
-      id: "STU001",
-      name: "John Doe",
-      dateOfBirth: "2000-01-15",
-      gender: "Male",
-      address: "123 Library St, Booktown",
-      classId: "CS101",
-      email: "john.doe@student.com",
-    },
-    {
-      id: "STU002",
-      name: "Jane Smith",
-      dateOfBirth: "2001-05-22",
-      gender: "Female",
-      address: "456 Reading Ave, Bookville",
-      classId: "ENG202",
-      email: "jane.smith@student.com",
-    },
-    {
-      id: "STU003",
-      name: "Alice Johnson",
-      dateOfBirth: "1999-12-10",
-      gender: "Female",
-      address: "789 Study Lane, Bookville",
-      classId: "MATH301",
-      email: "alice.johnson@student.com",
-    },
-  ])
+  const [students, setStudents] = useState<Student[]>([])
   const [searchTerm, setSearchTerm] = useState("")
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [currentStudent, setCurrentStudent] = useState<Student | null>(null)
-  const [formData, setFormData] = useState<Omit<Student, "id"> & { id?: string }>({
+  const [formData, setFormData] = useState<FormData>({
+    username: "",
     name: "",
-    dateOfBirth: "",
-    gender: "",
-    address: "",
-    classId: "",
     email: "",
-    id: "",
+    class_id: null
   })
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [errors, setErrors] = useState<ValidationErrors>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
   const [showToast, setShowToast] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    fetchStudents()
+  }, [])
+
+  const fetchStudents = async () => {
+    try {
+      setIsLoading(true)
+      const token = localStorage.getItem('token')
+      if (!token) {
+        showToastMessage("error", "Authentication token missing. Please login.")
+        setIsLoading(false);
+        console.error("Authentication token missing.");
+        return
+      }
+      const response = await getAllStudents()
+      if (Array.isArray(response)) {
+        setStudents(response)
+      } else {
+        setStudents([])
+        showToastMessage("error", "Invalid student data format received.")
+        console.error("Invalid data format:", response);
+      }
+    } catch (error: any) {
+      console.error("Failed to fetch students:", error)
+      showToastMessage("error", error.message || "Failed to fetch students")
+      setStudents([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const validateField = (name: string, value: string): string | undefined => {
+    switch (name) {
+      case "username":
+        if (!value.trim()) return "Username is required"
+        if (value.trim().length < 3) return "Username must be at least 3 characters"
+        return undefined
+      case "name":
+        if (!value.trim()) return "Full Name is required"
+        if (value.trim().length < 2) return "Name must be at least 2 characters"
+        return undefined
+      case "email":
+        if (!value.trim()) return "Email Address is required"
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(value)) return "Invalid email format"
+        return undefined
+      case "class_id":
+        if (!value.trim()) return "Class ID is required";
+        return undefined
+      default:
+        return undefined
+    }
+  }
+
+  const validateForm = (): boolean => {
+    const newErrors: ValidationErrors = {}
+    const fields = ["username", "name", "email", "class_id"]
+    
+    for (const field of fields) {
+      const value = (formData[field as keyof typeof formData] as string) || ""
+      const error = validateField(field, value)
+      if (error) {
+        newErrors[field as keyof ValidationErrors] = error
+      }
+    }
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleCreateStudent = async () => {
+    if (!validateForm()) {
+      showToastMessage("error", "Please correct the errors in the form.")
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const { username, name, email, class_id } = formData
+      if (!username || !name || !email || !class_id) {
+        showToastMessage("error", "Required fields are missing")
+        return
+      }
+      
+      const response = await createStudent({
+        username,
+        name,
+        email,
+        class_id: class_id
+      })
+      
+      if (response) {
+        setStudents([...students, response])
+        setIsCreateModalOpen(false)
+        resetForm()
+        showToastMessage("success", "Student created successfully!")
+      }
+    } catch (error: any) {
+      console.error("Failed to create student:", error);
+      showToastMessage("error", error.message || "Failed to create student")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleEditStudent = async () => {
+    if (!validateForm()) {
+      showToastMessage("error", "Please correct the errors in the form.")
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const { username, name, email, class_id } = formData
+      if (!username || !name || !email || !class_id || !currentStudent?.student_id) {
+        showToastMessage("error", "Required fields are missing")
+        return
+      }
+      
+      const response = await updateStudentById(currentStudent.student_id, {
+        username,
+        name,
+        email,
+        class_id: class_id
+      })
+      
+      if (response) {
+        setStudents(students.map((stu) => 
+          stu.student_id === currentStudent.student_id ? response : stu
+        ))
+        setIsEditModalOpen(false)
+        resetForm()
+        showToastMessage("success", "Student updated successfully!")
+      }
+    } catch (error: any) {
+      console.error("Failed to update student:", error);
+      showToastMessage("error", error.message || "Failed to update student")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDeleteStudent = async () => {
+    if (!currentStudent) return
+
+    try {
+      setIsLoading(true)
+      await deleteStudentById(currentStudent.student_id)
+      
+      setStudents(students.filter((stu) => stu.student_id !== currentStudent.student_id))
+      setIsDeleteDialogOpen(false)
+      setCurrentStudent(null)
+      showToastMessage("success", "Student deleted successfully!")
+      
+    } catch (error: any) {
+      console.error("Failed to delete student:", error);
+      showToastMessage("error", error.message || "Failed to delete student")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const openEditModal = (student: Student) => {
+    setCurrentStudent(student)
+    setFormData({
+      username: student.username,
+      name: student.name,
+      email: student.email,
+      class_id: student.class_id?.toString() || null
+    })
+    setIsEditModalOpen(true)
+    setTouched({})
+    setErrors({})
+  }
+
+  const openCreateModal = () => {
+    setCurrentStudent(null)
+    setFormData({
+      username: "",
+      name: "",
+      email: "",
+      class_id: null
+    })
+    setIsCreateModalOpen(true)
+    setTouched({})
+    setErrors({})
+  }
+
+  const openDeleteDialog = (student: Student) => {
+    setCurrentStudent(student)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const resetForm = () => {
+    setFormData({
+      username: "",
+      name: "",
+      email: "",
+      class_id: null
+    })
+    setErrors({})
+    setTouched({})
+    setCurrentStudent(null)
+  }
+
+  const showToastMessage = (type: "success" | "error", message: string) => {
+    setToast({ type, message })
+  }
 
   useEffect(() => {
     if (toast) {
@@ -78,128 +277,11 @@ export default function StudentManagementPage() {
     (student) =>
       student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.id.toLowerCase().includes(searchTerm.toLowerCase())
+      student.username.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  useEffect(() => {
-    if (!isAddModalOpen && !isEditModalOpen) {
-      setErrors({})
-      setTouched({})
-    }
-  }, [isAddModalOpen, isEditModalOpen])
-
-  const validateField = (name: string, value: string): string | undefined => {
-    switch (name) {
-      case "id":
-        if (!value.trim()) return "Student ID is required"
-        if (students.some((s) => s.id === value.trim())) return "This Student ID already exists"
-        return undefined
-      case "name":
-        if (!value.trim()) return "Full Name is required"
-        return undefined
-      case "email":
-        if (!value.trim()) return "Email Address is required"
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(value)) return "Invalid email format"
-        return undefined
-      case "dateOfBirth":
-        if (!value.trim()) return "Date of Birth is required"
-        return undefined
-      case "gender":
-        if (!value.trim()) return "Gender is required"
-        return undefined
-      case "address":
-        if (!value.trim()) return "Address is required"
-        return undefined
-      case "classId":
-        if (!value.trim()) return "Class ID is required"
-        return undefined
-      default:
-        return undefined
-    }
-  }
-
-  const validateForm = (mode: 'add' | 'edit'): boolean => {
-    const newErrors: Record<string, string> = {}
-    const fields = mode === 'add'
-      ? ["id", "name", "email", "dateOfBirth", "gender", "address", "classId"]
-      : ["name", "email", "dateOfBirth", "gender", "address", "classId"]
-    for (const field of fields) {
-      const value = (formData as any)[field] || ""
-      const error = validateField(field, value)
-      if (error) {
-        newErrors[field] = error
-      }
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    setTouched((prev) => ({ ...prev, [name]: true }))
-    const error = validateField(name, value)
-    setErrors((prev) => ({ ...prev, [name]: error || "" }))
-  }
-
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name } = e.target
-    setTouched((prev) => ({ ...prev, [name]: true }))
-  }
-
-  const handleAddStudent = () => {
-    if (!validateForm('add')) {
-      setToast({ type: "error", message: "Please correct the errors in the form." })
-      return
-    }
-    const { id, name, dateOfBirth, gender, address, classId, email } = formData
-    setStudents([...students, { id: id!.trim(), name, dateOfBirth, gender, address, classId, email }])
-    setIsAddModalOpen(false)
-    resetForm()
-    setToast({ type: "success", message: "Student added successfully!" })
-  }
-
-  const handleEditStudent = () => {
-    if (!validateForm('edit')) {
-      setToast({ type: "error", message: "Please correct the errors in the form." })
-      return
-    }
-    setStudents(students.map((stu) =>
-      stu.id === formData.id
-        ? { ...stu, name: formData.name, dateOfBirth: formData.dateOfBirth, gender: formData.gender, address: formData.address, classId: formData.classId, email: formData.email }
-        : stu
-    ))
-    setIsEditModalOpen(false)
-    resetForm()
-    setToast({ type: "success", message: "Student updated successfully!" })
-  }
-
-  const handleDeleteStudent = () => {
-    if (currentStudent) {
-      setStudents(students.filter((stu) => stu.id !== currentStudent.id))
-      setIsDeleteDialogOpen(false)
-      setCurrentStudent(null)
-      setToast({ type: "success", message: "Student deleted successfully!" })
-    }
-  }
-
-  const openEditModal = (student: Student) => {
-    setFormData({ ...student })
-    setIsEditModalOpen(true)
-    setTouched({})
-    setErrors({})
-  }
-
-  const openDeleteDialog = (student: Student) => {
-    setCurrentStudent(student)
-    setIsDeleteDialogOpen(true)
-  }
-
-  const resetForm = () => {
-    setFormData({ name: "", dateOfBirth: "", gender: "", address: "", classId: "", email: "", id: "" })
-    setErrors({})
-    setTouched({})
+  const handleViewBorrowingHistory = (studentId: number) => {
+    navigate(`/students/borrowingHistory?studentId=${studentId}`)
   }
 
   return (
@@ -219,7 +301,7 @@ export default function StudentManagementPage() {
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#033060] h-5 w-5" />
             <input
-              placeholder="Search students by name, email, or ID..."
+              placeholder="Search students by name, email, or username..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="pl-12 pr-4 py-3 text-lg rounded-xl border border-[#dbeafe] bg-white shadow focus:border-[#033060] focus:ring-2 focus:ring-blue-100 w-full outline-none transition-all duration-150"
@@ -228,350 +310,230 @@ export default function StudentManagementPage() {
           </div>
         </div>
         <button
-          onClick={() => {
-            resetForm()
-            setIsAddModalOpen(true)
-          }}
+          onClick={openCreateModal}
           className="flex items-center gap-2 bg-[#033060] text-white font-semibold px-8 py-3 rounded-xl shadow hover:bg-[#021c3a] border border-[#033060] transition-all duration-200 text-lg min-w-[200px] justify-center"
           style={{boxShadow: '0 2px 8px 0 #b6c6e3'}}
         >
           <UserPlus className="h-5 w-5" />
-          Add New Student
+          Add Student
         </button>
       </div>
 
       {/* Table */}
       <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg border border-[#dbeafe] overflow-hidden" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
-        <table className="w-full">
-          <thead>
-            <tr className="bg-[#f5f8fc] border-b border-[#dbeafe]">
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Student ID</th>
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Full Name</th>
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Email Address</th>
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Class ID</th>
-              <th className="py-3 px-5 text-right text-[#033060] font-bold text-base">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredStudents.length > 0 ? (
-              filteredStudents.map((student, index) => (
-                <tr key={student.id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
-                  <td className="py-2.5 px-5">
-                    <span className="bg-[#e0e7ef] text-[#033060] font-bold px-3 py-0.5 rounded-lg text-xs tracking-wide border border-[#b6c6e3]">{student.id}</span>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-[#f5f8fc] border-b border-[#dbeafe]">
+                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">ID</th>
+                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Username</th>
+                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Name</th>
+                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Email</th>
+                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Class ID</th>
+                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-8">
+                    <div className="flex justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#033060]"></div>
+                    </div>
+                    <p className="text-gray-500 mt-4">Loading students...</p>
                   </td>
-                  <td className="py-2.5 px-5 font-semibold text-[#033060] text-base">{student.name}</td>
-                  <td className="py-2.5 px-5 text-[#033060] text-base">{student.email}</td>
-                  <td className="py-2.5 px-5 text-[#033060] text-base">{student.classId}</td>
-                  <td className="py-2.5 px-5 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button
-                        onClick={() => openEditModal(student)}
-                        className="flex items-center gap-1 text-[#033060] hover:text-[#021c3a] px-2 py-1 rounded transition text-sm"
-                        aria-label={`Edit ${student.name}`}
-                      >
-                        <Pencil className="h-4 w-4 mr-1" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => openDeleteDialog(student)}
-                        className="flex items-center gap-1 text-red-600 hover:text-white hover:bg-red-600 px-2 py-1 rounded transition text-sm border border-transparent hover:border-red-600"
-                        aria-label={`Delete ${student.name}`}
-                      >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
-                      </button>
+                </tr>
+              ) : filteredStudents.length > 0 ? (
+                filteredStudents.map((student) => (
+                  <tr key={student.student_id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
+                    <td className="py-2.5 px-5 text-[#033060] text-base">{student.student_id}</td>
+                    <td className="py-2.5 px-5 text-[#033060] text-base">{student.username}</td>
+                    <td className="py-2.5 px-5 text-[#033060] text-base">{student.name}</td>
+                    <td className="py-2.5 px-5 text-[#033060] text-base">{student.email}</td>
+                    <td className="py-2.5 px-5 text-[#033060] text-base">{student.class_id || 'N/A'}</td>
+                    <td className="py-2.5 px-5">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => handleViewBorrowingHistory(student.student_id)}
+                          className="p-2 text-[#467DA7] hover:bg-[#467DA7]/10 rounded-full transition-colors"
+                          title="View Borrowing History"
+                        >
+                          <History size={18} />
+                        </button>
+                        <button
+                          onClick={() => openEditModal(student)}
+                          className="p-2 text-[#467DA7] hover:bg-[#467DA7]/10 rounded-full transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil size={18} />
+                        </button>
+                        <button
+                          onClick={() => openDeleteDialog(student)}
+                          className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="text-center py-8">
+                    <div className="flex flex-col items-center">
+                      <Users className="h-12 w-12 text-gray-300 mb-4" />
+                      <p className="text-gray-500 text-base">No students found</p>
+                      <p className="text-gray-400 text-sm">Try adjusting your search criteria</p>
                     </div>
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="text-center py-8">
-                  <div className="flex flex-col items-center">
-                    <Users className="h-12 w-12 text-gray-300 mb-4" />
-                    <p className="text-gray-500 text-base">No students found</p>
-                    <p className="text-gray-400 text-sm">Try adjusting your search criteria</p>
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      {/* Add Student Modal */}
-      {isAddModalOpen && (
+      {/* Create/Edit Student Modal */}
+      {(isEditModalOpen || isCreateModalOpen) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-4 animate-scale-in border border-[#dbeafe]" style={{boxShadow: '0 4px 24px 0 rgba(3,48,96,0.10)'}}>
-            <div className="mb-3">
-              <h2 className="text-xl font-extrabold text-[#033060] mb-1">Add New Student</h2>
-              <p className="text-gray-600 text-xs">Fill in the details to add a new student to the system.</p>
+          <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8 animate-scale-in border border-[#dbeafe]" style={{boxShadow: '0 8px 32px 0 rgba(3,48,96,0.12)'}}>
+            <div className="mb-6">
+              <h2 className="text-3xl font-extrabold text-[#033060] mb-2">
+                {isCreateModalOpen ? "Add New Student" : "Edit Student"}
+              </h2>
+              <p className="text-gray-600 text-base">
+                {isCreateModalOpen ? "Create a new student account." : "Update the student's information."}
+              </p>
             </div>
             <form
               onSubmit={e => {
                 e.preventDefault();
-                handleAddStudent();
+                isCreateModalOpen ? handleCreateStudent() : handleEditStudent();
               }}
-              className="space-y-3"
+              className="space-y-5"
             >
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Student ID*</label>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="username" className="text-[#033060] font-semibold text-base">Username*</label>
                 <input
-                  name="id"
-                  value={formData.id}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition ${touched.id && errors.id ? 'border-red-500' : ''}`}
-                  placeholder="e.g., STU004"
+                  id="username"
+                  name="username"
+                  value={formData.username}
+                  onChange={e => {
+                    setFormData(prev => ({ ...prev, username: e.target.value }))
+                    setTouched(prev => ({ ...prev, username: true }))
+                    const error = validateField("username", e.target.value)
+                    setErrors(prev => ({ ...prev, username: error }))
+                  }}
+                  onBlur={e => {
+                    setTouched(prev => ({ ...prev, username: true }))
+                  }}
+                  className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.username && errors.username ? 'border-red-500' : ''}`}
+                  placeholder="Enter username"
                 />
-                {touched.id && errors.id && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.id}</p>
+                {touched.username && errors.username && (
+                  <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.username}</p>
                 )}
               </div>
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Full Name*</label>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="name" className="text-[#033060] font-semibold text-base">Full Name*</label>
                 <input
+                  id="name"
                   name="name"
                   value={formData.name}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition ${touched.name && errors.name ? 'border-red-500' : ''}`}
+                  onChange={e => {
+                    setFormData(prev => ({ ...prev, name: e.target.value }))
+                    setTouched(prev => ({ ...prev, name: true }))
+                    const error = validateField("name", e.target.value)
+                    setErrors(prev => ({ ...prev, name: error }))
+                  }}
+                  onBlur={e => {
+                    setTouched(prev => ({ ...prev, name: true }))
+                  }}
+                  className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.name && errors.name ? 'border-red-500' : ''}`}
                   placeholder="Enter full name"
                 />
                 {touched.name && errors.name && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.name}</p>
+                  <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.name}</p>
                 )}
               </div>
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Email Address*</label>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="email" className="text-[#033060] font-semibold text-base">Email Address*</label>
                 <input
+                  id="email"
                   name="email"
                   type="email"
                   value={formData.email}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition ${touched.email && errors.email ? 'border-red-500' : ''}`}
+                  onChange={e => {
+                    setFormData(prev => ({ ...prev, email: e.target.value }))
+                    setTouched(prev => ({ ...prev, email: true }))
+                    const error = validateField("email", e.target.value)
+                    setErrors(prev => ({ ...prev, email: error }))
+                  }}
+                  onBlur={e => {
+                    setTouched(prev => ({ ...prev, email: true }))
+                  }}
+                  className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.email && errors.email ? 'border-red-500' : ''}`}
                   placeholder="Enter email address"
                 />
                 {touched.email && errors.email && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.email}</p>
+                  <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.email}</p>
                 )}
               </div>
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Date of Birth*</label>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="class_id" className="text-[#033060] font-semibold text-base">Class ID*</label>
                 <input
-                  name="dateOfBirth"
-                  type="date"
-                  value={formData.dateOfBirth}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition ${touched.dateOfBirth && errors.dateOfBirth ? 'border-red-500' : ''}`}
-                  placeholder="YYYY-MM-DD"
+                  id="class_id"
+                  name="class_id"
+                  type="text"
+                  value={formData.class_id || ""}
+                  onChange={e => {
+                    setFormData(prev => ({ ...prev, class_id: e.target.value }))
+                    setTouched(prev => ({ ...prev, class_id: true }))
+                    const error = validateField("class_id", e.target.value)
+                    setErrors(prev => ({ ...prev, class_id: error }))
+                  }}
+                  onBlur={e => {
+                    setTouched(prev => ({ ...prev, class_id: true }))
+                  }}
+                  className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.class_id && errors.class_id ? 'border-red-500' : ''}`}
+                  placeholder="Enter class ID"
                 />
-                {touched.dateOfBirth && errors.dateOfBirth && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.dateOfBirth}</p>
+                {touched.class_id && errors.class_id && (
+                  <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.class_id}</p>
                 )}
               </div>
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Gender*</label>
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition ${touched.gender && errors.gender ? 'border-red-500' : ''}`}
-                >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-                {touched.gender && errors.gender && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.gender}</p>
-                )}
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Address*</label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  rows={2}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition resize-none ${touched.address && errors.address ? 'border-red-500' : ''}`}
-                  placeholder="Enter address"
-                />
-                {touched.address && errors.address && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.address}</p>
-                )}
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Class ID*</label>
-                <input
-                  name="classId"
-                  value={formData.classId}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition ${touched.classId && errors.classId ? 'border-red-500' : ''}`}
-                  placeholder="e.g., CS101"
-                />
-                {touched.classId && errors.classId && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.classId}</p>
-                )}
-              </div>
-              <div className="flex justify-end gap-3 mt-5">
+              <div className="flex justify-end gap-4 mt-8">
                 <button
                   type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc] transition-all text-sm"
+                  onClick={() => {
+                    setIsEditModalOpen(false)
+                    setIsCreateModalOpen(false)
+                  }}
+                  className="px-7 py-3 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc] transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] border border-[#033060] transition-all text-sm"
+                  disabled={isLoading}
+                  className="px-7 py-3 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] border border-[#033060] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Add Student
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      {isCreateModalOpen ? "Creating..." : "Saving..."}
+                    </div>
+                  ) : (
+                    isCreateModalOpen ? "Create Student" : "Save Changes"
+                  )}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-      {/* Edit Student Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-4 animate-scale-in border border-[#dbeafe]" style={{boxShadow: '0 4px 24px 0 rgba(3,48,96,0.10)'}}>
-            <div className="mb-3">
-              <h2 className="text-xl font-extrabold text-[#033060] mb-1">Edit Student</h2>
-              <p className="text-gray-600 text-xs">Update the student's information.</p>
-            </div>
-            <form
-              onSubmit={e => {
-                e.preventDefault();
-                handleEditStudent();
-              }}
-              className="space-y-3"
-            >
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Student ID</label>
-                <input
-                  name="id"
-                  value={formData.id}
-                  disabled
-                  className="w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] bg-[#f7f8fa] text-[#b0b6be] text-sm outline-none cursor-not-allowed"
-                />
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Full Name*</label>
-                <input
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition ${touched.name && errors.name ? 'border-red-500' : ''}`}
-                  placeholder="Enter full name"
-                />
-                {touched.name && errors.name && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.name}</p>
-                )}
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Email Address*</label>
-                <input
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition ${touched.email && errors.email ? 'border-red-500' : ''}`}
-                  placeholder="Enter email address"
-                />
-                {touched.email && errors.email && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.email}</p>
-                )}
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Date of Birth*</label>
-                <input
-                  name="dateOfBirth"
-                  type="date"
-                  value={formData.dateOfBirth}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition ${touched.dateOfBirth && errors.dateOfBirth ? 'border-red-500' : ''}`}
-                  placeholder="YYYY-MM-DD"
-                />
-                {touched.dateOfBirth && errors.dateOfBirth && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.dateOfBirth}</p>
-                )}
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Gender*</label>
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition ${touched.gender && errors.gender ? 'border-red-500' : ''}`}
-                >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-                {touched.gender && errors.gender && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.gender}</p>
-                )}
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Address*</label>
-                <textarea
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  rows={2}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition resize-none ${touched.address && errors.address ? 'border-red-500' : ''}`}
-                  placeholder="Enter address"
-                />
-                {touched.address && errors.address && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.address}</p>
-                )}
-              </div>
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[#033060] font-semibold text-sm">Class ID*</label>
-                <input
-                  name="classId"
-                  value={formData.classId}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-2 py-2 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-sm bg-white outline-none transition ${touched.classId && errors.classId ? 'border-red-500' : ''}`}
-                  placeholder="e.g., CS101"
-                />
-                {touched.classId && errors.classId && (
-                  <p className="text-red-500 text-xs flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.classId}</p>
-                )}
-              </div>
-              <div className="flex justify-end gap-3 mt-5">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc] transition-all text-sm"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] border border-[#033060] transition-all text-sm"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+
       {/* Delete Confirmation Dialog */}
       {isDeleteDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -586,19 +548,28 @@ export default function StudentManagementPage() {
                 onClick={() => setIsDeleteDialogOpen(false)}
                 className="px-5 py-2 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc] transition-all text-base"
               >
-                No
+                Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDeleteStudent}
-                className="px-5 py-2 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] border border-[#033060] transition-all text-base"
+                disabled={isLoading}
+                className="px-5 py-2 rounded-xl bg-red-600 text-white font-semibold shadow hover:bg-red-700 border border-red-600 transition-all text-base disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Yes
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Deleting...
+                  </div>
+                ) : (
+                  "Delete"
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
+
       {/* Toast */}
       {toast && (
         <div className={`fixed left-1/2 -translate-x-1/2 bottom-10 bg-white text-[#033060] px-8 py-5 rounded-2xl shadow-2xl flex items-center gap-4 text-xl font-bold z-50 transition-all duration-500 ${showToast ? "opacity-100" : "opacity-0"}`} style={{boxShadow: '0 8px 32px 0 rgba(3,48,96,0.15)'}}>
@@ -609,3 +580,8 @@ export default function StudentManagementPage() {
     </div>
   )
 }
+
+export const metadata = {
+  title: "Student Management System",
+  description: "A Student Management System",
+};

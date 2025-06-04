@@ -2,44 +2,271 @@
 
 import React, { useState, useEffect } from "react"
 import { Pencil, Trash2, Search, CheckCircle, XCircle, Users, UserPlus } from "lucide-react"
+import { getAllLibrarians, getLibrarianById, updateLibrarianById, deleteLibrarianById, createLibrarian } from "../service/Services"
 
 interface Librarian {
-  id: string
+  librarian_id: number
+  username: string
+  email: string
+  name: string
+  start_date: string
+  end_date: string | null
+}
+
+interface FormData {
+  username: string
   name: string
   email: string
-  password: string
+  start_date: string
+  end_date: string | null
 }
 
 interface ValidationErrors {
-  id?: string
+  username?: string
   name?: string
   email?: string
-  password?: string
-  confirmPassword?: string
+  start_date?: string
+  end_date?: string
 }
 
 export default function LibrarianManagementPage() {
-  const [librarians, setLibrarians] = useState<Librarian[]>([
-    { id: "LIB001", name: "Jane Smith", email: "jane.smith@library.com", password: "********" },
-    { id: "LIB002", name: "John Doe", email: "john.doe@library.com", password: "********" },
-    { id: "LIB003", name: "Alice Johnson", email: "alice.j@library.com", password: "********" },
-  ])
+  const [librarians, setLibrarians] = useState<Librarian[]>([])
   const [searchTerm, setSearchTerm] = useState("")
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [currentLibrarian, setCurrentLibrarian] = useState<Librarian | null>(null)
-  const [formData, setFormData] = useState<Librarian & { confirmPassword?: string }>({
-    id: "",
+  const [formData, setFormData] = useState<FormData>({
+    username: "",
     name: "",
     email: "",
-    password: "",
-    confirmPassword: "",
+    start_date: "",
+    end_date: null
   })
   const [errors, setErrors] = useState<ValidationErrors>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
   const [showToast, setShowToast] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    fetchLibrarians()
+  }, [])
+
+  const fetchLibrarians = async () => {
+    try {
+      setIsLoading(true)
+      console.log("Fetching librarians..."); // Debugging log
+      const token = localStorage.getItem('token');
+      if (!token) {
+          showToastMessage("error", "Authentication token missing. Please login.");
+          setIsLoading(false);
+          console.error("Authentication token missing."); // Debugging error
+          return;
+      }
+      console.log("Token found, calling API..."); // Debugging log
+      const response = await getAllLibrarians()
+      console.log("API response received:", response); // Debugging log
+
+      if (Array.isArray(response)) {
+        setLibrarians(response)
+        console.log("Librarians state updated."); // Debugging log
+      } else {
+        setLibrarians([])
+        showToastMessage("error", "Invalid librarian data format received.")
+        console.error("Invalid data format:", response); // Debugging error
+      }
+    } catch (error: any) {
+      console.error("Failed to fetch librarians:", error)
+      showToastMessage("error", error.message || "Failed to fetch librarians")
+      setLibrarians([]) // Clear librarians on error
+    } finally {
+      setIsLoading(false)
+      console.log("Finished fetching librarians."); // Debugging log
+    }
+  }
+
+  const validateField = (name: string, value: string): string | undefined => {
+    switch (name) {
+      case "username":
+        if (!value.trim()) return "Username is required"
+        if (value.trim().length < 3) return "Username must be at least 3 characters"
+        return undefined
+      case "name":
+        if (!value.trim()) return "Full Name is required"
+        if (value.trim().length < 2) return "Name must be at least 2 characters"
+        return undefined
+      case "email":
+        if (!value.trim()) return "Email Address is required"
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(value)) return "Invalid email format"
+        return undefined
+      case "start_date":
+        if (!value) return "Start Date is required"
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return "Invalid date format (YYYY-MM-DD)"
+        return undefined
+      case "end_date":
+        if (value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) return "Invalid date format (YYYY-MM-DD)"
+        return undefined
+      default:
+        return undefined
+    }
+  }
+
+  const validateForm = (): boolean => {
+    const newErrors: ValidationErrors = {}
+    const fields = ["username", "name", "email", "start_date"]
+    if (formData.end_date) fields.push("end_date")
+    
+    for (const field of fields) {
+      const value = (formData[field as keyof typeof formData] as string) || ""
+      const error = validateField(field, value)
+      if (error) {
+        newErrors[field as keyof ValidationErrors] = error
+      }
+    }
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleCreateLibrarian = async () => {
+    if (!validateForm()) {
+      showToastMessage("error", "Please correct the errors in the form.")
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const { username, name, email, start_date, end_date } = formData
+      if (!username || !name || !email || !start_date) {
+        showToastMessage("error", "Required fields are missing")
+        return
+      }
+      const response = await createLibrarian({
+        username,
+        name,
+        email,
+        start_date,
+        end_date
+      })
+      
+      if (response) {
+        setLibrarians([...librarians, response])
+        setIsCreateModalOpen(false)
+        resetForm()
+        showToastMessage("success", "Librarian created successfully!")
+      }
+    } catch (error: any) {
+      showToastMessage("error", error.message || "Failed to create librarian")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleEditLibrarian = async () => {
+    if (!validateForm()) {
+      showToastMessage("error", "Please correct the errors in the form.")
+      return
+    }
+
+    try {
+      setIsLoading(true)
+      const { username, name, email, start_date, end_date } = formData
+      if (!username || !name || !email || !start_date || !currentLibrarian?.librarian_id) {
+        showToastMessage("error", "Required fields are missing")
+        return
+      }
+      const response = await updateLibrarianById(currentLibrarian.librarian_id, {
+        username,
+        name,
+        email,
+        start_date,
+        end_date
+      })
+      
+      if (response) {
+        setLibrarians(librarians.map((lib) => 
+          lib.librarian_id === currentLibrarian.librarian_id ? response : lib
+        ))
+        setIsEditModalOpen(false)
+        resetForm()
+        showToastMessage("success", "Librarian updated successfully!")
+      }
+    } catch (error: any) {
+      showToastMessage("error", error.message || "Failed to update librarian")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleDeleteLibrarian = async () => {
+    if (!currentLibrarian) return
+
+    try {
+      setIsLoading(true)
+      const response = await deleteLibrarianById(currentLibrarian.librarian_id)
+      if (response) {
+        setLibrarians(librarians.filter((lib) => lib.librarian_id !== currentLibrarian.librarian_id))
+        setIsDeleteDialogOpen(false)
+        setCurrentLibrarian(null)
+        showToastMessage("success", "Librarian deleted successfully!")
+      }
+    } catch (error: any) {
+      showToastMessage("error", error.message || "Failed to delete librarian")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const openEditModal = (librarian: Librarian) => {
+    setCurrentLibrarian(librarian)
+    setFormData({
+      username: librarian.username,
+      name: librarian.name,
+      email: librarian.email,
+      start_date: librarian.start_date,
+      end_date: librarian.end_date
+    })
+    setIsEditModalOpen(true)
+    setTouched({})
+    setErrors({})
+  }
+
+  const openCreateModal = () => {
+    setCurrentLibrarian(null)
+    setFormData({
+      username: "",
+      name: "",
+      email: "",
+      start_date: "",
+      end_date: null
+    })
+    setIsCreateModalOpen(true)
+    setTouched({})
+    setErrors({})
+  }
+
+  const openDeleteDialog = (librarian: Librarian) => {
+    setCurrentLibrarian(librarian)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const resetForm = () => {
+    setFormData({
+      username: "",
+      name: "",
+      email: "",
+      start_date: "",
+      end_date: null
+    })
+    setErrors({})
+    setTouched({})
+    setCurrentLibrarian(null)
+  }
+
+  const showToastMessage = (type: "success" | "error", message: string) => {
+    setToast({ type, message })
+  }
 
   useEffect(() => {
     if (toast) {
@@ -57,138 +284,8 @@ export default function LibrarianManagementPage() {
     (librarian) =>
       librarian.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       librarian.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      librarian.id.toLowerCase().includes(searchTerm.toLowerCase())
+      librarian.username.toLowerCase().includes(searchTerm.toLowerCase())
   )
-
-  useEffect(() => {
-    if (!isAddModalOpen && !isEditModalOpen) {
-      setErrors({})
-      setTouched({})
-    }
-  }, [isAddModalOpen, isEditModalOpen])
-
-  const validateField = (name: string, value: string, formMode: "add" | "edit"): string | undefined => {
-    switch (name) {
-      case "id":
-        if (!value.trim()) return "Librarian ID is required"
-        if (formMode === "add" && librarians.some((lib) => lib.id === value)) return "This Librarian ID already exists"
-        return undefined
-      case "name":
-        if (!value.trim()) return "Full Name is required"
-        if (value.trim().length < 2) return "Name must be at least 2 characters"
-        return undefined
-      case "email":
-        if (!value.trim()) return "Email Address is required"
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        if (!emailRegex.test(value)) return "Invalid email format"
-        if (formMode === "add" && librarians.some((lib) => lib.email === value))
-          return "This Email Address is already in use"
-        if (formMode === "edit" && librarians.some((lib) => lib.email === value && lib.id !== formData.id))
-          return "This Email Address is already in use"
-        return undefined
-      case "password":
-        if (formMode === "add" && !value.trim()) return "Password is required"
-        if (value.trim() && value.trim().length < 6) return "Password must be at least 6 characters"
-        return undefined
-      case "confirmPassword":
-        if (formMode === "add" && !value.trim()) return "Please confirm your password"
-        if (value !== formData.password) return "Passwords do not match"
-        return undefined
-      default:
-        return undefined
-    }
-  }
-
-  const validateForm = (mode: "add" | "edit"): boolean => {
-    const newErrors: ValidationErrors = {}
-    let isValid = true
-    const fieldsToValidate = mode === "add" ? ["id", "name", "email", "password", "confirmPassword"] : ["name", "email"]
-    for (const field of fieldsToValidate) {
-      const value = (formData[field as keyof typeof formData] as string) || ""
-      const error = validateField(field, value, mode)
-      if (error) {
-        newErrors[field as keyof ValidationErrors] = error
-        isValid = false
-      }
-    }
-    setErrors(newErrors)
-    return isValid
-  }
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    setTouched((prev) => ({ ...prev, [name]: true }))
-    const mode = isAddModalOpen ? "add" : "edit"
-    const error = validateField(name, value, mode)
-    setErrors((prev) => ({ ...prev, [name]: error }))
-  }
-
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name } = e.target
-    setTouched((prev) => ({ ...prev, [name]: true }))
-  }
-
-  const handleAddLibrarian = () => {
-    if (!validateForm("add")) {
-      setToast({ type: "error", message: "Please correct the errors in the form." })
-      return
-    }
-    const { confirmPassword, ...newLibrarian } = formData
-    setLibrarians([...librarians, newLibrarian])
-    setIsAddModalOpen(false)
-    resetForm()
-    setToast({ type: "success", message: "Librarian added successfully!" })
-  }
-
-  const handleEditLibrarian = () => {
-    if (!validateForm("edit")) {
-      setToast({ type: "error", message: "Please correct the errors in the form." })
-      return
-    }
-    const updatedLibrarians = librarians.map((lib) => {
-      if (lib.id === formData.id) {
-        return {
-          ...lib,
-          name: formData.name,
-          email: formData.email,
-          password: formData.password || lib.password,
-        }
-      }
-      return lib
-    })
-    setLibrarians(updatedLibrarians)
-    setIsEditModalOpen(false)
-    resetForm()
-    setToast({ type: "success", message: "Librarian updated successfully!" })
-  }
-
-  const handleDeleteLibrarian = () => {
-    if (currentLibrarian) {
-      setLibrarians(librarians.filter((lib) => lib.id !== currentLibrarian.id))
-      setIsDeleteDialogOpen(false)
-      setCurrentLibrarian(null)
-      setToast({ type: "success", message: "Librarian deleted successfully!" })
-    }
-  }
-
-  const openEditModal = (librarian: Librarian) => {
-    setFormData({ ...librarian, password: "", confirmPassword: "" })
-    setIsEditModalOpen(true)
-    setTouched({})
-    setErrors({})
-  }
-
-  const openDeleteDialog = (librarian: Librarian) => {
-    setCurrentLibrarian(librarian)
-    setIsDeleteDialogOpen(true)
-  }
-
-  const resetForm = () => {
-    setFormData({ id: "", name: "", email: "", password: "", confirmPassword: "" })
-    setErrors({})
-    setTouched({})
-  }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] py-10 px-4 md:px-8 font-[Tahoma] flex flex-col items-center">
@@ -207,7 +304,7 @@ export default function LibrarianManagementPage() {
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#033060] h-5 w-5" />
             <input
-              placeholder="Search librarians by name, email, or ID..."
+              placeholder="Search librarians by name, email, or username..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="pl-12 pr-4 py-3 text-lg rounded-xl border border-[#dbeafe] bg-white shadow focus:border-[#033060] focus:ring-2 focus:ring-blue-100 w-full outline-none transition-all duration-150"
@@ -216,15 +313,12 @@ export default function LibrarianManagementPage() {
           </div>
         </div>
         <button
-          onClick={() => {
-            resetForm()
-            setIsAddModalOpen(true)
-          }}
+          onClick={openCreateModal}
           className="flex items-center gap-2 bg-[#033060] text-white font-semibold px-8 py-3 rounded-xl shadow hover:bg-[#021c3a] border border-[#033060] transition-all duration-200 text-lg min-w-[200px] justify-center"
           style={{boxShadow: '0 2px 8px 0 #b6c6e3'}}
         >
           <UserPlus className="h-5 w-5" />
-          Add New Librarian
+          Add Librarian
         </button>
       </div>
 
@@ -233,26 +327,41 @@ export default function LibrarianManagementPage() {
         <table className="w-full">
           <thead>
             <tr className="bg-[#f5f8fc] border-b border-[#dbeafe]">
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Librarian ID</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">ID</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Username</th>
               <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Full Name</th>
               <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Email Address</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Start Date</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">End Date</th>
               <th className="py-3 px-5 text-right text-[#033060] font-bold text-base">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredLibrarians.length > 0 ? (
-              filteredLibrarians.map((librarian, index) => (
-                <tr key={librarian.id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
+            {isLoading ? (
+              <tr>
+                <td colSpan={7} className="text-center py-8">
+                  <div className="flex justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#033060]"></div>
+                  </div>
+                  <p className="text-gray-500 mt-4">Loading librarians...</p>
+                </td>
+              </tr>
+            ) : filteredLibrarians.length > 0 ? (
+              filteredLibrarians.map((librarian) => (
+                <tr key={librarian.librarian_id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
+                  <td className="py-2.5 px-5 text-[#033060] text-base">{librarian.librarian_id}</td>
                   <td className="py-2.5 px-5">
-                    <span className="bg-[#e0e7ef] text-[#033060] font-bold px-3 py-0.5 rounded-lg text-xs tracking-wide border border-[#b6c6e3]">{librarian.id}</span>
+                    <span className="bg-[#e0e7ef] text-[#033060] font-bold px-3 py-0.5 rounded-lg text-xs tracking-wide border border-[#b6c6e3]">{librarian.username}</span>
                   </td>
                   <td className="py-2.5 px-5 font-semibold text-[#033060] text-base">{librarian.name}</td>
                   <td className="py-2.5 px-5 text-[#033060] text-base">{librarian.email}</td>
+                  <td className="py-2.5 px-5 text-[#033060] text-base">{new Date(librarian.start_date).toLocaleDateString()}</td>
+                  <td className="py-2.5 px-5 text-[#033060] text-base">{librarian.end_date ? new Date(librarian.end_date).toLocaleDateString() : 'N/A'}</td>
                   <td className="py-2.5 px-5 text-right">
                     <div className="flex justify-end gap-2">
                       <button
                         onClick={() => openEditModal(librarian)}
-                        className="flex items-center gap-1 text-[#033060] hover:text-[#021c3a] px-2 py-1 rounded transition text-sm"
+                        className="flex items-center gap-1 text-[#033060] hover:text-[#021c3a] hover:bg-blue-100 px-2 py-1 rounded transition text-sm"
                         aria-label={`Edit ${librarian.name}`}
                       >
                         <Pencil className="h-4 w-4 mr-1" />
@@ -272,7 +381,7 @@ export default function LibrarianManagementPage() {
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="text-center py-8">
+                <td colSpan={7} className="text-center py-8">
                   <div className="flex flex-col items-center">
                     <Users className="h-12 w-12 text-gray-300 mb-4" />
                     <p className="text-gray-500 text-base">No librarians found</p>
@@ -285,34 +394,45 @@ export default function LibrarianManagementPage() {
         </table>
       </div>
 
-      {/* Add Librarian Modal */}
-      {isAddModalOpen && (
+      {/* Create/Edit Librarian Modal */}
+      {(isEditModalOpen || isCreateModalOpen) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8 animate-scale-in border border-[#dbeafe]" style={{boxShadow: '0 8px 32px 0 rgba(3,48,96,0.12)'}}>
             <div className="mb-6">
-              <h2 className="text-3xl font-extrabold text-[#033060] mb-2">Add New Librarian</h2>
-              <p className="text-gray-600 text-base">Fill in the details to add a new librarian to the system.</p>
+              <h2 className="text-3xl font-extrabold text-[#033060] mb-2">
+                {isCreateModalOpen ? "Add New Librarian" : "Edit Librarian"}
+              </h2>
+              <p className="text-gray-600 text-base">
+                {isCreateModalOpen ? "Create a new librarian account." : "Update the librarian's information."}
+              </p>
             </div>
             <form
               onSubmit={e => {
                 e.preventDefault();
-                handleAddLibrarian();
+                isCreateModalOpen ? handleCreateLibrarian() : handleEditLibrarian();
               }}
               className="space-y-5"
             >
               <div className="flex flex-col gap-2">
-                <label htmlFor="id" className="text-[#033060] font-semibold text-base">Librarian ID*</label>
+                <label htmlFor="username" className="text-[#033060] font-semibold text-base">Username*</label>
                 <input
-                  id="id"
-                  name="id"
-                  value={formData.id}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.id && errors.id ? 'border-red-500' : ''}`}
-                  placeholder="e.g., LIB004"
+                  id="username"
+                  name="username"
+                  value={formData.username}
+                  onChange={e => {
+                    setFormData(prev => ({ ...prev, username: e.target.value }))
+                    setTouched(prev => ({ ...prev, username: true }))
+                    const error = validateField("username", e.target.value)
+                    setErrors(prev => ({ ...prev, username: error }))
+                  }}
+                  onBlur={e => {
+                    setTouched(prev => ({ ...prev, username: true }))
+                  }}
+                  className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.username && errors.username ? 'border-red-500' : ''}`}
+                  placeholder="Enter username"
                 />
-                {touched.id && errors.id && (
-                  <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.id}</p>
+                {touched.username && errors.username && (
+                  <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.username}</p>
                 )}
               </div>
               <div className="flex flex-col gap-2">
@@ -321,8 +441,15 @@ export default function LibrarianManagementPage() {
                   id="name"
                   name="name"
                   value={formData.name}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
+                  onChange={e => {
+                    setFormData(prev => ({ ...prev, name: e.target.value }))
+                    setTouched(prev => ({ ...prev, name: true }))
+                    const error = validateField("name", e.target.value)
+                    setErrors(prev => ({ ...prev, name: error }))
+                  }}
+                  onBlur={e => {
+                    setTouched(prev => ({ ...prev, name: true }))
+                  }}
                   className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.name && errors.name ? 'border-red-500' : ''}`}
                   placeholder="Enter full name"
                 />
@@ -337,8 +464,15 @@ export default function LibrarianManagementPage() {
                   name="email"
                   type="email"
                   value={formData.email}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
+                  onChange={e => {
+                    setFormData(prev => ({ ...prev, email: e.target.value }))
+                    setTouched(prev => ({ ...prev, email: true }))
+                    const error = validateField("email", e.target.value)
+                    setErrors(prev => ({ ...prev, email: error }))
+                  }}
+                  onBlur={e => {
+                    setTouched(prev => ({ ...prev, email: true }))
+                  }}
                   className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.email && errors.email ? 'border-red-500' : ''}`}
                   placeholder="Enter email address"
                 />
@@ -347,131 +481,82 @@ export default function LibrarianManagementPage() {
                 )}
               </div>
               <div className="flex flex-col gap-2">
-                <label htmlFor="password" className="text-[#033060] font-semibold text-base">Password*</label>
+                <label htmlFor="start_date" className="text-[#033060] font-semibold text-base">Start Date*</label>
                 <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.password && errors.password ? 'border-red-500' : ''}`}
-                  placeholder="Enter password"
+                  id="start_date"
+                  name="start_date"
+                  type="date"
+                  value={formData.start_date}
+                  onChange={e => {
+                    setFormData(prev => ({ ...prev, start_date: e.target.value }))
+                    setTouched(prev => ({ ...prev, start_date: true }))
+                    const error = validateField("start_date", e.target.value)
+                    setErrors(prev => ({ ...prev, start_date: error }))
+                  }}
+                  onBlur={e => {
+                    setTouched(prev => ({ ...prev, start_date: true }))
+                  }}
+                  className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.start_date && errors.start_date ? 'border-red-500' : ''}`}
+                  placeholder="YYYY-MM-DD"
                 />
-                {touched.password && errors.password && (
-                  <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.password}</p>
+                {touched.start_date && errors.start_date && (
+                  <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.start_date}</p>
                 )}
               </div>
               <div className="flex flex-col gap-2">
-                <label htmlFor="confirmPassword" className="text-[#033060] font-semibold text-base">Confirm Password*</label>
+                <label htmlFor="end_date" className="text-[#033060] font-semibold text-base">End Date (optional)</label>
                 <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.confirmPassword && errors.confirmPassword ? 'border-red-500' : ''}`}
-                  placeholder="Confirm password"
+                  id="end_date"
+                  name="end_date"
+                  type="date"
+                  value={formData.end_date || ''}
+                  onChange={e => {
+                    setFormData(prev => ({ ...prev, end_date: e.target.value || null }))
+                    setTouched(prev => ({ ...prev, end_date: true }))
+                    const error = validateField("end_date", e.target.value)
+                    setErrors(prev => ({ ...prev, end_date: error }))
+                  }}
+                  onBlur={e => {
+                    setTouched(prev => ({ ...prev, end_date: true }))
+                  }}
+                  className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.end_date && errors.end_date ? 'border-red-500' : ''}`}
+                  placeholder="YYYY-MM-DD"
                 />
-                {touched.confirmPassword && errors.confirmPassword && (
-                  <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.confirmPassword}</p>
+                {touched.end_date && errors.end_date && (
+                  <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.end_date}</p>
                 )}
               </div>
               <div className="flex justify-end gap-4 mt-8">
                 <button
                   type="button"
-                  onClick={() => setIsAddModalOpen(false)}
+                  onClick={() => {
+                    setIsEditModalOpen(false)
+                    setIsCreateModalOpen(false)
+                  }}
                   className="px-7 py-3 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc] transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-7 py-3 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] border border-[#033060] transition-all"
+                  disabled={isLoading}
+                  className="px-7 py-3 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] border border-[#033060] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Add Librarian
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      {isCreateModalOpen ? "Creating..." : "Saving..."}
+                    </div>
+                  ) : (
+                    isCreateModalOpen ? "Create Librarian" : "Save Changes"
+                  )}
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-      {/* Edit Librarian Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8 animate-scale-in border border-[#dbeafe]" style={{boxShadow: '0 8px 32px 0 rgba(3,48,96,0.12)'}}>
-            <div className="mb-6">
-              <h2 className="text-3xl font-extrabold text-[#033060] mb-2">Edit Librarian</h2>
-              <p className="text-gray-600 text-base">Update the librarian's information.</p>
-            </div>
-            <form
-              onSubmit={e => {
-                e.preventDefault();
-                handleEditLibrarian();
-              }}
-              className="space-y-5"
-            >
-              <div className="flex flex-col gap-2">
-                <label htmlFor="edit-id" className="text-[#033060] font-semibold text-base">Librarian ID</label>
-                <input
-                  id="edit-id"
-                  name="id"
-                  value={formData.id}
-                  disabled
-                  className="w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] bg-[#f7f8fa] text-[#b0b6be] text-lg outline-none cursor-not-allowed"
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="edit-name" className="text-[#033060] font-semibold text-base">Full Name*</label>
-                <input
-                  id="edit-name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.name && errors.name ? 'border-red-500' : ''}`}
-                  placeholder="Enter full name"
-                />
-                {touched.name && errors.name && (
-                  <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.name}</p>
-                )}
-              </div>
-              <div className="flex flex-col gap-2">
-                <label htmlFor="edit-email" className="text-[#033060] font-semibold text-base">Email Address*</label>
-                <input
-                  id="edit-email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  onBlur={handleBlur}
-                  className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.email && errors.email ? 'border-red-500' : ''}`}
-                  placeholder="Enter email address"
-                />
-                {touched.email && errors.email && (
-                  <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.email}</p>
-                )}
-              </div>
-              <div className="flex justify-end gap-4 mt-8">
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="px-7 py-3 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc] transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-7 py-3 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] border border-[#033060] transition-all"
-                >
-                  Save
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+
       {/* Delete Confirmation Dialog */}
       {isDeleteDialogOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
@@ -486,19 +571,28 @@ export default function LibrarianManagementPage() {
                 onClick={() => setIsDeleteDialogOpen(false)}
                 className="px-5 py-2 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc] transition-all text-base"
               >
-                No
+                Cancel
               </button>
               <button
                 type="button"
                 onClick={handleDeleteLibrarian}
-                className="px-5 py-2 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] border border-[#033060] transition-all text-base"
+                disabled={isLoading}
+                className="px-5 py-2 rounded-xl bg-red-600 text-white font-semibold shadow hover:bg-red-700 border border-red-600 transition-all text-base disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Yes
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Deleting...
+                  </div>
+                ) : (
+                  "Delete"
+                )}
               </button>
             </div>
           </div>
         </div>
       )}
+
       {/* Toast */}
       {toast && (
         <div className={`fixed left-1/2 -translate-x-1/2 bottom-10 bg-white text-[#033060] px-8 py-5 rounded-2xl shadow-2xl flex items-center gap-4 text-xl font-bold z-50 transition-all duration-500 ${showToast ? "opacity-100" : "opacity-0"}`} style={{boxShadow: '0 8px 32px 0 rgba(3,48,96,0.15)'}}>
