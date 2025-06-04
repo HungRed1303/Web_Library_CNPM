@@ -23,7 +23,7 @@ interface SidebarProps {
 }
 
 const navItems = [
-  { icon: <Home size={20} />, label: "Dashboard", href: "/home" },
+  { icon: <Home size={20} />, label: "Dashboard", href: "/dashboard" },
   { icon: <Search size={20} />, label: "Find Book", href: "/find-book" },
   { icon: <BookOpen size={20} />, label: "Borrow Book", href: "/borrow-book" },
   { icon: <ListChecks size={20} />, label: "Wishlist", href: "/wishlist" },

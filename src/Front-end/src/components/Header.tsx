@@ -19,7 +19,7 @@ const Header = ({ collapsed, onToggleSidebar }: HeaderProps) => {
     setIsLogged(false);
     setRole("");
     localStorage.removeItem("user");
-    navigate("/login");
+    navigate("/home");
   };
 
   // Đóng menu khi click ra ngoài
