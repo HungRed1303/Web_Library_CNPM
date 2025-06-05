@@ -29,7 +29,7 @@ const handleLoginSuccess = (role) => {
       console.log("Login successful");
       if (result.role === 'A')
       {
-        Navigate('/home');
+        Navigate('/dashboard');
       }
       else if (result.role === 'S')
       {
@@ -37,7 +37,7 @@ const handleLoginSuccess = (role) => {
       }
       else if(result.role === 'L') 
       {
-        Navigate('/home');
+        Navigate('/dashboard');
       }
     }
     else {
