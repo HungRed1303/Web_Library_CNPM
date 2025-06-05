@@ -1,93 +1,93 @@
-"use client"
+import React, { useState, useEffect } from "react";
+import { Book, Calendar, DollarSign, Search, AlertCircle, RefreshCw } from "lucide-react";
+import { borrowingHistoryService } from "../service/Services";
 
-import React, { useState, useEffect } from "react"
-import { Book, Calendar, DollarSign, Search } from "lucide-react"
-import { useSearchParams } from "react-router-dom"
+export default function BorrowingHistoryPage() {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [borrowingHistory, setBorrowingHistory] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    totalBorrowed: 0,
+    currentlyBorrowed: 0,
+    returned: 0,
+    overdue: 0,
+    totalFines: 0,
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
+  const [studentId, setStudentId] = useState<any>(null);
 
-// Sample borrowing history data
-const borrowingHistory = [
-  {
-    student_id: 1,
-    title: "Clean Code",
-    borrowed: "2025-04-01",
-    returned: "2025-04-10",
-    status: "On Time",
-    fine: "$0",
-  },
-  {
-    student_id: 1,
-    title: "JavaScript: The Good Parts",
-    borrowed: "2025-03-15",
-    returned: "2025-03-25",
-    status: "Late",
-    fine: "$5",
-  },
-  {
-    student_id: 2,
-    title: "The Pragmatic Programmer",
-    borrowed: "2025-02-20",
-    returned: "2025-03-02",
-    status: "On Time",
-    fine: "$0",
-  },
-  {
-    title: "Design Patterns",
-    borrowed: "2025-01-10",
-    returned: "2025-01-25",
-    status: "Late",
-    fine: "$3",
-  },
-  {
-    title: "Refactoring",
-    borrowed: "2024-12-15",
-    returned: "2024-12-28",
-    status: "On Time",
-    fine: "$0",
-  },
-  {
-    title: "Code Complete",
-    borrowed: "2024-11-20",
-    returned: "2024-12-05",
-    status: "Late",
-    fine: "$7",
-  },
-  {
-    title: "You Don't Know JS",
-    borrowed: "2024-10-10",
-    returned: "2024-10-20",
-    status: "On Time",
-    fine: "$0",
-  },
-  {
-    title: "Eloquent JavaScript",
-    borrowed: "2024-09-05",
-    returned: "2024-09-18",
-    status: "On Time",
-    fine: "$0",
-  },
-]
+  // Mock getting student ID from URL params or props
+  useEffect(() => {
+    // In real app, this would come from URL params or props
+    const urlParams = new URLSearchParams(window.location.search);
+    setStudentId(urlParams.get('studentId'));
+  }, []);
 
-export default function LibraryHistory() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const searchParams = useSearchParams()
-  const studentId = searchParams.get('studentId')
+  // Fetch borrowing history on component mount
+  useEffect(() => {
+    fetchBorrowingHistory();
+  }, [studentId]);
 
-  // Filter history based on studentId if provided
-  const filteredByStudent = studentId 
-    ? borrowingHistory.filter(record => record.student_id === parseInt(studentId))
-    : borrowingHistory
+  const fetchBorrowingHistory = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      let records = [];
+      
+      if (studentId) {
+        records = await borrowingHistoryService.getBorrowingHistoryByStudentId(Number(studentId));
+      } else {
+        records = await borrowingHistoryService.getCurrentUserBorrowingHistory();
+      }
+      
+      setBorrowingHistory(records);
+      setStats(borrowingHistoryService.calculateStats(records));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch borrowing history');
+      console.error('Error fetching borrowing history:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const totalFines = filteredByStudent.reduce((sum, record) => {
-    const fine = Number.parseFloat(record.fine.replace("$", ""))
-    return sum + fine
-  }, 0)
+  // Filter history based on search term
+  const filteredHistory = borrowingHistory.filter((record) =>
+    record.book_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    record.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    record.isbn.includes(searchTerm)
+  );
 
-  const onTimeCount = filteredByStudent.filter((record) => record.status === "On Time").length
-  const lateCount = filteredByStudent.filter((record) => record.status === "Late").length
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] py-10 px-4 md:px-8 font-[Tahoma] flex items-center justify-center">
+        <div className="text-center">
+          <RefreshCw className="h-12 w-12 text-[#033060] animate-spin mx-auto mb-4" />
+          <p className="text-lg text-[#033060]">Loading borrowing history...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const filteredHistory = filteredByStudent.filter((record) =>
-    record.title.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Error state
+  if (error) {
+    return (
+      <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] py-10 px-4 md:px-8 font-[Tahoma] flex items-center justify-center">
+        <div className="text-center max-w-md">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-[#033060] mb-2">Error Loading Data</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={fetchBorrowingHistory}
+            className="bg-[#033060] text-white px-6 py-2 rounded-lg hover:bg-[#024050] transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] py-10 px-4 md:px-8 font-[Tahoma] flex flex-col items-center">
@@ -96,14 +96,21 @@ export default function LibraryHistory() {
         <div className="flex items-center mb-1">
           <Book className="h-12 w-12 text-[#033060] mr-3" />
           <h1 className="text-5xl font-extrabold text-[#033060] drop-shadow" style={{letterSpacing: '1px', textShadow: '0 2px 8px #b6c6e3'}}>
-            {studentId ? "Student Borrowing History" : "Borrowing History"}
+            {studentId ? "Student Borrowing History" : "Your Borrowing History"}
           </h1>
         </div>
-        <p className="text-gray-600 text-lg">
+        <p className="text-gray-600 text-lg text-center">
           {studentId 
-            ? "View the complete borrowing history for this student"
-            : "View your complete borrowing history and track your fines"}
+            ? `Complete borrowing history for Student ID: ${studentId}`
+            : "Track your borrowed books, due dates, and fines"}
         </p>
+        <button
+          onClick={fetchBorrowingHistory}
+          className="mt-4 bg-[#033060] text-white px-4 py-2 rounded-lg hover:bg-[#024050] transition-colors flex items-center gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Refresh
+        </button>
       </div>
 
       {/* Search Bar */}
@@ -112,9 +119,9 @@ export default function LibraryHistory() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#033060] h-5 w-5" />
           <input
             type="text"
-            placeholder="Search by book title..."
+            placeholder="Search by book title, author, or ISBN..."
             value={searchTerm}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-12 pr-4 py-3 text-lg rounded-xl border border-[#dbeafe] bg-white shadow focus:border-[#033060] focus:ring-2 focus:ring-blue-100 w-full outline-none transition-all duration-150"
             style={{boxShadow: '0 1px 4px 0 #e0e7ef'}}
           />
@@ -122,30 +129,38 @@ export default function LibraryHistory() {
       </div>
 
       {/* Summary Cards */}
-      <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+      <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
         <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-4" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[#033060] font-semibold text-base">Total Books Borrowed</h3>
+            <h3 className="text-[#033060] font-semibold text-base">Total Borrowed</h3>
             <Book className="h-6 w-6 text-[#033060]" />
           </div>
-          <div className="text-2xl font-bold text-[#033060]">{filteredByStudent.length}</div>
+          <div className="text-2xl font-bold text-[#033060]">{stats.totalBorrowed}</div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-4" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[#033060] font-semibold text-base">Return Status</h3>
-            <Calendar className="h-6 w-6 text-[#033060]" />
+            <h3 className="text-[#033060] font-semibold text-base">Currently Borrowed</h3>
+            <Calendar className="h-6 w-6 text-blue-600" />
           </div>
-          <div className="text-2xl font-bold text-green-600">{onTimeCount}</div>
-          <p className="text-xs text-gray-500 mt-1">Late returns: {lateCount}</p>
+          <div className="text-2xl font-bold text-blue-600">{stats.currentlyBorrowed}</div>
+          <p className="text-xs text-gray-500 mt-1">Returned: {stats.returned}</p>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-4" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-[#033060] font-semibold text-base">Overdue Books</h3>
+            <AlertCircle className="h-6 w-6 text-red-600" />
+          </div>
+          <div className="text-2xl font-bold text-red-600">{stats.overdue}</div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-4" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
           <div className="flex items-center justify-between mb-2">
             <h3 className="text-[#033060] font-semibold text-base">Total Fines</h3>
-            <DollarSign className="h-6 w-6 text-[#033060]" />
+            <DollarSign className="h-6 w-6 text-red-600" />
           </div>
-          <div className="text-2xl font-bold text-red-600">${totalFines}</div>
+          <div className="text-2xl font-bold text-red-600">${stats.totalFines.toFixed(2)}</div>
         </div>
       </div>
 
@@ -153,50 +168,73 @@ export default function LibraryHistory() {
       <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg border border-[#dbeafe] overflow-hidden" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
         <div className="p-6 border-b border-[#dbeafe]">
           <h2 className="text-2xl font-bold text-[#033060]">Borrowing History Details</h2>
-          <p className="text-gray-600">Complete list of your borrowed and returned books</p>
+          <p className="text-gray-600">
+            {filteredHistory.length} {filteredHistory.length === 1 ? 'record' : 'records'} found
+          </p>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-[#f5f8fc] border-b border-[#dbeafe]">
-                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Book Title</th>
-                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Borrowed Date</th>
-                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Returned Date</th>
-                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Status</th>
-                <th className="py-3 px-5 text-right text-[#033060] font-bold text-base">Fine</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredHistory.map((record, index) => (
-                <tr key={index} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
-                  <td className="py-2.5 px-5 font-semibold text-[#033060] text-base">{record.title}</td>
-                  <td className="py-2.5 px-5 text-[#033060] text-base">{record.borrowed}</td>
-                  <td className="py-2.5 px-5 text-[#033060] text-base">{record.returned}</td>
-                  <td className="py-2.5 px-5">
-                    <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${
-                      record.status === "On Time" 
-                        ? "bg-green-100 text-green-800 border border-green-200" 
-                        : "bg-red-100 text-red-800 border border-red-200"
-                    }`}>
-                      {record.status}
-                    </span>
-                  </td>
-                  <td className="py-2.5 px-5 text-right font-medium">
-                    <span className={record.fine === "$0" ? "text-green-600" : "text-red-600"}>
-                      {record.fine}
-                    </span>
-                  </td>
+        
+        {filteredHistory.length === 0 ? (
+          <div className="p-12 text-center">
+            <Book className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-500 mb-2">No Records Found</h3>
+            <p className="text-gray-400">
+              {searchTerm ? 'No books match your search criteria.' : 'No borrowing history available.'}
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-[#f5f8fc] border-b border-[#dbeafe]">
+                  <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Book Details</th>
+                  <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Borrowed Date</th>
+                  <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Due Date</th>
+                  <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Returned Date</th>
+                  <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Status</th>
+                  <th className="py-3 px-5 text-right text-[#033060] font-bold text-base">Fine</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredHistory.map((record) => (
+                  <tr key={record.id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
+                    <td className="py-3 px-5">
+                      <div>
+                        <div className="font-semibold text-[#033060] text-base">{record.book_title}</div>
+                        <div className="text-sm text-gray-600">by {record.author}</div>
+                        <div className="text-xs text-gray-500">ISBN: {record.isbn}</div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-5 text-[#033060] text-base">
+                      {borrowingHistoryService.formatDate(record.borrowed_date)}
+                    </td>
+                    <td className="py-3 px-5 text-[#033060] text-base">
+                      {borrowingHistoryService.formatDate(record.due_date)}
+                    </td>
+                    <td className="py-3 px-5 text-[#033060] text-base">
+                      {record.returned_date 
+                        ? borrowingHistoryService.formatDate(record.returned_date)
+                        : '-'
+                      }
+                    </td>
+                    <td className="py-3 px-5">
+                      <span className={`px-3 py-1 rounded-lg text-sm font-semibold border ${
+                        borrowingHistoryService.getStatusColorClass(record.status)
+                      }`}>
+                        {borrowingHistoryService.getStatusDisplayText(record.status)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-5 text-right font-medium">
+                      <span className={record.fine_amount === 0 ? "text-green-600" : "text-red-600"}>
+                        ${record.fine_amount.toFixed(2)}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
-  )
+  );
 }
-
-export const metadata = {
-  title: "Borrowing History",
-  description: "View your library borrowing history",
-};

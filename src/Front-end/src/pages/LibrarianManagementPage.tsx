@@ -174,16 +174,29 @@ export default function LibrarianManagementPage() {
       const { username, name, email, start_date, end_date } = formData
       if (!username || !name || !email || !start_date || !currentLibrarian?.librarian_id) {
         showToastMessage("error", "Required fields are missing")
+        setIsLoading(false)
         return
       }
-      const response = await updateLibrarianById(currentLibrarian.librarian_id, {
+      // Đảm bảo start_date và end_date đúng định dạng hoặc null
+      const formatDateString = (dateStr: string | null) => {
+        if (!dateStr || dateStr === '' || dateStr === 'dd/mm/yyyy') return null;
+        // Nếu đã đúng định dạng yyyy-mm-dd thì giữ nguyên
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+        // Nếu là dd/mm/yyyy thì chuyển sang yyyy-mm-dd
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) {
+          const [day, month, year] = dateStr.split('/');
+          return `${year}-${month}-${day}`;
+        }
+        return dateStr;
+      };
+      const payload = {
         username,
         name,
         email,
-        start_date,
-        end_date
-      })
-      
+        start_date: formatDateString(start_date),
+        end_date: formatDateString(end_date)
+      };
+      const response = await updateLibrarianById(currentLibrarian.librarian_id, payload)
       if (response) {
         setLibrarians(librarians.map((lib) => 
           lib.librarian_id === currentLibrarian.librarian_id ? response : lib
@@ -417,9 +430,9 @@ export default function LibrarianManagementPage() {
       {/* Create/Edit Librarian Modal */}
       {(isEditModalOpen || isCreateModalOpen) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-4 animate-scale-in border border-[#dbeafe]" style={{boxShadow: '0 8px 32px 0 rgba(3,48,96,0.12)'}}>
-            <div className="mb-6">
-              <h2 className="text-2xl font-extrabold text-[#033060] mb-2">
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-4 animate-scale-in border border-[#dbeafe] flex flex-col items-center" style={{boxShadow: '0 8px 32px 0 rgba(3,48,96,0.12)'}}>
+            <div className="mb-6 w-full text-center">
+              <h2 className="text-xl font-extrabold text-[#033060] mb-2">
                 {isCreateModalOpen ? "Add New Librarian" : "Edit Librarian"}
               </h2>
               <p className="text-gray-600 text-base">
@@ -431,7 +444,7 @@ export default function LibrarianManagementPage() {
                 e.preventDefault();
                 isCreateModalOpen ? handleCreateLibrarian() : handleEditLibrarian();
               }}
-              className="space-y-5"
+              className="space-y-4 w-full"
             >
               <div className="flex flex-col gap-2">
                 <label htmlFor="username" className="text-[#033060] font-semibold text-base">Username*</label>
@@ -549,21 +562,21 @@ export default function LibrarianManagementPage() {
                   <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.end_date}</p>
                 )}
               </div>
-              <div className="flex justify-end gap-4 mt-8">
+              <div className="flex justify-center gap-4 mt-6">
                 <button
                   type="button"
                   onClick={() => {
                     setIsEditModalOpen(false)
                     setIsCreateModalOpen(false)
                   }}
-                  className="px-7 py-3 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc] transition-all"
+                  className="px-5 py-2.5 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc] transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-7 py-3 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] border border-[#033060] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-5 py-2.5 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] border border-[#033060] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">

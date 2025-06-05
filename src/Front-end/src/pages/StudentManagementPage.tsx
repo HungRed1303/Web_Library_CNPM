@@ -408,9 +408,9 @@ export default function StudentManagementPage() {
       {/* Create/Edit Student Modal */}
       {(isEditModalOpen || isCreateModalOpen) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8 animate-scale-in border border-[#dbeafe]" style={{boxShadow: '0 8px 32px 0 rgba(3,48,96,0.12)'}}>
-            <div className="mb-6">
-              <h2 className="text-3xl font-extrabold text-[#033060] mb-2">
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-4 animate-scale-in border border-[#dbeafe]" style={{boxShadow: '0 8px 32px 0 rgba(3,48,96,0.12)'}}>
+            <div className="mb-6 text-center">
+              <h2 className="text-xl font-extrabold text-[#033060] mb-2">
                 {isCreateModalOpen ? "Add New Student" : "Edit Student"}
               </h2>
               <p className="text-gray-600 text-base">
@@ -422,7 +422,7 @@ export default function StudentManagementPage() {
                 e.preventDefault();
                 isCreateModalOpen ? handleCreateStudent() : handleEditStudent();
               }}
-              className="space-y-5"
+              className="space-y-4"
             >
               <div className="flex flex-col gap-2">
                 <label htmlFor="username" className="text-[#033060] font-semibold text-base">Username*</label>
@@ -518,21 +518,21 @@ export default function StudentManagementPage() {
                   <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.class_id}</p>
                 )}
               </div>
-              <div className="flex justify-end gap-4 mt-8">
+              <div className="flex justify-center gap-4 mt-6">
                 <button
                   type="button"
                   onClick={() => {
                     setIsEditModalOpen(false)
                     setIsCreateModalOpen(false)
                   }}
-                  className="px-7 py-3 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc] transition-all"
+                  className="px-5 py-2.5 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc] transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="px-7 py-3 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] border border-[#033060] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-5 py-2.5 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] border border-[#033060] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
