@@ -65,8 +65,8 @@ function App() {
         >
           {/* Lưu ý: ta đổi đường dẫn `/home` cho protected user thành `/dashboard` để không trùng với public */}
           <Route path="/dashboard" element={<HomePage />} />
-          <Route path="/category"  element={<CategoryManagementPage />} />
-          <Route path="/book"      element={<BookManagementPage />} />
+          <Route path="/categorys"  element={<CategoryManagementPage />} />
+          <Route path="/books"      element={<BookManagementPage />} />
           <Route path="/reports"   element={<ViewReportPage />} />
         </Route>
 
