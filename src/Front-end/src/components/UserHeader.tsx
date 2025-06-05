@@ -1,13 +1,13 @@
 // src/components/Header.tsx
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Search,
   Heart,
   BookOpen,
   CreditCard,
   Bell,
-  User,
+  User as UserIcon,
   Globe,
   ChevronDown,
   Menu,
@@ -15,16 +15,56 @@ import {
 } from "lucide-react";
 
 export default function Header() {
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
 
-  // Giả lập trạng thái đăng nhập
-  const isAuthenticated = false; // Thay bằng logic thực tế
-  const userName = "Nguyễn Văn A"; // Thay bằng tên user thực tế
-  const hasLibraryCard = false; // Thay bằng logic kiểm tra trạng thái thẻ
+  // State dùng để lưu thông tin user (đã đăng nhập hay chưa, tên, v.v.)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [hasLibraryCard, setHasLibraryCard] = useState(false);
+
+  // Khi component mount, kiểm tra localStorage để xác định trạng thái login
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("user");
+      if (raw) {
+        const userData = JSON.parse(raw);
+        if (userData.isLogged) {
+          setIsAuthenticated(true);
+          // Nếu userData có trường name, dùng nó; nếu không, bạn thay bằng userData.role hoặc field phù hợp
+          setUserName(userData.name || "");
+          setHasLibraryCard(userData.hasLibraryCard || false);
+        } else {
+          setIsAuthenticated(false);
+          setUserName(null);
+          setHasLibraryCard(false);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUserName(null);
+        setHasLibraryCard(false);
+      }
+    } catch {
+      setIsAuthenticated(false);
+      setUserName(null);
+      setHasLibraryCard(false);
+    }
+  }, []);
+
+  // Hàm đăng xuất (Logout) – xoá localStorage và redirect về login
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    // Nếu bạn có lưu token riêng, cũng remove token ở đây
+    // localStorage.removeItem("token");
+    setIsAuthenticated(false);
+    setUserName(null);
+    setHasLibraryCard(false);
+    navigate("/login");
+  };
 
   return (
     <header className="sticky top-0 z-20 bg-[#FEFEFE] border-b border-gray-200">
@@ -70,11 +110,11 @@ export default function Header() {
                     Thể loại sách
                   </Link>
                   <Link
-                    to="/publishers"
+                    to="/books"
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    title="Nhà xuất bản"
+                    title="ALL BOOKS"
                   >
-                    Nhà xuất bản
+                    ALL BOOKS
                   </Link>
                   <Link
                     to="/authors"
@@ -195,8 +235,10 @@ export default function Header() {
                 className="flex items-center space-x-2 rounded-md px-3 py-2 hover:bg-gray-100 hover:border hover:border-gray-300 hover:rounded transition focus:outline-none"
                 title="Tài khoản"
               >
-                <User className="h-6 w-6 text-gray-700" />
-                <span className="text-gray-700">{userName}</span>
+                <UserIcon className="h-6 w-6 text-gray-700" />
+                <span className="text-gray-700">
+                  {userName || "User"}
+                </span>
                 <ChevronDown className="h-4 w-4 text-gray-700" />
               </button>
               {profileOpen && (
@@ -209,7 +251,7 @@ export default function Header() {
                       Thông tin cá nhân
                     </Link>
                     <Link
-                      to="/change-password"
+                      to="/password/reset/:token"
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                     >
                       Đổi mật khẩu
@@ -220,12 +262,12 @@ export default function Header() {
                     >
                       Quản lý tài khoản
                     </Link>
-                    <Link
-                      to="/logout"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
                     >
                       Đăng xuất
-                    </Link>
+                    </button>
                   </div>
                 </div>
               )}
@@ -424,7 +466,7 @@ export default function Header() {
                     Thông tin cá nhân
                   </Link>
                   <Link
-                    to="/change-password"
+                    to="/ResetPasswordForm"
                     className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
                   >
                     Đổi mật khẩu
@@ -435,12 +477,12 @@ export default function Header() {
                   >
                     Quản lý tài khoản
                   </Link>
-                  <Link
-                    to="/logout"
-                    className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+                  <button
+                    onClick={handleLogout}
+                    className="block w-full rounded-lg px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
                   >
                     Đăng xuất
-                  </Link>
+                  </button>
                 </div>
               ) : (
                 <div className="flex space-x-4">

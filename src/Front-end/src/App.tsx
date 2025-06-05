@@ -18,6 +18,7 @@ import PublisherManagementPage  from "./pages/PublisherManagementPage";
 import CategoryManagementPage   from "./pages/CategoryManagementPage";
 import BookManagementPage       from "./pages/BookManagementPage";
 import ViewReportPage           from "./pages/ViewReportPage";
+import BooksPage from "./pages/BooksPage"; // Thêm trang BookPage nếu cần
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
         <Route element={<UserLayout />}>
           {/* Nếu bạn muốn /home là trang công khai, giữ nguyên /home */}
           <Route path="/home" element={<HomePageUser />} />
+          <Route path="/books" element={<BooksPage />} />
         </Route>
 
         {/* Các route login/register/forgot/reset */}
