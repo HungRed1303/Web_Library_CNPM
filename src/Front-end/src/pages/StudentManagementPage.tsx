@@ -158,39 +158,48 @@ export default function StudentManagementPage() {
   }
 
   const handleEditStudent = async () => {
-    if (!validateForm()) {
-      showToastMessage("error", "Please correct the errors in the form.")
-      return
+    // Chỉ validate các trường không bị xóa trắng, riêng class_id:
+    // Nếu ban đầu (currentStudent.class_id) không có dữ liệu thì cho phép để trống class_id khi save changes.
+    // Nếu ban đầu có dữ liệu thì không được phép để trống class_id khi save changes.
+    const newErrors: ValidationErrors = {};
+    if (!formData.username.trim()) newErrors.username = "Username is required";
+    if (!formData.name.trim()) newErrors.name = "Full Name is required";
+    if (!formData.email.trim()) newErrors.email = "Email Address is required";
+    if (currentStudent?.class_id && (!formData.class_id || !formData.class_id.trim())) {
+      newErrors.class_id = "Class ID is required";
+    }
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+      showToastMessage("error", "Please correct the errors in the form.");
+      return;
     }
 
     try {
-      setIsLoading(true)
-      const { username, name, email, class_id } = formData
-      if (!username || !name || !email || !class_id || !currentStudent?.student_id) {
-        showToastMessage("error", "Required fields are missing")
-        return
+      setIsLoading(true);
+      const { username, name, email, class_id } = formData;
+      if (!currentStudent?.student_id) {
+        showToastMessage("error", "Student ID is missing");
+        return;
       }
-      
       const response = await updateStudentById(currentStudent.student_id, {
         username,
         name,
         email,
         class_id: class_id
-      })
-      
+      });
       if (response) {
-        setStudents(students.map((stu) => 
+        setStudents(students.map((stu) =>
           stu.student_id === currentStudent.student_id ? response : stu
-        ))
-        setIsEditModalOpen(false)
-        resetForm()
-        showToastMessage("success", "Student updated successfully!")
+        ));
+        setIsEditModalOpen(false);
+        resetForm();
+        showToastMessage("success", "Student updated successfully!");
       }
     } catch (error: any) {
       console.error("Failed to update student:", error);
-      showToastMessage("error", error.message || "Failed to update student")
+      showToastMessage("error", error.message || "Failed to update student");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
@@ -280,6 +289,8 @@ export default function StudentManagementPage() {
       student.username.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const sortedStudents = [...filteredStudents].sort((a, b) => a.student_id - b.student_id);
+
   const handleViewBorrowingHistory = (studentId: number) => {
     navigate(`/students/borrowingHistory?studentId=${studentId}`)
   }
@@ -322,15 +333,15 @@ export default function StudentManagementPage() {
       {/* Table */}
       <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg border border-[#dbeafe] overflow-hidden" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full table-fixed">
             <thead>
               <tr className="bg-[#f5f8fc] border-b border-[#dbeafe]">
-                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">ID</th>
-                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Username</th>
-                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Name</th>
-                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Email</th>
-                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Class ID</th>
-                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Actions</th>
+                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[60px]">ID</th>
+                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[180px]">Username</th>
+                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[200px]">Name</th>
+                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[240px]">Email</th>
+                <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[120px]">Class ID</th>
+                <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-[180px]">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -343,36 +354,36 @@ export default function StudentManagementPage() {
                     <p className="text-gray-500 mt-4">Loading students...</p>
                   </td>
                 </tr>
-              ) : filteredStudents.length > 0 ? (
-                filteredStudents.map((student) => (
+              ) : sortedStudents.length > 0 ? (
+                sortedStudents.map((student) => (
                   <tr key={student.student_id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
-                    <td className="py-2.5 px-5 text-[#033060] text-base">{student.student_id}</td>
-                    <td className="py-2.5 px-5 text-[#033060] text-base">{student.username}</td>
-                    <td className="py-2.5 px-5 text-[#033060] text-base">{student.name}</td>
-                    <td className="py-2.5 px-5 text-[#033060] text-base">{student.email}</td>
-                    <td className="py-2.5 px-5 text-[#033060] text-base">{student.class_id || 'N/A'}</td>
-                    <td className="py-2.5 px-5">
-                      <div className="flex items-center gap-2">
+                    <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[60px]">{student.student_id}</td>
+                    <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[180px] max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap" title={student.username}>{student.username}</td>
+                    <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[200px] max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap" title={student.name}>{student.name}</td>
+                    <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[240px] max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap" title={student.email}>{student.email}</td>
+                    <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[120px]">{student.class_id || 'N/A'}</td>
+                    <td className="py-2.5 px-5 text-center w-[180px]">
+                      <div className="flex justify-center gap-4">
                         <button
                           onClick={() => handleViewBorrowingHistory(student.student_id)}
-                          className="p-2 text-[#467DA7] hover:bg-[#467DA7]/10 rounded-full transition-colors"
+                          className="group flex items-center text-[#033060] hover:text-[#021c3a] hover:bg-blue-100 px-2 py-1 rounded transition text-sm relative"
                           title="View Borrowing History"
                         >
-                          <History size={18} />
+                          <History className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => openEditModal(student)}
-                          className="p-2 text-[#467DA7] hover:bg-[#467DA7]/10 rounded-full transition-colors"
+                          className="group flex items-center text-[#033060] hover:text-[#021c3a] hover:bg-blue-100 px-2 py-1 rounded transition text-sm relative"
                           title="Edit"
                         >
-                          <Pencil size={18} />
+                          <Pencil className="h-5 w-5" />
                         </button>
                         <button
                           onClick={() => openDeleteDialog(student)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                          className="group flex items-center text-red-600 hover:text-white hover:bg-red-600 px-2 py-1 rounded transition text-sm border border-transparent hover:border-red-600 relative"
                           title="Delete"
                         >
-                          <Trash2 size={18} />
+                          <Trash2 className="h-5 w-5" />
                         </button>
                       </div>
                     </td>
@@ -418,6 +429,7 @@ export default function StudentManagementPage() {
                 <input
                   id="username"
                   name="username"
+                  maxLength={50}
                   value={formData.username}
                   onChange={e => {
                     setFormData(prev => ({ ...prev, username: e.target.value }))
@@ -440,6 +452,7 @@ export default function StudentManagementPage() {
                 <input
                   id="name"
                   name="name"
+                  maxLength={100}
                   value={formData.name}
                   onChange={e => {
                     setFormData(prev => ({ ...prev, name: e.target.value }))
@@ -463,6 +476,7 @@ export default function StudentManagementPage() {
                   id="email"
                   name="email"
                   type="email"
+                  maxLength={100}
                   value={formData.email}
                   onChange={e => {
                     setFormData(prev => ({ ...prev, email: e.target.value }))
@@ -486,6 +500,7 @@ export default function StudentManagementPage() {
                   id="class_id"
                   name="class_id"
                   type="text"
+                  maxLength={10}
                   value={formData.class_id || ""}
                   onChange={e => {
                     setFormData(prev => ({ ...prev, class_id: e.target.value }))

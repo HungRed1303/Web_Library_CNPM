@@ -224,8 +224,8 @@ export default function LibrarianManagementPage() {
       username: librarian.username,
       name: librarian.name,
       email: librarian.email,
-      start_date: librarian.start_date,
-      end_date: librarian.end_date
+      start_date: toInputDateString(librarian.start_date),
+      end_date: toInputDateString(librarian.end_date)
     })
     setIsEditModalOpen(true)
     setTouched({})
@@ -287,6 +287,28 @@ export default function LibrarianManagementPage() {
       librarian.username.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const sortedLibrarians = [...filteredLibrarians].sort((a, b) => a.librarian_id - b.librarian_id);
+
+  function formatDate(dateString: string | null): string {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return 'N/A';
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  function toInputDateString(dateString: string | null): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] py-10 px-4 md:px-8 font-[Tahoma] flex flex-col items-center">
       {/* Header */}
@@ -324,16 +346,16 @@ export default function LibrarianManagementPage() {
 
       {/* Table */}
       <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg border border-[#dbeafe] overflow-hidden" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
-        <table className="w-full">
+        <table className="w-full table-fixed">
           <thead>
             <tr className="bg-[#f5f8fc] border-b border-[#dbeafe]">
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">ID</th>
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Username</th>
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Full Name</th>
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Email Address</th>
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Start Date</th>
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">End Date</th>
-              <th className="py-3 px-5 text-right text-[#033060] font-bold text-base">Actions</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[60px]">ID</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[180px]">Username</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[200px]">Full Name</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[240px]">Email Address</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[120px]">Start Date</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[120px]">End Date</th>
+              <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-[120px]">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -346,34 +368,32 @@ export default function LibrarianManagementPage() {
                   <p className="text-gray-500 mt-4">Loading librarians...</p>
                 </td>
               </tr>
-            ) : filteredLibrarians.length > 0 ? (
-              filteredLibrarians.map((librarian) => (
+            ) : sortedLibrarians.length > 0 ? (
+              sortedLibrarians.map((librarian) => (
                 <tr key={librarian.librarian_id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
-                  <td className="py-2.5 px-5 text-[#033060] text-base">{librarian.librarian_id}</td>
-                  <td className="py-2.5 px-5">
-                    <span className="bg-[#e0e7ef] text-[#033060] font-bold px-3 py-0.5 rounded-lg text-xs tracking-wide border border-[#b6c6e3]">{librarian.username}</span>
-                  </td>
-                  <td className="py-2.5 px-5 font-semibold text-[#033060] text-base">{librarian.name}</td>
-                  <td className="py-2.5 px-5 text-[#033060] text-base">{librarian.email}</td>
-                  <td className="py-2.5 px-5 text-[#033060] text-base">{new Date(librarian.start_date).toLocaleDateString()}</td>
-                  <td className="py-2.5 px-5 text-[#033060] text-base">{librarian.end_date ? new Date(librarian.end_date).toLocaleDateString() : 'N/A'}</td>
-                  <td className="py-2.5 px-5 text-right">
-                    <div className="flex justify-end gap-2">
+                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[60px]">{librarian.librarian_id}</td>
+                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[180px] max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap" title={librarian.username}>{librarian.username}</td>
+                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[200px] max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap" title={librarian.name}>{librarian.name}</td>
+                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[240px] max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap" title={librarian.email}>{librarian.email}</td>
+                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[120px]">{formatDate(librarian.start_date)}</td>
+                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[120px]">{formatDate(librarian.end_date)}</td>
+                  <td className="py-2.5 px-5 text-center w-[120px]">
+                    <div className="flex justify-center gap-4">
                       <button
                         onClick={() => openEditModal(librarian)}
-                        className="flex items-center gap-1 text-[#033060] hover:text-[#021c3a] hover:bg-blue-100 px-2 py-1 rounded transition text-sm"
+                        className="group flex items-center text-[#033060] hover:text-[#021c3a] hover:bg-blue-100 px-2 py-1 rounded transition text-sm relative"
                         aria-label={`Edit ${librarian.name}`}
+                        title="Edit"
                       >
-                        <Pencil className="h-4 w-4 mr-1" />
-                        Edit
+                        <Pencil className="h-5 w-5" />
                       </button>
                       <button
                         onClick={() => openDeleteDialog(librarian)}
-                        className="flex items-center gap-1 text-red-600 hover:text-white hover:bg-red-600 px-2 py-1 rounded transition text-sm border border-transparent hover:border-red-600"
+                        className="group flex items-center text-red-600 hover:text-white hover:bg-red-600 px-2 py-1 rounded transition text-sm border border-transparent hover:border-red-600 relative"
                         aria-label={`Delete ${librarian.name}`}
+                        title="Delete"
                       >
-                        <Trash2 className="h-4 w-4 mr-1" />
-                        Delete
+                        <Trash2 className="h-5 w-5" />
                       </button>
                     </div>
                   </td>
@@ -397,9 +417,9 @@ export default function LibrarianManagementPage() {
       {/* Create/Edit Librarian Modal */}
       {(isEditModalOpen || isCreateModalOpen) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl p-8 animate-scale-in border border-[#dbeafe]" style={{boxShadow: '0 8px 32px 0 rgba(3,48,96,0.12)'}}>
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-4 animate-scale-in border border-[#dbeafe]" style={{boxShadow: '0 8px 32px 0 rgba(3,48,96,0.12)'}}>
             <div className="mb-6">
-              <h2 className="text-3xl font-extrabold text-[#033060] mb-2">
+              <h2 className="text-2xl font-extrabold text-[#033060] mb-2">
                 {isCreateModalOpen ? "Add New Librarian" : "Edit Librarian"}
               </h2>
               <p className="text-gray-600 text-base">
@@ -418,6 +438,7 @@ export default function LibrarianManagementPage() {
                 <input
                   id="username"
                   name="username"
+                  maxLength={50}
                   value={formData.username}
                   onChange={e => {
                     setFormData(prev => ({ ...prev, username: e.target.value }))
@@ -440,6 +461,7 @@ export default function LibrarianManagementPage() {
                 <input
                   id="name"
                   name="name"
+                  maxLength={100}
                   value={formData.name}
                   onChange={e => {
                     setFormData(prev => ({ ...prev, name: e.target.value }))
@@ -463,6 +485,7 @@ export default function LibrarianManagementPage() {
                   id="email"
                   name="email"
                   type="email"
+                  maxLength={100}
                   value={formData.email}
                   onChange={e => {
                     setFormData(prev => ({ ...prev, email: e.target.value }))
@@ -486,7 +509,7 @@ export default function LibrarianManagementPage() {
                   id="start_date"
                   name="start_date"
                   type="date"
-                  value={formData.start_date}
+                  value={formData.start_date ? formData.start_date : ''}
                   onChange={e => {
                     setFormData(prev => ({ ...prev, start_date: e.target.value }))
                     setTouched(prev => ({ ...prev, start_date: true }))
@@ -497,7 +520,7 @@ export default function LibrarianManagementPage() {
                     setTouched(prev => ({ ...prev, start_date: true }))
                   }}
                   className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.start_date && errors.start_date ? 'border-red-500' : ''}`}
-                  placeholder="YYYY-MM-DD"
+                  placeholder="dd/mm/yyyy"
                 />
                 {touched.start_date && errors.start_date && (
                   <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.start_date}</p>
@@ -509,7 +532,7 @@ export default function LibrarianManagementPage() {
                   id="end_date"
                   name="end_date"
                   type="date"
-                  value={formData.end_date || ''}
+                  value={formData.end_date ? formData.end_date : ''}
                   onChange={e => {
                     setFormData(prev => ({ ...prev, end_date: e.target.value || null }))
                     setTouched(prev => ({ ...prev, end_date: true }))
@@ -520,7 +543,7 @@ export default function LibrarianManagementPage() {
                     setTouched(prev => ({ ...prev, end_date: true }))
                   }}
                   className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 text-lg bg-white outline-none transition ${touched.end_date && errors.end_date ? 'border-red-500' : ''}`}
-                  placeholder="YYYY-MM-DD"
+                  placeholder="dd/mm/yyyy"
                 />
                 {touched.end_date && errors.end_date && (
                   <p className="text-red-500 text-sm flex items-center mt-1"><XCircle className="h-4 w-4 mr-2" />{errors.end_date}</p>
