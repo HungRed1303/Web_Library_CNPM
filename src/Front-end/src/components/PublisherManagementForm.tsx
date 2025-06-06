@@ -10,7 +10,7 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 /** ==============================================================
  *  PublisherManagementPage – Add / Edit / Delete
  *  Professional dark theme with restrained neon‑pink accents
- *  Font  : Tahoma – headings 20 px bold uppercase, body 16 px
+ *  Font  : Tahoma – headings 20px bold uppercase, body 16px
  *  Colors: Deep charcoal bg (#0d0d0d) · Accent #ff2df2 / #e600c8
  *  UX    : Softer shadows, focus rings, mobile‑first responsive
  *  NOTE  : Requires lucide-react + TailwindCSS 3
