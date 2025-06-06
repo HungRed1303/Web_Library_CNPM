@@ -20,11 +20,15 @@ const config = {
     },
     extend: {
       colors: {
-        pink: {
-          '300': '#FF8DC7',
-          '400': '#FF69B4',
-          '600': '#FF1493',
-          '700': '#C71585'
+        cream: "#FEFEFE",
+        blue: {
+          300: "#4A6B8A",
+          400: "#3E5F7E",
+          500: "#325372",
+          600: "#033060",
+          700: "#022754",
+          800: "#021E48",
+          900: "#01153C",
         },
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',

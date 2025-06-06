@@ -13,37 +13,46 @@ const wishlistRoute = require("./routes/wishlistRoute")
 const librarycardRoute = require("./routes/librarycardRoute")
 const borrowinghistoryRoute = require("./routes/borrowinghistoryRoute")
 const reportRoute = require("./routes/reportRoute")
+const path = require('path');
+
 const {errorMiddleware} = require('./middlewares/errorMiddlewares');
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+// const { notifyStudents } = require('./services/notifyStudents');
 
 const app = express();
 const port = 3000;
 
+app.use(cors());
 app.use(cors());
 app.use(express.json());
 app.use(errorMiddleware);
 app.use(cookieParser()); 
 
 
+app.use(errorMiddleware);
+app.use(cookieParser());
 
 app.use('/api/auth', authRoute);
 app.use('/api/students', studentRoute);
 app.use('/api/admins', adminRoute);
 app.use('/api/librarians', librarianRoute);
-app.use('/api/publishers', publisherRoute); 
-app.use('/api/books',bookRoute);
-app.use('/api/categories',categoryRoute);
-app.use('/api/borrow',borrowRoute);
-app.use('/api/find',findRoute);
+app.use('/api/publishers', publisherRoute);
+app.use("/uploads", express.static("public/uploads"));
+app.use('/api/books', bookRoute);
+app.use('/api/categories', categoryRoute);
+app.use('/api/borrow', borrowRoute);
+app.use('/api/find', findRoute);
 app.use('/api/wishlist',wishlistRoute);
 app.use('/api/librarycard',librarycardRoute);
 app.use('/api/borrowinghistory',borrowinghistoryRoute);
 app.use('/api/report',reportRoute);
 
+console.log("Serving uploads from:", path.join(__dirname, "../public/uploads"));
+
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
 
-
+// notifyStudents(); 
 
