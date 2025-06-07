@@ -2,61 +2,120 @@ import React, { useState, useEffect } from "react";
 import { Book, Calendar, DollarSign, Search, AlertCircle, RefreshCw } from "lucide-react";
 import { borrowingHistoryService } from "../service/Services";
 
+// Define proper TypeScript interfaces
+interface BorrowingRecord {
+  id: number;
+  book_title: string;
+  author: string;
+  isbn: string;
+  borrowed_date: string;
+  due_date: string;
+  returned_date: string | null;
+  status: 'borrowed' | 'returned' | 'overdue';
+  fine_amount: number;
+}
+
+interface Stats {
+  totalBorrowed: number;
+  currentlyBorrowed: number;
+  returned: number;
+  overdue: number;
+  totalFines: number;
+}
+
 export default function BorrowingHistoryPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [borrowingHistory, setBorrowingHistory] = useState<any[]>([]);
-  const [stats, setStats] = useState({
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [borrowingHistory, setBorrowingHistory] = useState<BorrowingRecord[]>([]);
+  const [stats, setStats] = useState<Stats>({
     totalBorrowed: 0,
     currentlyBorrowed: 0,
     returned: 0,
     overdue: 0,
     totalFines: 0,
   });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<any>(null);
-  const [studentId, setStudentId] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [studentId, setStudentId] = useState<string | null>(null);
 
-  // Mock getting student ID from URL params or props
+  // Get student ID from URL path (to match backend route /:id)
   useEffect(() => {
-    // In real app, this would come from URL params or props
-    const urlParams = new URLSearchParams(window.location.search);
-    setStudentId(urlParams.get('studentId'));
+    // Method 1: From URL path (recommended to match backend)
+    const pathParts = window.location.pathname.split('/');
+    const id = pathParts[pathParts.length - 1];
+    
+    if (id && id !== 'borrowing-history' && !isNaN(Number(id))) {
+      setStudentId(id);
+    } else {
+      // Method 2: Fallback to query parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryId = urlParams.get('studentId');
+      if (queryId) {
+        setStudentId(queryId);
+      } else {
+        setError("Missing student ID in URL. Please provide studentId as path parameter or query parameter.");
+        setLoading(false);
+      }
+    }
   }, []);
 
   // Fetch borrowing history on component mount
   useEffect(() => {
-    fetchBorrowingHistory();
+    if (studentId) {
+      fetchBorrowingHistory();
+    }
   }, [studentId]);
 
-  const fetchBorrowingHistory = async () => {
+  const fetchBorrowingHistory = async (): Promise<void> => {
+    if (!studentId) return;
+
     try {
       setLoading(true);
       setError(null);
       
-      let records = [];
+      const records = await borrowingHistoryService.getBorrowingHistoryByStudentId(Number(studentId));
       
-      if (studentId) {
-        records = await borrowingHistoryService.getBorrowingHistoryByStudentId(Number(studentId));
-      } else {
-        records = await borrowingHistoryService.getCurrentUserBorrowingHistory();
-      }
+      // Validate and sanitize data
+      const sanitizedRecords = (records || []).map(record => ({
+        ...record,
+        book_title: record.book_title || 'Unknown Title',
+        author: record.author || 'Unknown Author',
+        isbn: record.isbn || 'N/A',
+        fine_amount: Number(record.fine_amount) || 0,
+      }));
       
-      setBorrowingHistory(records);
-      setStats(borrowingHistoryService.calculateStats(records));
+      setBorrowingHistory(sanitizedRecords);
+      setStats(borrowingHistoryService.calculateStats(sanitizedRecords));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch borrowing history');
       console.error('Error fetching borrowing history:', err);
+      
+      // Better error handling
+      if (err instanceof Error) {
+        if (err.message.includes('404')) {
+          setError(`No borrowing history found for student ID: ${studentId}`);
+        } else if (err.message.includes('Network Error')) {
+          setError('Network error. Please check your connection and try again.');
+        } else {
+          setError(err.message);
+        }
+      } else {
+        setError('Failed to fetch borrowing history. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter history based on search term
-  const filteredHistory = borrowingHistory.filter((record) =>
-    record.book_title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    record.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    record.isbn.includes(searchTerm)
-  );
+  // Safe filter with null checks
+  const filteredHistory = borrowingHistory.filter((record) => {
+    const searchLower = searchTerm.toLowerCase();
+    const bookTitle = (record.book_title || '').toLowerCase();
+    const author = (record.author || '').toLowerCase();
+    const isbn = (record.isbn || '').toLowerCase();
+    
+    return bookTitle.includes(searchLower) ||
+           author.includes(searchLower) ||
+           isbn.includes(searchLower);
+  });
 
   // Loading state
   if (loading) {
@@ -78,12 +137,14 @@ export default function BorrowingHistoryPage() {
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-[#033060] mb-2">Error Loading Data</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={fetchBorrowingHistory}
-            className="bg-[#033060] text-white px-6 py-2 rounded-lg hover:bg-[#024050] transition-colors"
-          >
-            Try Again
-          </button>
+          {!error.includes("Missing student ID") && (
+            <button
+              onClick={fetchBorrowingHistory}
+              className="bg-[#033060] text-white px-6 py-2 rounded-lg hover:bg-[#024050] transition-colors"
+            >
+              Try Again
+            </button>
+          )}
         </div>
       </div>
     );
@@ -107,8 +168,9 @@ export default function BorrowingHistoryPage() {
         <button
           onClick={fetchBorrowingHistory}
           className="mt-4 bg-[#033060] text-white px-4 py-2 rounded-lg hover:bg-[#024050] transition-colors flex items-center gap-2"
+          disabled={loading}
         >
-          <RefreshCw className="h-4 w-4" />
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           Refresh
         </button>
       </div>

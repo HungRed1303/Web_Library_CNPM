@@ -302,6 +302,8 @@ CREATE TABLE public.publishers (
     phone_number character varying(12)
 );
 
+ALTER TABLE public.publishers
+ADD COLUMN email varchar(255);
 
 ALTER TABLE public.publishers OWNER TO postgres;
 

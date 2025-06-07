@@ -594,10 +594,7 @@ class BorrowingHistoryService {
   // Get borrowing history by student ID
   async getBorrowingHistoryByStudentId(studentId) {
     try {
-      const response = await this.axiosInstance.post(
-        '/borrowing-history',
-        { student_id: studentId }
-      );
+      const response = await this.axiosInstance.get(`/borrowinghistory/${studentId}`);
       if (response.data.success) {
         return response.data.data;
       } else {
