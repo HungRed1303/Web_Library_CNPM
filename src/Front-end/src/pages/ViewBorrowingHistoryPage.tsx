@@ -1,121 +1,80 @@
 import React, { useState, useEffect } from "react";
-import { Book, Calendar, DollarSign, Search, AlertCircle, RefreshCw } from "lucide-react";
-import { borrowingHistoryService } from "../service/Services";
-
-// Define proper TypeScript interfaces
-interface BorrowingRecord {
-  id: number;
-  book_title: string;
-  author: string;
-  isbn: string;
-  borrowed_date: string;
-  due_date: string;
-  returned_date: string | null;
-  status: 'borrowed' | 'returned' | 'overdue';
-  fine_amount: number;
-}
-
-interface Stats {
-  totalBorrowed: number;
-  currentlyBorrowed: number;
-  returned: number;
-  overdue: number;
-  totalFines: number;
-}
+import { Book, Calendar, DollarSign, Search, AlertCircle, RefreshCw, ArrowLeft } from "lucide-react";
+import borrowingHistoryService from "../service/Services";
+import { useNavigate } from "react-router-dom";
 
 export default function BorrowingHistoryPage() {
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [borrowingHistory, setBorrowingHistory] = useState<BorrowingRecord[]>([]);
-  const [stats, setStats] = useState<Stats>({
+  const [searchTerm, setSearchTerm] = useState("");
+  const [borrowingHistory, setBorrowingHistory] = useState<any[]>([]);
+  const [stats, setStats] = useState({
     totalBorrowed: 0,
     currentlyBorrowed: 0,
     returned: 0,
     overdue: 0,
     totalFines: 0,
   });
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [studentId, setStudentId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<any>(null);
+  const [studentId, setStudentId] = useState<any>(null);
+  const navigate = useNavigate();
 
-  // Get student ID from URL path (to match backend route /:id)
+  // Mock getting student ID from URL params or props
   useEffect(() => {
-    // Method 1: From URL path (recommended to match backend)
-    const pathParts = window.location.pathname.split('/');
-    const id = pathParts[pathParts.length - 1];
-    
-    if (id && id !== 'borrowing-history' && !isNaN(Number(id))) {
-      setStudentId(id);
-    } else {
-      // Method 2: Fallback to query parameter
-      const urlParams = new URLSearchParams(window.location.search);
-      const queryId = urlParams.get('studentId');
-      if (queryId) {
-        setStudentId(queryId);
-      } else {
-        setError("Missing student ID in URL. Please provide studentId as path parameter or query parameter.");
-        setLoading(false);
-      }
-    }
+    // In real app, this would come from URL params or props
+    const urlParams = new URLSearchParams(window.location.search);
+    setStudentId(urlParams.get('studentId'));
   }, []);
 
   // Fetch borrowing history on component mount
   useEffect(() => {
     if (studentId) {
       fetchBorrowingHistory();
+    } else {
+      setError("Missing studentId in URL");
+      setLoading(false);
     }
   }, [studentId]);
 
-  const fetchBorrowingHistory = async (): Promise<void> => {
-    if (!studentId) return;
-
+  const fetchBorrowingHistory = async () => {
     try {
       setLoading(true);
       setError(null);
-      
-      const records = await borrowingHistoryService.getBorrowingHistoryByStudentId(Number(studentId));
-      
-      // Validate and sanitize data
-      const sanitizedRecords = (records || []).map(record => ({
-        ...record,
-        book_title: record.book_title || 'Unknown Title',
-        author: record.author || 'Unknown Author',
-        isbn: record.isbn || 'N/A',
-        fine_amount: Number(record.fine_amount) || 0,
-      }));
-      
-      setBorrowingHistory(sanitizedRecords);
-      setStats(borrowingHistoryService.calculateStats(sanitizedRecords));
-    } catch (err) {
-      console.error('Error fetching borrowing history:', err);
-      
-      // Better error handling
-      if (err instanceof Error) {
-        if (err.message.includes('404')) {
-          setError(`No borrowing history found for student ID: ${studentId}`);
-        } else if (err.message.includes('Network Error')) {
-          setError('Network error. Please check your connection and try again.');
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError('Failed to fetch borrowing history. Please try again.');
+      let records = [];
+      if (studentId) {
+        records = await borrowingHistoryService.getBorrowingHistoryByStudentId(Number(studentId));
       }
+      setBorrowingHistory(records);
+      setStats(calculateStats(records));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch borrowing history');
+      console.error('Error fetching borrowing history:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  // Safe filter with null checks
-  const filteredHistory = borrowingHistory.filter((record) => {
-    const searchLower = searchTerm.toLowerCase();
-    const bookTitle = (record.book_title || '').toLowerCase();
-    const author = (record.author || '').toLowerCase();
-    const isbn = (record.isbn || '').toLowerCase();
-    
-    return bookTitle.includes(searchLower) ||
-           author.includes(searchLower) ||
-           isbn.includes(searchLower);
-  });
+  // Map dữ liệu từ backend sang các trường hiển thị rõ ràng
+  const mappedHistory = borrowingHistory.map(record => ({
+    book_title: record.title,
+    author: record.author,
+    isbn: record.isbn,
+    borrowed_date: record.issue_date,
+    due_date: record.due_date,
+    returned_date: record.return_date,
+    status: record.status,
+    fine_amount: record.fine_amount,
+    id: record.issue_id || record.id // fallback nếu có id khác
+  }));
+
+  // Filter history based on search term
+  const filteredHistory = mappedHistory.filter((record) =>
+    (record.book_title && record.book_title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (record.author && record.author.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (record.isbn && record.isbn.includes(searchTerm))
+  );
+
+  // Lấy tên sinh viên từ dữ liệu nếu có
+  const studentName = borrowingHistory.length > 0 ? (borrowingHistory[0].name || borrowingHistory[0].username || borrowingHistory[0].email || null) : null;
 
   // Loading state
   if (loading) {
@@ -137,7 +96,7 @@ export default function BorrowingHistoryPage() {
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-[#033060] mb-2">Error Loading Data</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          {!error.includes("Missing student ID") && (
+          {error !== "Missing studentId in URL" && (
             <button
               onClick={fetchBorrowingHistory}
               className="bg-[#033060] text-white px-6 py-2 rounded-lg hover:bg-[#024050] transition-colors"
@@ -150,29 +109,53 @@ export default function BorrowingHistoryPage() {
     );
   }
 
+  // Hàm tính số ngày trễ
+  function getLateDays(due: string, returned: string) {
+    if (!due || !returned) return 0;
+    const dueDate = new Date(due);
+    const returnedDate = new Date(returned);
+    const diff = Math.floor((returnedDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
+    return diff > 0 ? diff : 0;
+  }
+
+  // Hàm tính tổng số tiền phạt và số sách quá hạn
+  function getStats(records: any[]) {
+    let totalFines = 0;
+    let overdue = 0;
+    records.forEach(record => {
+      let fine = Number(record.fine_amount) || 0;
+      const lateDays = getLateDays(record.due_date, record.returned_date);
+      const finePerDay = 0.1; // USD per day
+      if (lateDays > 0) fine = lateDays * finePerDay;
+      totalFines += fine;
+      if (
+        (record.returned_date && getLateDays(record.due_date, record.returned_date) > 0) ||
+        record.status === 'overdue'
+      ) {
+        overdue++;
+      }
+    });
+    return { totalFines, overdue };
+  }
+
+  // Trong component, lấy lại stats
+  const { totalFines, overdue } = getStats(filteredHistory);
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] py-10 px-4 md:px-8 font-[Tahoma] flex flex-col items-center">
       {/* Header */}
       <div className="w-full max-w-7xl bg-gradient-to-b from-[#eaf3fb] to-[#dbeafe] rounded-2xl shadow-lg p-10 mb-10 border border-[#dbeafe] flex flex-col items-center" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
         <div className="flex items-center mb-1">
           <Book className="h-12 w-12 text-[#033060] mr-3" />
-          <h1 className="text-5xl font-extrabold text-[#033060] drop-shadow" style={{letterSpacing: '1px', textShadow: '0 2px 8px #b6c6e3'}}>
-            {studentId ? "Student Borrowing History" : "Your Borrowing History"}
+          <h1 className="text-5xl font-extrabold text-[#033060] drop-shadow text-center" style={{letterSpacing: '1px', textShadow: '0 2px 8px #b6c6e3'}}>
+            Student Borrowing History
           </h1>
         </div>
         <p className="text-gray-600 text-lg text-center">
-          {studentId 
-            ? `Complete borrowing history for Student ID: ${studentId}`
-            : "Track your borrowed books, due dates, and fines"}
+          {studentName
+            ? `Borrowing history for ${studentName}`
+            : (studentId ? `Borrowing history for student ID ${studentId}` : "Track your borrowed books, due dates, and fines")}
         </p>
-        <button
-          onClick={fetchBorrowingHistory}
-          className="mt-4 bg-[#033060] text-white px-4 py-2 rounded-lg hover:bg-[#024050] transition-colors flex items-center gap-2"
-          disabled={loading}
-        >
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
       </div>
 
       {/* Search Bar */}
@@ -192,37 +175,36 @@ export default function BorrowingHistoryPage() {
 
       {/* Summary Cards */}
       <div className="w-full max-w-7xl grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-        <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-4" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[#033060] font-semibold text-base">Total Borrowed</h3>
-            <Book className="h-6 w-6 text-[#033060]" />
+        <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-2 md:p-3" style={{boxShadow: '0 2px 12px 0 rgba(3,48,96,0.08)'}}>
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-[#033060] font-semibold text-sm md:text-base">Total Borrowed</h3>
+            <Book className="h-5 w-5 text-[#033060]" />
           </div>
-          <div className="text-2xl font-bold text-[#033060]">{stats.totalBorrowed}</div>
+          <div className="text-xl md:text-2xl font-bold text-[#033060]">{stats.totalBorrowed}</div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-4" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[#033060] font-semibold text-base">Currently Borrowed</h3>
-            <Calendar className="h-6 w-6 text-blue-600" />
+        <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-2 md:p-3" style={{boxShadow: '0 2px 12px 0 rgba(3,48,96,0.08)'}}>
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-[#033060] font-semibold text-sm md:text-base">Currently Borrowed</h3>
+            <Calendar className="h-5 w-5 text-blue-600" />
           </div>
-          <div className="text-2xl font-bold text-blue-600">{stats.currentlyBorrowed}</div>
-          <p className="text-xs text-gray-500 mt-1">Returned: {stats.returned}</p>
+          <div className="text-xl md:text-2xl font-bold text-blue-600">{stats.currentlyBorrowed}</div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-4" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[#033060] font-semibold text-base">Overdue Books</h3>
-            <AlertCircle className="h-6 w-6 text-red-600" />
+        <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-2 md:p-3" style={{boxShadow: '0 2px 12px 0 rgba(3,48,96,0.08)'}}>
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-[#033060] font-semibold text-sm md:text-base">Overdue Books</h3>
+            <AlertCircle className="h-5 w-5 text-red-600" />
           </div>
-          <div className="text-2xl font-bold text-red-600">{stats.overdue}</div>
+          <div className="text-xl md:text-2xl font-bold text-red-600">{overdue}</div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-4" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[#033060] font-semibold text-base">Total Fines</h3>
-            <DollarSign className="h-6 w-6 text-red-600" />
+        <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-2 md:p-3" style={{boxShadow: '0 2px 12px 0 rgba(3,48,96,0.08)'}}>
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-[#033060] font-semibold text-sm md:text-base">Total Fines</h3>
+            <DollarSign className="h-5 w-5 text-red-600" />
           </div>
-          <div className="text-2xl font-bold text-red-600">${stats.totalFines.toFixed(2)}</div>
+          <div className="text-xl md:text-2xl font-bold text-red-600">${totalFines.toFixed(2)}</div>
         </div>
       </div>
 
@@ -231,7 +213,7 @@ export default function BorrowingHistoryPage() {
         <div className="p-6 border-b border-[#dbeafe]">
           <h2 className="text-2xl font-bold text-[#033060]">Borrowing History Details</h2>
           <p className="text-gray-600">
-            {filteredHistory.length} {filteredHistory.length === 1 ? 'record' : 'records'} found
+            {/* {filteredHistory.length} {filteredHistory.length === 1 ? 'record' : 'records'} found */}
           </p>
         </div>
         
@@ -248,47 +230,38 @@ export default function BorrowingHistoryPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-[#f5f8fc] border-b border-[#dbeafe]">
-                  <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Book Details</th>
-                  <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Borrowed Date</th>
-                  <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Due Date</th>
-                  <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Returned Date</th>
-                  <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Status</th>
-                  <th className="py-3 px-5 text-right text-[#033060] font-bold text-base">Fine</th>
+                  <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-20">Issue ID</th>
+                  <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-64">Book Title</th>
+                  <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-40">Author</th>
+                  <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-32">Borrowed Date</th>
+                  <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-32">Due Date</th>
+                  <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-32">Returned Date</th>
+                  <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-28">Status</th>
+                  <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-24">Fine</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredHistory.map((record) => (
                   <tr key={record.id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
-                    <td className="py-3 px-5">
-                      <div>
-                        <div className="font-semibold text-[#033060] text-base">{record.book_title}</div>
-                        <div className="text-sm text-gray-600">by {record.author}</div>
-                        <div className="text-xs text-gray-500">ISBN: {record.isbn}</div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-5 text-[#033060] text-base">
-                      {borrowingHistoryService.formatDate(record.borrowed_date)}
-                    </td>
-                    <td className="py-3 px-5 text-[#033060] text-base">
-                      {borrowingHistoryService.formatDate(record.due_date)}
-                    </td>
-                    <td className="py-3 px-5 text-[#033060] text-base">
-                      {record.returned_date 
-                        ? borrowingHistoryService.formatDate(record.returned_date)
-                        : '-'
-                      }
-                    </td>
-                    <td className="py-3 px-5">
-                      <span className={`px-3 py-1 rounded-lg text-sm font-semibold border ${
-                        borrowingHistoryService.getStatusColorClass(record.status)
-                      }`}>
-                        {borrowingHistoryService.getStatusDisplayText(record.status)}
-                      </span>
-                    </td>
-                    <td className="py-3 px-5 text-right font-medium">
-                      <span className={record.fine_amount === 0 ? "text-green-600" : "text-red-600"}>
-                        ${record.fine_amount.toFixed(2)}
-                      </span>
+                    <td className="py-3 px-5 text-center w-20">{record.id || '-'}</td>
+                    <td className="py-3 px-5 text-left break-words whitespace-normal max-w-xs w-64">{record.book_title || '-'}</td>
+                    <td className="py-3 px-5 text-left break-words whitespace-normal max-w-xs w-40">{record.author || '-'}</td>
+                    <td className="py-3 px-5 text-center text-[#033060] text-base w-32">{record.borrowed_date ? borrowingHistoryService.formatDate(record.borrowed_date) : '-'}</td>
+                    <td className="py-3 px-5 text-center text-[#033060] text-base w-32">{record.due_date ? borrowingHistoryService.formatDate(record.due_date) : '-'}</td>
+                    <td className="py-3 px-5 text-center text-[#033060] text-base w-32">{record.returned_date ? borrowingHistoryService.formatDate(record.returned_date) : '-'}</td>
+                    <td className="py-3 px-5 text-center w-28">{borrowingHistoryService.getStatusDisplayText(record.status)}</td>
+                    <td className="py-3 px-5 text-center font-medium w-24">
+                      {(() => {
+                        let fine = Number(record.fine_amount) || 0;
+                        const lateDays = getLateDays(record.due_date, record.returned_date);
+                        const finePerDay = 0.1; // USD per day
+                        if (lateDays > 0) fine = lateDays * finePerDay;
+                        return (
+                          <span className={fine === 0 ? "text-green-600" : "text-red-600"}>
+                            ${fine.toFixed(2)}
+                          </span>
+                        );
+                      })()}
                     </td>
                   </tr>
                 ))}
@@ -297,6 +270,70 @@ export default function BorrowingHistoryPage() {
           </div>
         )}
       </div>
-    </div>
+
+      {/* Thêm nút Return ở góc dưới bên trái */}
+      <div className="fixed bottom-4 left-4 z-50">
+        <button
+          onClick={() => navigate('/students')}
+          className="flex items-center gap-2 bg-[#f5f8fc] text-[#033060] border border-[#dbeafe] px-2 md:px-4 py-1.5 md:py-2 rounded-full hover:bg-[#eaf3fb] transition-colors font-semibold text-sm md:text-base"
+          style={{minWidth: '36px', minHeight: '36px'}}
+          aria-label="Return to student management"
+        >
+          <ArrowLeft className="h-4 w-4 md:h-5 md:w-5" />
+          <span className="hidden md:inline">Return</span>
+        </button>
+      </div>
+    </div> 
   );
 }
+
+// Đưa hàm calculateStats ra ngoài component
+function calculateStats(records: any[]) {
+  const stats = {
+    totalBorrowed: records.length,
+    currentlyBorrowed: 0,
+    returned: 0,
+    overdue: 0,
+    totalFines: 0,
+  };
+  records.forEach(record => {
+    if (record.status === 'borrowed' || record.status === 'pending') {
+      stats.currentlyBorrowed++;
+    }
+    if (record.status === 'returned' || record.status === 'completed') {
+      stats.returned++;
+    }
+    if (record.status === 'overdue') {
+      stats.overdue++;
+    }
+    stats.totalFines += Number(record.fine_amount) || 0;
+  });
+  return stats;
+}
+
+// Sửa getStatusDisplayText để trả về tiếng Anh đúng chuẩn SQL
+borrowingHistoryService.getStatusDisplayText = function(status: string) {
+  switch (status) {
+    case 'returned':
+    case 'completed':
+      return 'Returned';
+    case 'borrowed':
+      return 'Borrowed';
+    case 'pending':
+      return 'Pending';
+    case 'overdue':
+      return 'Overdue';
+    default:
+      return status;
+  }
+};
+
+// Sửa hàm formatDate để trả về dd/mm/yyyy
+borrowingHistoryService.formatDate = function(dateString: string) {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};

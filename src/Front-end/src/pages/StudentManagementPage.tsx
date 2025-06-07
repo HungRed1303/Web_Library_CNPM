@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { Pencil, Trash2, Search, CheckCircle, XCircle, Users, UserPlus, History } from "lucide-react"
 import { 
   getAllStudents, 
@@ -31,6 +31,27 @@ interface ValidationErrors {
   name?: string
   email?: string
   class_id?: string
+}
+
+function EmailCell({ email }: { email: string }) {
+  const ref = useRef<HTMLTableCellElement>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  useEffect(() => {
+    if (ref.current) {
+      setShowTooltip(ref.current.scrollWidth > ref.current.clientWidth);
+    }
+  }, [email]);
+
+  return (
+    <td
+      ref={ref}
+      className="py-2.5 px-5 text-left text-[#033060] text-base w-[240px] max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap"
+      title={showTooltip ? email : undefined}
+    >
+      {email}
+    </td>
+  );
 }
 
 export default function StudentManagementPage() {
@@ -358,9 +379,9 @@ export default function StudentManagementPage() {
                 sortedStudents.map((student) => (
                   <tr key={student.student_id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
                     <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[60px]">{student.student_id}</td>
-                    <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[180px] max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap" title={student.username}>{student.username}</td>
-                    <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[200px] max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap" title={student.name}>{student.name}</td>
-                    <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[240px] max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap" title={student.email}>{student.email}</td>
+                    <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[180px] max-w-xs break-words whitespace-normal" title={student.username}>{student.username}</td>
+                    <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[200px] max-w-xs break-words whitespace-normal" title={student.name}>{student.name}</td>
+                    <EmailCell email={student.email} />
                     <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[120px]">{student.class_id || 'N/A'}</td>
                     <td className="py-2.5 px-5 text-center w-[180px]">
                       <div className="flex justify-center gap-4">

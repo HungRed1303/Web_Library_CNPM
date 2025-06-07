@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { Pencil, Trash2, Search, CheckCircle, XCircle, Users, UserPlus } from "lucide-react"
 import { getAllLibrarians, getLibrarianById, updateLibrarianById, deleteLibrarianById, createLibrarian } from "../service/Services"
 
@@ -27,6 +27,27 @@ interface ValidationErrors {
   email?: string
   start_date?: string
   end_date?: string
+}
+
+function EmailCell({ email }: { email: string }) {
+  const ref = useRef<HTMLTableCellElement>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
+
+  useEffect(() => {
+    if (ref.current) {
+      setShowTooltip(ref.current.scrollWidth > ref.current.clientWidth);
+    }
+  }, [email]);
+
+  return (
+    <td
+      ref={ref}
+      className="py-2.5 px-5 text-left text-[#033060] text-base w-[240px] max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap"
+      title={showTooltip ? email : undefined}
+    >
+      {email}
+    </td>
+  );
 }
 
 export default function LibrarianManagementPage() {
@@ -362,12 +383,12 @@ export default function LibrarianManagementPage() {
         <table className="w-full table-fixed">
           <thead>
             <tr className="bg-[#f5f8fc] border-b border-[#dbeafe]">
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[60px]">ID</th>
+              <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-[60px]">ID</th>
               <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[180px]">Username</th>
               <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[200px]">Full Name</th>
               <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[240px]">Email Address</th>
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[120px]">Start Date</th>
-              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[120px]">End Date</th>
+              <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-[120px]">Start Date</th>
+              <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-[120px]">End Date</th>
               <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-[120px]">Actions</th>
             </tr>
           </thead>
@@ -384,12 +405,12 @@ export default function LibrarianManagementPage() {
             ) : sortedLibrarians.length > 0 ? (
               sortedLibrarians.map((librarian) => (
                 <tr key={librarian.librarian_id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
-                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[60px]">{librarian.librarian_id}</td>
-                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[180px] max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap" title={librarian.username}>{librarian.username}</td>
-                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[200px] max-w-[200px] overflow-hidden text-ellipsis whitespace-nowrap" title={librarian.name}>{librarian.name}</td>
-                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[240px] max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap" title={librarian.email}>{librarian.email}</td>
-                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[120px]">{formatDate(librarian.start_date)}</td>
-                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[120px]">{formatDate(librarian.end_date)}</td>
+                  <td className="py-2.5 px-5 text-center text-[#033060] text-base w-[60px]">{librarian.librarian_id}</td>
+                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[180px] max-w-xs break-words whitespace-normal" title={librarian.username}>{librarian.username}</td>
+                  <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[200px] max-w-xs break-words whitespace-normal" title={librarian.name}>{librarian.name}</td>
+                  <EmailCell email={librarian.email} />
+                  <td className="py-2.5 px-5 text-center text-[#033060] text-base w-[120px]">{formatDate(librarian.start_date)}</td>
+                  <td className="py-2.5 px-5 text-center text-[#033060] text-base w-[120px]">{formatDate(librarian.end_date)}</td>
                   <td className="py-2.5 px-5 text-center w-[120px]">
                     <div className="flex justify-center gap-4">
                       <button
