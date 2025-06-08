@@ -36,16 +36,26 @@ const updatePublisher = async (name, address, email, phone_number, publisher_id)
      RETURNING *`,
     [name, address, email, phone_number, publisher_id]
   );
+
+  if(result.rowCount == 0){
+    return null;
+  }
+
   return result.rows[0];
 }
 
 const deletePublisher = async (publisher_id) => {
+
   const result = await pool.query(
     `DELETE FROM publishers
      WHERE publisher_id = $1
      RETURNING *`,
     [publisher_id]
   );
+
+  if(result.rowCount == 0){
+    return null;
+  }
   return result.rows[0];
 }
 

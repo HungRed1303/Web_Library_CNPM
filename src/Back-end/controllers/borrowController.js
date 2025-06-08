@@ -35,6 +35,9 @@ const getAllBookIssue = CatchAsyncErrors(async (req,res,next)=>{
 const getBookIssueById = CatchAsyncErrors(async (req,res,next)=>{
     const id = req.params.id;
     const result = await BookIssueModel.getBookIssueById(id);
+    if(!result){
+        return next(new ErrorHandler("Book issue not found", 404));
+    }
     res.status(200).json({
         success:true,
         data:result
@@ -63,6 +66,10 @@ const getAllBookRequest = CatchAsyncErrors(async (req,res,next)=>{
 const getBookRequestById = CatchAsyncErrors( async(req,res,next)=>{
     const id = req.params.id;
     const result = await BookRequestModel.getBookRequestById(id);
+
+    if(!result){
+        return next(new ErrorHandler("Book Request Not Exist",404));
+    }
     res.status(200).json({
         success:true,
         data: result

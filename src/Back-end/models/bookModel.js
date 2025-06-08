@@ -16,7 +16,7 @@ const getBookById = async (book_id)=>{
     FROM books b
     WHERE b.book_id = $1 
     `,[book_id]);
-
+   
     return result.rows[0];
 };
 
@@ -75,6 +75,7 @@ const createBook = async (title, publisher_id, publication_year, quantity, avail
 
 
 const updateBook = async (book_id, title, publisher_id, publication_year, quantity, availability, price, author, image_url) => {
+
   const result = await pool.query(`
     UPDATE books
     SET title = $1, publisher_id = $2, publication_year = $3, quantity = $4,

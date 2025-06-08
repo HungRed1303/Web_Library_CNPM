@@ -13,6 +13,9 @@ const toSQLDate = (date) => {
 const getWishListByStudentId = CatchAsyncErrors(async (req,res,next)=>{
     const {student_id} = req.body;
     const books = await WishlistModel.getAllWishListByIdStudent(student_id);
+    if(!books){
+        return next(new ErrorHandler("Book not exist in wishlist",404));
+    }
     res.status(200).json({
         success: true,
         data: books

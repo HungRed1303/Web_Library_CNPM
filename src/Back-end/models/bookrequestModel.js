@@ -16,10 +16,10 @@ const getBookRequestById = async (id)=>{
         WHERE request_id = $1`,
         [id]);
 
-        if(result.rowCount == 0){
+      if(result.rowCount == 0){
             return null;
         }
-     
+        
         return result.rows[0];
 }
 
@@ -27,6 +27,7 @@ const createBookRequest = async (book_id,student_id,request_date,status = "pendi
   const result = await pool.query(`
     INSERT INTO book_requests (book_id,student_id,request_date,status)
     VALUES ($1,$2,$3,$4)
+    RETURNING *
     `,[book_id,student_id,request_date,status]);
 
     return result.rows[0];
