@@ -18,7 +18,6 @@ import PublisherManagementPage  from "./pages/PublisherManagementPage";
 import CategoryManagementPage   from "./pages/CategoryManagementPage";
 import BookManagementPage       from "./pages/BookManagementPage";
 import ViewReportPage           from "./pages/ViewReportPage";
-import BooksPage from "./pages/BooksPage"; // Thêm trang BookPage nếu cần
 
 function App() {
   return (
@@ -36,6 +35,9 @@ function App() {
 
         {/* Các route login/register/forgot/reset */}
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/librarians" element={<LibrarianManagementPage />} />
+        <Route path="/students" element={<StudentManagementPage />} />
+        <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/password/forgot" element={<ForgotPasswordPage />} />
         <Route path="/password/reset/:token" element={<ResetPasswordPage />} />
@@ -67,8 +69,8 @@ function App() {
         >
           {/* Lưu ý: ta đổi đường dẫn `/home` cho protected user thành `/dashboard` để không trùng với public */}
           <Route path="/dashboard" element={<HomePage />} />
-          <Route path="/category"  element={<CategoryManagementPage />} />
-          <Route path="/book"      element={<BookManagementPage />} />
+          <Route path="/categorys"  element={<CategoryManagementPage />} />
+          <Route path="/books"      element={<BookManagementPage />} />
           <Route path="/reports"   element={<ViewReportPage />} />
         </Route>
 
