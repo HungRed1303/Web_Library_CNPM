@@ -42,8 +42,13 @@ const extendLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
    end_date.setFullYear(end_date.getFullYear() + 1);
    const formatted_start = toSQLDate(start_date);
    const formatted_end = toSQLDate(end_date);
+   
+   if(studentcard.status == 'pending'){
+    return next (new ErrorHandler("Library Card was not accepted",404) )
+   }
 
-  const result = await LibraryCardModel.updateLibraryCard(studentcard.card_id,student_id,formatted_start,formatted_end, "completed");
+
+  const result = await LibraryCardModel.updateLibraryCard(studentcard.card_id,student_id,formatted_start,formatted_end, "accepted");
   res.status(200).json({
     success:true,
     data:result
@@ -63,7 +68,7 @@ const acceptLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
    const formatted_start = toSQLDate(start_date);
    const formatted_end = toSQLDate(end_date);
 
-  const result = await LibraryCardModel.updateLibraryCard(studentcard.card_id,student_id,formatted_start,formatted_end, "completed");
+  const result = await LibraryCardModel.updateLibraryCard(studentcard.card_id,student_id,formatted_start,formatted_end, "accepted");
   res.status(200).json({
     success:true,
     data:result

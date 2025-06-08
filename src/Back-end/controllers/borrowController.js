@@ -104,7 +104,7 @@ const borrowBook = CatchAsyncErrors(async (req,res,next)=>{
         return next(new ErrorHandler("Student Not Exist",400));
     }
     const bookissues = await BookIssueModel.getBookIssueByStudentBook(book_id,student_id);
-    const isAlreadyBorrowed = bookissues.some(issue => issue.status === 'pending');
+    const isAlreadyBorrowed = bookissues.some(issue => issue.status === 'issuing');
    
     if( isAlreadyBorrowed){
         return next( new ErrorHandler("Book Already Borrowes",400));
@@ -141,14 +141,14 @@ const issueBook = CatchAsyncErrors(async (req,res,next)=>{
     }
     
       const bookissues = await BookIssueModel.getBookIssueByStudentBook(book_id,student_id);
-    const isAlreadyBorrowed = bookissues.some(issue => issue.status === 'pending');
+    const isAlreadyBorrowed = bookissues.some(issue => issue.status === 'issuing');
    
     if( isAlreadyBorrowed){
         return next( new ErrorHandler("Book Already Borrowes",400));
     }
     
    const quantity = book.quantity - 1;
-   let availability = quantity > 0 ? "available" : "Not";
+   let availability = quantity > 0 ? "available" : "unavailable";
   let publication_year = toSQLDate(book.publication_year);
    const result0 = await BookModel.updateBook(book_id,book.title,book.publisher_id,publication_year,quantity,availability,book.price,book.author);
 
@@ -159,7 +159,7 @@ const issueBook = CatchAsyncErrors(async (req,res,next)=>{
    const sqlIssueDate = toSQLDate(issueDate);
    const sqlDueDate = toSQLDate(dueDate);
 
-   const status1 = "pending";
+   const status1 = "issuing";
    const status2 = "approved";
   
    const result1 = await BookIssueModel.createBookIssue(book_id,student_id,sqlIssueDate,sqlDueDate,null,null,status1);
@@ -192,19 +192,19 @@ const returnBook = CatchAsyncErrors(async (req,res,next)=>{
         return next(new ErrorHandler("Book Not Exist",400));
     }
     const bookissues = await BookIssueModel.getBookIssueByStudentBook(book_id,student_id);
-    const isAlreadyBorrowed = bookissues.some(issue1 => issue1.status === 'pending');
+    const isAlreadyBorrowed = bookissues.some(issue1 => issue1.status === 'issuing');
    
     if( !isAlreadyBorrowed){
         return next( new ErrorHandler("You have not borrow this book",400));
     }
     let quantity = book.quantity + 1;
 
-    let availability = quantity > 0 ? "available" : "Not";
+    let availability = quantity > 0 ? "available" : "unavailable";
     const result0 = await BookModel.updateBook(book_id,book.title,book.publisher_id, toSQLDate(book.publication_year),quantity,availability,book.price,book.author);
     
     const returnDate = toSQLDate(new Date());
     const fine = calculateFine(due_date);
-    const newstatus = "completed";
+    const newstatus = "returned";
 
     const result = await BookIssueModel.updateBookIssue(issue_id,book_id,student_id,issue_date,due_date,returnDate,fine,newstatus);
 
