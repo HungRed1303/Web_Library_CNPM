@@ -11,7 +11,7 @@ const toSQLDate = (date) => {
 
 
 const requestLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
-    const {student_id} = req.body;
+    const student_id = req.params.id;
     const student = await LibraryCardModel.getLibraryCardByStudentId(student_id);
     if(student){
         return next(new ErrorHandler("Library Card was request or existed",400));
@@ -31,7 +31,7 @@ const requestLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
 })
 
 const extendLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
-    const {student_id} = req.body;
+    const student_id = req.params.id;
     studentcard = await LibraryCardModel.getLibraryCardByStudentId(student_id);
     if(!studentcard){
         return next(new ErrorHandler("Library Card was not existed",404));
@@ -51,7 +51,7 @@ const extendLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
 })
 
 const acceptLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
-    const {student_id} = req.body;
+    const student_id = req.params.id;
     studentcard = await LibraryCardModel.getLibraryCardByStudentId(student_id);
     if(!studentcard){
         return next(new ErrorHandler("Library Card was not existed",404));
@@ -71,7 +71,7 @@ const acceptLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
 })
 
 const deleteLibraryCard = CatchAsyncErrors( async (req,res,next)=>{
-    const {student_id} = req.body;
+    const student_id = req.params.id;
     const card = await LibraryCardModel.getLibraryCardByStudentId(student_id);
     if(!card){
         return next( new ErrorHandler("Card Not Existed",404));
