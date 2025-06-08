@@ -9,7 +9,7 @@ import {
   BookOpen,
   ListChecks,
   BarChart2,
-  Settings,
+  Settings
 } from "lucide-react";
 
 interface SidebarProps {
