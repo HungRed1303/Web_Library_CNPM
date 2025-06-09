@@ -193,10 +193,38 @@ const logout = CatchAsyncErrors(async (req,res,next)=>{
   })
 });
 
+const changePassword = CatchAsyncErrors(async (req, res, next) => {
+  const { oldPassword, newPassword, confirmPassword } = req.body;
+  const userId = req.user.user_id;
+
+  if (!oldPassword || !newPassword || !confirmPassword) {
+    return next(new ErrorHandler('All fields are required', 400));
+  }
+
+  if (newPassword !== confirmPassword) {
+    return next(new ErrorHandler('New passwords do not match', 400));
+  }
+
+  const user = await UserModel.findUserById(userId);
+  if (!user) return next(new ErrorHandler('User not found', 404));
+
+  const isMatch = await bcrypt.compare(oldPassword, user.password);
+  if (!isMatch) return next(new ErrorHandler('Old password is incorrect', 401));
+
+  const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+  await UserModel.updatePassword(user.email, hashedNewPassword);
+
+  res.status(200).json({
+    success: true,
+    message: 'Password changed successfully',
+  });
+});
+
 module.exports = {
   register,
   login,
   forGotPassword,
   resetPassword,
   logout,
+  changePassword,
 };

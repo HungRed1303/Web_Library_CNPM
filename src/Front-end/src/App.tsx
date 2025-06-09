@@ -10,6 +10,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
+import ChangePasswordPage from "./pages/ChangePasswordPage"; // Public
 
 import HomePageUser from "./pages/HomePageUser"; // Public
 import HomePage from "./pages/HomePage"; // Protected
@@ -21,6 +22,7 @@ import ViewReportPage from "./pages/ViewReportPage";
 import LibrarianManagementPage from "./pages/LibrarianManagementPage";
 import StudentManagementPage from "./pages/StudentManagementPage";
 import ViewBorrowingHistoryPage from "./pages/ViewBorrowingHistoryPage";
+import BooksPage from "./pages/BooksPage"; // Thêm trang BookPage nếu cần
 
 function App() {
   return (
@@ -29,13 +31,16 @@ function App() {
         {/* ---------- Public Routes ---------- */}
         <Route element={<UserLayout />}>
           <Route path="/home" element={<HomePageUser />} />
+          <Route path="/books" element={<BooksPage />} />
         </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/password/forgot" element={<ForgotPasswordPage />} />
         <Route path="/password/reset/:token" element={<ResetPasswordPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <Route path="/password/change" element={<ChangePasswordPage />} />
 
+        {/* ---------- Protected Routes ---------- */}
         {/* ---------- Admin Only Routes (Role = "A") ---------- */}
         <Route
           element={

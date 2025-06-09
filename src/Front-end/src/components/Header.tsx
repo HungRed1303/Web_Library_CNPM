@@ -76,6 +76,12 @@ const Header = ({ collapsed, onToggleSidebar }: HeaderProps) => {
             >
               Logout
             </button>
+            <button
+              className="w-full text-left px-4 py-2 text-sm text-[#467DA7] hover:bg-[#EEF5FA] transition-colors duration-150"
+              onClick={() => navigate("/password/change")}
+            >
+              Change Password
+            </button>
           </nav>
         )}
       </div>
