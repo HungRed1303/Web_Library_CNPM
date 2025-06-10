@@ -13,6 +13,7 @@ const wishlistRoute = require("./routes/wishlistRoute")
 const librarycardRoute = require("./routes/librarycardRoute")
 const borrowinghistoryRoute = require("./routes/borrowinghistoryRoute")
 const reportRoute = require("./routes/reportRoute")
+const { notifyStudents } = require('./services/notifyStudents');
 
 const path = require('path');
 
@@ -49,7 +50,8 @@ app.use('/api/librarycard',librarycardRoute);
 app.use('/api/borrowinghistory',borrowinghistoryRoute);
 app.use('/api/report',reportRoute);
 
-console.log("Serving uploads from:", path.join(__dirname, "../public/uploads"));
+// Khởi động cron jobs
+notifyStudents();
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
