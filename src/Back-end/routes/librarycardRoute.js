@@ -4,9 +4,9 @@ const {  isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware
 
 router = express.Router();
 
-router.post("/request/:id",requestLibraryCard)
-router.put("/accept/:id",acceptLibraryCard)
-router.put("/extend/:id",extendLibraryCard)
-router.delete("/delete/:id",deleteLibraryCard)
+router.post("/request/:id",isAuthenticated,requestLibraryCard)
+router.put("/accept/:id",isAuthenticated,isAuthorized("A","L"),acceptLibraryCard)
+router.put("/extend/:id",isAuthenticated,isAuthorized("A","L"),extendLibraryCard)
+router.delete("/delete/:id",isAuthenticated,isAuthorized("A","L"),deleteLibraryCard)
 
 module.exports = router;

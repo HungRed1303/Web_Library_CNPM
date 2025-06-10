@@ -4,16 +4,16 @@ const {isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware")
 const router = express.Router();
 
 // API thêm để xuất request và issue ra màn hình
-router.get("/get-book-request",getAllBookRequest)
-router.get("/get-book-request/:id",getBookRequestById)
-router.get("/get-book-issue",getAllBookIssue)
-router.get("/get-book-issue/:id",getBookIssueById)
-router.delete("/delete-book-request/:id",deleteBookRequest)
-router.delete("/delete-book-issue/:id",deleteBookIssue)
+router.get("/get-book-request",isAuthenticated,isAuthorized("A","L"),getAllBookRequest)
+router.get("/get-book-request/:id",isAuthenticated,isAuthorized("A","L"),getBookRequestById)
+router.get("/get-book-issue",isAuthenticated,isAuthorized("A","L"),getAllBookIssue)
+router.get("/get-book-issue/:id",isAuthenticated,isAuthorized("A","L"),getBookIssueById)
+router.delete("/delete-book-request/:id",isAuthenticated,isAuthorized("A","L"),deleteBookRequest)
+router.delete("/delete-book-issue/:id",isAuthenticated,isAuthorized("A","L"),deleteBookIssue)
 
 // API để mượn sách
-router.post("/borrow-book",borrowBook)
-router.put("/issue-book/:id",issueBook)
-router.put("/return-book/:id",returnBook)
+router.post("/borrow-book",isAuthenticated,borrowBook)
+router.put("/issue-book/:id",isAuthenticated,isAuthorized("A","L"),issueBook)
+router.put("/return-book/:id",isAuthenticated,isAuthorized("A","L"),returnBook)
 
 module.exports = router;
