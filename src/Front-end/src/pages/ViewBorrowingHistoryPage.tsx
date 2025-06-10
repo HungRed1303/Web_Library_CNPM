@@ -101,38 +101,6 @@ export default function BorrowingHistoryPage() {
     );
   }
 
-  // Hàm tính số ngày trễ
-  function getLateHours(due: string, returned: string) {
-    if (!due || !returned) return 0;
-    const dueDate = new Date(due);
-    const returnedDate = new Date(returned);
-    const diff = Math.ceil((returnedDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60));
-    return diff > 0 ? diff : 0;
-  }
-
-  // Hàm tính tổng số tiền phạt và số sách quá hạn
-  function getStats(records: any[]) {
-    let totalFines = 0;
-    let overdue = 0;
-    records.forEach(record => {
-      let fine = Number(record.fine_amount) || 0;
-      const lateHours = getLateHours(record.due_date, record.returned_date);
-      const finePerHour = 0.1; // USD per hour
-      if (lateHours > 0) fine = lateHours * finePerHour;
-      totalFines += fine;
-      if (
-        (record.returned_date && getLateHours(record.due_date, record.returned_date) > 0) ||
-        record.status === 'overdue'
-      ) {
-        overdue++;
-      }
-    });
-    return { totalFines, overdue };
-  }
-
-  // Trong component, lấy lại stats
-  const { totalFines, overdue } = getStats(mappedHistory);
-
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] py-10 px-4 md:px-8 font-[Tahoma] flex flex-col items-center">
       {/* Header */}
@@ -173,7 +141,7 @@ export default function BorrowingHistoryPage() {
             <h3 className="text-[#033060] font-semibold text-sm md:text-base">Overdue Books</h3>
             <AlertCircle className="h-5 w-5 text-red-600" />
           </div>
-          <div className="text-xl md:text-2xl font-bold text-red-600">{overdue}</div>
+          <div className="text-xl md:text-2xl font-bold text-red-600">{stats.overdue}</div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-2 md:p-3" style={{boxShadow: '0 2px 12px 0 rgba(3,48,96,0.08)'}}>
@@ -181,7 +149,7 @@ export default function BorrowingHistoryPage() {
             <h3 className="text-[#033060] font-semibold text-sm md:text-base">Total Fines</h3>
             <DollarSign className="h-5 w-5 text-red-600" />
           </div>
-          <div className="text-xl md:text-2xl font-bold text-red-600">${totalFines.toFixed(2)}</div>
+          <div className="text-xl md:text-2xl font-bold text-red-600">${stats.totalFines.toFixed(2)}</div>
         </div>
       </div>
 
@@ -228,17 +196,9 @@ export default function BorrowingHistoryPage() {
                     <td className="py-3 px-5 text-center text-[#033060] text-base w-32">{record.returned_date ? borrowingHistoryService.formatDate(record.returned_date) : '-'}</td>
                     <td className="py-3 px-5 text-center w-28">{borrowingHistoryService.getStatusDisplayText(record.status)}</td>
                     <td className="py-3 px-5 text-center font-medium w-24">
-                      {(() => {
-                        let fine = Number(record.fine_amount) || 0;
-                        const lateHours = getLateHours(record.due_date, record.returned_date);
-                        const finePerHour = 0.1; // USD per hour
-                        if (lateHours > 0) fine = lateHours * finePerHour;
-                        return (
-                          <span className={fine === 0 ? "text-green-600" : "text-red-600"}>
-                            ${fine.toFixed(2)}
-                          </span>
-                        );
-                      })()}
+                      <span className={Number(record.fine_amount) === 0 ? "text-green-600" : "text-red-600"}>
+                        ${Number(record.fine_amount || 0).toFixed(2)}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -248,7 +208,7 @@ export default function BorrowingHistoryPage() {
         )}
       </div>
 
-      {/* Thêm nút Return ở góc dưới bên trái */}
+      {/* Return button ở góc dưới bên trái */}
       <div className="fixed bottom-4 left-4 z-50">
         <button
           onClick={() => navigate('/students')}
@@ -264,7 +224,7 @@ export default function BorrowingHistoryPage() {
   );
 }
 
-// Đưa hàm calculateStats ra ngoài component
+// Hàm calculateStats đã được cập nhật để sử dụng fine_amount từ database
 function calculateStats(records: any[]) {
   const stats = {
     totalBorrowed: records.length,
@@ -273,6 +233,7 @@ function calculateStats(records: any[]) {
     overdue: 0,
     totalFines: 0,
   };
+  
   records.forEach(record => {
     if (record.status === 'borrowed' || record.status === 'pending') {
       stats.currentlyBorrowed++;
@@ -283,8 +244,10 @@ function calculateStats(records: any[]) {
     if (record.status === 'overdue') {
       stats.overdue++;
     }
+    // Sử dụng fine_amount trực tiếp từ database
     stats.totalFines += Number(record.fine_amount) || 0;
   });
+  
   return stats;
 }
 
