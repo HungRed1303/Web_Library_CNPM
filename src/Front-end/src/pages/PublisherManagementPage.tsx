@@ -1,266 +1,366 @@
 // src/pages/PublisherManagementPage.tsx
-import { useEffect, useState } from "react";
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import { Plus, Pencil, Trash2, Search, CheckCircle, XCircle, Users } from "lucide-react";
 import {
   getAllPublishers,
   createPublisher,
   updatePublisherById,
   deletePublisherById,
 } from "../service/Services";
-import { Plus, Pencil, Trash2, CheckCircle } from "lucide-react";
-
-/**
- * PublisherManagementPage – Add / Edit / Delete
- * Theme: Gradient background / Accent #033060 / Font Tahoma / Rounded cards / Shadow
- */
 
 export interface Publisher {
   publisher_id: number;
   name: string;
-  address: string;
   email: string;
   phone_number: string;
+  address: string;
 }
 
 export type PublisherDTO = Omit<Publisher, "publisher_id">;
 
-const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const emptyForm: PublisherDTO = { name: "", address: "", email: "", phone_number: "" };
+function EmailCell({ email }: { email: string }) {
+  const ref = useRef<HTMLTableCellElement>(null);
+  const [showTooltip, setShowTooltip] = useState(false);
 
-export default function PublisherManagementPage() {
-  const [publishers, setPublishers] = useState<Publisher[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [modal, setModal] = useState<false | "add" | "edit" | "delete">(false);
-  const [active, setActive] = useState<Publisher | null>(null);
-  const [form, setForm] = useState<PublisherDTO>(emptyForm);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
-  const [showToast, setShowToast] = useState(false);
-
-  // load list
   useEffect(() => {
-    load();
-  }, []);
-
-  function load() {
-    setLoading(true);
-    getAllPublishers()
-      .then(res => setPublishers(res.data as Publisher[]))
-      .catch(() => setError("Không tải được dữ liệu"))
-      .finally(() => setLoading(false));
-  }
-
-  // toast auto-hide
-  useEffect(() => {
-    if (!toast) return;
-    setShowToast(true);
-    const h = setTimeout(() => setShowToast(false), 2500);
-    const c = setTimeout(() => setToast(null), 3000);
-    return () => { clearTimeout(h); clearTimeout(c); };
-  }, [toast]);
-
-  // validate
-  function validate(): Record<string,string> {
-    const e: Record<string,string> = {};
-    if (!form.name.trim()) e.name = "Publisher name is required";
-    if (!form.email.trim()) e.email = "Email is required";
-    else if (!emailRegex.test(form.email)) e.email = "Invalid email format";
-    const dup = publishers
-      .filter(p => active ? p.publisher_id !== active.publisher_id : true)
-      .some(p => p.name.toLowerCase() === form.name.trim().toLowerCase());
-    if (dup) e.name = "Publisher name already exists";
-    return e;
-  }
-
-  // open/close
-  function openAdd() {
-    setForm(emptyForm);
-    setErrors({});
-    setModal("add");
-  }
-  function openEdit(p: Publisher) {
-    setActive(p);
-    setForm({ name:p.name, address:p.address, email:p.email, phone_number:p.phone_number });
-    setErrors({});
-    setModal("edit");
-  }
-  function openDelete(p: Publisher) {
-    setActive(p);
-    setModal("delete");
-  }
-  function closeModal() {
-    setModal(false);
-    setActive(null);
-    setForm(emptyForm);
-    setErrors({});
-  }
-
-  // save
-  async function handleSave() {
-    const e = validate();
-    setErrors(e);
-    if (Object.keys(e).length) return;
-    setSubmitting(true);
-    try {
-      if (modal==="add") {
-        await createPublisher(form);
-        setToast({ type:"success", message:"Publisher added successfully" });
-      }
-      if (modal==="edit" && active) {
-        await updatePublisherById(active.publisher_id, form);
-        setToast({ type:"success", message:"Publisher updated successfully" });
-      }
-      closeModal();
-      load();
-    } catch {
-      setToast({ type:"error", message:"Database error – please try later" });
-    } finally {
-      setSubmitting(false);
+    if (ref.current) {
+      setShowTooltip(ref.current.scrollWidth > ref.current.clientWidth);
     }
-  }
-
-  // delete
-  async function handleDelete() {
-    if (!active) return;
-    setSubmitting(true);
-    try {
-      await deletePublisherById(active.publisher_id);
-      setToast({ type:"success", message:"Publisher deleted" });
-      closeModal();
-      load();
-    } catch {
-      setToast({ type:"error", message:"Database error – please try later" });
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  }, [email]);
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] font-[Tahoma] flex flex-col items-center py-10">
-      <header className="w-full max-w-7xl text-center mb-10">
-        <h1 className="text-5xl font-extrabold text-[#033060]">Publisher Management</h1>
-      </header>
+    <td
+      ref={ref}
+      className="py-2.5 px-5 text-left text-[#033060] text-base w-[240px] max-w-[240px] overflow-hidden text-ellipsis whitespace-nowrap"
+      title={showTooltip ? email : undefined}
+    >
+      {email}
+    </td>
+  );
+}
 
-      <main className="w-full max-w-7xl px-6">
-        <button
-          onClick={openAdd}
-          className="flex items-center gap-2 bg-[#033060] text-white px-5 py-2.5 rounded-xl shadow hover:bg-[#021c3a] transition"
-        >
-          <Plus size={18} /> Add Publisher
-        </button>
+export default function PublisherManagementPage() {
+  const emptyForm: PublisherDTO = { name: "", email: "", phone_number: "", address: "" };
+  const [publishers, setPublishers] = useState<Publisher[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [current, setCurrent] = useState<Publisher | null>(null);
+  const [form, setForm] = useState<PublisherDTO>({ name: "", email: "", phone_number: "", address: "" });
+  const [errors, setErrors] = useState<Partial<Record<keyof PublisherDTO, string>>>({});
+  const [touched, setTouched] = useState<Partial<Record<keyof PublisherDTO, boolean>>>({});
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-        {loading ? (
-          <p className="mt-8 text-center text-gray-500 animate-pulse">Loading…</p>
-        ) : error ? (
-          <p className="mt-8 text-center text-red-600">{error}</p>
-        ) : (
-          <div className="mt-8 bg-white rounded-2xl shadow-lg overflow-hidden">
-            <table className="w-full table-fixed">
-              <thead className="bg-[#f5f8fc] border-b border-[#dbeafe]">
-                <tr>
-                  {["ID","Name","Email","Phone","Address","Actions"].map(h => (
-                    <th
-                      key={h}
-                      className="py-3 px-5 text-left text-[#033060] font-bold"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {publishers.map((p, i) => (
-                  <tr key={p.publisher_id} className={`border-b ${i%2===0?"bg-white":"bg-[#f1f5fa]"} hover:bg-[#e3ecf7] transition`}>
-                    <td className="py-2.5 px-5 text-[#033060]">{p.publisher_id}</td>
-                    <td className="py-2.5 px-5">{p.name}</td>
-                    <td className="py-2.5 px-5">{p.email}</td>
-                    <td className="py-2.5 px-5">{p.phone_number}</td>
-                    <td className="py-2.5 px-5">{p.address}</td>
-                    <td className="py-2.5 px-5 flex gap-3">
-                      <button onClick={()=>openEdit(p)} className="p-2 rounded hover:bg-[#033060]/10">
-                        <Pencil className="text-[#033060]" />
-                      </button>
-                      <button onClick={()=>openDelete(p)} className="p-2 rounded hover:bg-red-100">
-                        <Trash2 className="text-red-600" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+  useEffect(() => {
+    fetchPublishers();
+  }, []);
+
+  const fetchPublishers = async () => {
+    try {
+      setIsLoading(true);
+      const response = await getAllPublishers();
+      setPublishers((response.data ?? []) as Publisher[]);
+    } catch (e: any) {
+      setToast({ type: "error", message: "Failed to fetch publishers" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const validateField = (field: keyof PublisherDTO, value: string): string | undefined => {
+    if (field === "name" && !value.trim()) return "Name is required";
+    if (field === "email") {
+      if (!value.trim()) return "Email is required";
+      if (!emailRegex.test(value)) return "Invalid email format";
+    }
+    return undefined;
+  };
+
+  const validateForm = (): boolean => {
+    const newErr: typeof errors = {};
+    (["name", "email", "phone_number", "address"] as (keyof PublisherDTO)[]).forEach(f => {
+      const err = validateField(f, form[f]);
+      if (err) newErr[f] = err;
+    });
+    setErrors(newErr);
+    return Object.keys(newErr).length === 0;
+  };
+
+  const handleAdd = async () => {
+    if (!validateForm()) return;
+    try {
+      setIsLoading(true);
+      await createPublisher(form);
+      setToast({ type: "success", message: "Publisher added successfully!" });
+      fetchPublishers();
+      setIsAddOpen(false);
+    } catch {
+      setToast({ type: "error", message: "Failed to add publisher" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleEdit = async () => {
+    if (!current || !validateForm()) return;
+    try {
+      setIsLoading(true);
+      await updatePublisherById(current.publisher_id, form);
+      setToast({ type: "success", message: "Publisher updated successfully!" });
+      fetchPublishers();
+      setIsEditOpen(false);
+    } catch {
+      setToast({ type: "error", message: "Failed to update publisher" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!current) return;
+    try {
+      setIsLoading(true);
+      await deletePublisherById(current.publisher_id);
+      setToast({ type: "success", message: "Publisher deleted successfully!" });
+      fetchPublishers();
+      setIsDeleteOpen(false);
+    } catch {
+      setToast({ type: "error", message: "Failed to delete publisher" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (toast) {
+      setShowToast(true);
+      const h = setTimeout(() => setShowToast(false), 2000);
+      const c = setTimeout(() => setToast(null), 2500);
+      return () => { clearTimeout(h); clearTimeout(c); };
+    }
+  }, [toast]);
+
+  const filtered = publishers.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.phone_number.includes(searchTerm)
+  );
+  const sorted = [...filtered].sort((a, b) => a.publisher_id - b.publisher_id);
+
+  return (
+    <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] py-10 px-4 md:px-8 font-[Tahoma] flex flex-col items-center">
+      {/* Header */}
+      <div className="w-full max-w-7xl bg-gradient-to-b from-[#eaf3fb] to-[#dbeafe] rounded-2xl shadow-lg p-10 mb-10 border border-[#dbeafe] flex flex-col items-center" style={{ boxShadow: '0 4px 32px rgba(3,48,96,0.08)' }}>
+        <div className="flex items-center mb-1">
+          <Users className="h-12 w-12 text-[#033060] mr-3" />
+          <h1 className="text-5xl font-extrabold text-[#033060] drop-shadow" style={{ letterSpacing: '1px', textShadow: '0 2px 8px #b6c6e3' }}>
+            Publisher Management
+          </h1>
+        </div>
+        <p className="text-gray-600 text-lg">Manage your publishers efficiently</p>
+      </div>
+
+      {/* Controls */}
+      <div className="w-full max-w-7xl flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div className="w-full md:w-2/3">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#033060] h-5 w-5" />
+            <input
+              placeholder="Search publishers by name, email, or phone..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="pl-12 pr-4 py-3 text-lg rounded-xl border border-[#dbeafe] bg-white shadow focus:border-[#033060] focus:ring-2 focus:ring-blue-100 w-full outline-none transition-all duration-150"
+              style={{ boxShadow: '0 1px 4px rgba(224,231,239,1)' }}
+            />
           </div>
-        )}
-      </main>
+        </div>
+        <button
+          onClick={() => { setForm(emptyForm); setIsAddOpen(true); }}
+          className="flex items-center gap-2 bg-[#033060] text-white font-semibold px-8 py-3 rounded-xl shadow hover:bg-[#021c3a] border border-[#033060] transition-all duration-200 text-lg min-w-[200px] justify-center"
+          style={{ boxShadow: '0 2px 8px rgba(182,198,227,1)' }}
+        >
+          <Plus className="h-5 w-5" /> Add Publisher
+        </button>
+      </div>
 
-      {/* Modals */}
-      {(modal==="add"||modal==="edit") && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 animate-scale-in">
-            <h2 className="text-2xl font-bold text-[#033060] mb-6">
-              {modal==="add" ? "Add Publisher" : "Edit Publisher"}
-            </h2>
-            {(["name","email","phone_number","address"] as (keyof PublisherDTO)[]).map(f=>(
-              <div className="mb-4" key={f}>
-                <label className="block font-medium text-gray-700 capitalize mb-1">
-                  {f.replace("_"," ")}
-                  {(f==="name"||f==="email")&&<span className="text-red-500 ml-1">*</span>}
-                </label>
-                {f==="address" ? (
-                  <textarea
-                    rows={2}
-                    value={form[f] as string}
-                    onChange={e=>setForm({...form,[f]:e.target.value})}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#033060] ${
-                      errors[f]?"border-red-500":"border-gray-300"
-                    }`}
-                  />
-                ):(
-                  <input
-                    type={f==="email"?"email":"text"}
-                    value={form[f] as string}
-                    onChange={e=>setForm({...form,[f]:e.target.value})}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#033060] ${
-                      errors[f]?"border-red-500":"border-gray-300"
-                    }`}
-                  />
-                )}
-                {errors[f] && <p className="text-xs text-red-500 mt-1">{errors[f]}</p>}
-              </div>
-            ))}
-            <div className="flex justify-end gap-4 mt-6">
-              <button onClick={closeModal} className="px-4 py-2 border rounded-lg hover:bg-gray-100">
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={submitting}
-                className="px-5 py-2 bg-[#033060] text-white rounded-lg hover:bg-[#021c3a] disabled:opacity-50"
-              >
-                {submitting ? "Saving…" : "Save"}
-              </button>
+      {/* Table */}
+      <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg border border-[#dbeafe] overflow-hidden" style={{ boxShadow: '0 4px 32px rgba(3,48,96,0.08)' }}>
+        <table className="w-full table-fixed">
+          <thead>
+            <tr className="bg-[#f5f8fc] border-b border-[#dbeafe]">
+              <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-[60px]">ID</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[180px]">Name</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[240px]">Email</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base w-[180px]">Phone</th>
+              <th className="py-3 px-5 text-left text-[#033060] font-bold text-base">Address</th>
+              <th className="py-3 px-5 text-center text-[#033060] font-bold text-base w-[120px]">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td colSpan={6} className="text-center py-8">
+                  <div className="flex justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#033060]" />
+                  </div>
+                  <p className="text-gray-500 mt-4">Loading publishers...</p>
+                </td>
+              </tr>
+            ) : sorted.length > 0 ? (
+              sorted.map(pub => (
+                <tr key={pub.publisher_id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
+                  <td className="py-2.5 px-5 text-center text-[#033060]">{pub.publisher_id}</td>
+                  <td className="py-2.5 px-5 text-[#033060]">{pub.name}</td>
+                  <EmailCell email={pub.email} />
+                  <td className="py-2.5 px-5">{pub.phone_number}</td>
+                  <td className="py-2.5 px-5">{pub.address}</td>
+                  <td className="py-2.5 px-5 text-center flex justify-center gap-4">
+                    <button
+                      onClick={() => { setCurrent(pub); setForm({ name: pub.name, email: pub.email, phone_number: pub.phone_number, address: pub.address }); setIsEditOpen(true); }}
+                      className="group flex items-center text-[#033060] hover:text-[#021c3a] hover:bg-blue-100 px-2 py-1 rounded transition text-sm"
+                      title="Edit"
+                    >
+                      <Pencil className="h-5 w-5" />
+                    </button>
+                    <button
+                      onClick={() => { setCurrent(pub); setIsDeleteOpen(true); }}
+                      className="group flex items-center text-red-600 hover:text-white hover:bg-red-600 px-2 py-1 rounded transition text-sm"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={6} className="text-center py-8">
+                  <div className="flex flex-col items-center">
+                    <Users className="h-12 w-12 text-gray-300 mb-4" />
+                    <p className="text-gray-500 text-base">No publishers found</p>
+                    <p className="text-gray-400 text-sm">Try adjusting your search criteria</p>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Add / Edit Modal */}
+      {(isAddOpen || isEditOpen) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-4 animate-scale-in border border-[#dbeafe]">
+            <div className="mb-6 text-center">
+              <h2 className="text-xl font-extrabold text-[#033060]">
+                {isAddOpen ? "Add Publisher" : "Edit Publisher"}
+              </h2>
             </div>
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                isAddOpen ? handleAdd() : handleEdit();
+              }}
+              className="space-y-4"
+            >
+              {(["name", "email", "phone_number", "address"] as (keyof PublisherDTO)[]).map(field => (
+                <div key={field} className="flex flex-col gap-2">
+                  <label className="text-[#033060] font-semibold text-base capitalize">
+                    {field.replace("_", " ")}{(field === "name" || field === "email") && "*"}
+                  </label>
+                  {field === "address" ? (
+                    <textarea
+                      rows={2}
+                      value={form[field]}
+                      onChange={e => {
+                        setForm({ ...form, [field]: e.target.value });
+                        setTouched(prev => ({ ...prev, [field]: true }));
+                        setErrors(prev => ({ ...prev, [field]: validateField(field, e.target.value) }));
+                      }}
+                      className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 bg-white outline-none transition ${touched[field] && errors[field] ? "border-red-500" : ""}`}
+                    />
+                  ) : (
+                    <input
+                      type={field === "email" ? "email" : "text"}
+                      value={form[field]}
+                      onChange={e => {
+                        setForm({ ...form, [field]: e.target.value });
+                        setTouched(prev => ({ ...prev, [field]: true }));
+                        setErrors(prev => ({ ...prev, [field]: validateField(field, e.target.value) }));
+                      }}
+                      onBlur={() => setTouched(prev => ({ ...prev, [field]: true }))}
+                      className={`w-full px-4 py-3 rounded-xl border-2 border-[#dbeafe] focus:border-[#033060] focus:ring-2 focus:ring-blue-100 bg-white outline-none transition ${touched[field] && errors[field] ? "border-red-500" : ""}`}
+                    />
+                  )}
+                  {touched[field] && errors[field] && (
+                    <p className="text-red-500 text-sm flex items-center mt-1">
+                      <XCircle className="h-4 w-4 mr-2" />
+                      {errors[field]}
+                    </p>
+                  )}
+                </div>
+              ))}
+              <div className="flex justify-center gap-4 mt-6">
+                <button
+                  type="button"
+                  onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }}
+                  className="px-5 py-2.5 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc]"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="px-5 py-2.5 rounded-xl bg-[#033060] text-white font-semibold shadow hover:bg-[#021c3a] disabled:opacity-50"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                      {isAddOpen ? "Adding..." : "Saving..."}
+                    </div>
+                  ) : (
+                    isAddOpen ? "Add Publisher" : "Save Changes"
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
 
-      {modal==="delete" && active && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="w-full max-w-xs bg-white rounded-2xl shadow-xl p-6 text-center animate-scale-in">
-            <p className="mb-6 text-lg">
-              Delete <strong>{active.name}</strong>?
-            </p>
-            <div className="flex justify-center gap-4">
-              <button onClick={closeModal} className="px-4 py-2 border rounded-lg hover:bg-gray-100">
-                No
+      {/* Delete Dialog */}
+      {isDeleteOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 animate-scale-in border border-[#dbeafe]">
+            <h2 className="text-xl font-extrabold text-[#033060] mb-4">Confirm Deletion</h2>
+            <p className="text-gray-600 mb-6">Are you sure you want to delete this publisher?</p>
+            <div className="flex justify-end gap-4">
+              <button
+                onClick={() => setIsDeleteOpen(false)}
+                className="px-5 py-2 rounded-xl border border-[#dbeafe] bg-white text-[#033060] font-semibold shadow hover:bg-[#f5f8fc]"
+              >
+                Cancel
               </button>
               <button
                 onClick={handleDelete}
-                disabled={submitting}
-                className="px-4 py-2 bg-[#033060] text-white rounded-lg hover:bg-[#021c3a] disabled:opacity-50"
+                disabled={isLoading}
+                className="px-5 py-2 rounded-xl bg-red-600 text-white font-semibold shadow hover:bg-red-700 disabled:opacity-50"
               >
-                {submitting ? "Deleting…" : "Yes"}
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                    Deleting...
+                  </div>
+                ) : (
+                  "Delete"
+                )}
               </button>
             </div>
           </div>
@@ -269,11 +369,13 @@ export default function PublisherManagementPage() {
 
       {/* Toast */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 flex items-center gap-2 bg-white px-4 py-2 rounded-lg shadow-lg transition-opacity ${
-          showToast ? "opacity-100" : "opacity-0"
-        }`}>
-          <CheckCircle className="text-green-500" />
-          <span className="text-[#033060]">{toast.message}</span>
+        <div className={`fixed left-1/2 -translate-x-1/2 bottom-10 bg-white text-[#033060] px-8 py-5 rounded-2xl shadow-2xl flex items-center gap-4 text-xl font-bold z-50 transition-opacity ${showToast ? "opacity-100" : "opacity-0"}`}>
+          {toast.type === "success" ? (
+            <CheckCircle className="h-8 w-8 text-green-500" />
+          ) : (
+            <XCircle className="h-8 w-8 text-red-500" />
+          )}
+          {toast.message}
         </div>
       )}
     </div>

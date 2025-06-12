@@ -24,7 +24,7 @@ export default function HomePage() {
     {
       title: "Manage Books",
       icon: <UserPlus size={32} className="text-[#033060]" />,
-      link: "/books",
+      link: "/managebooks",
       description: "Quản lý thông tin sách",
     },
     {
