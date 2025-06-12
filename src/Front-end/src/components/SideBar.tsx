@@ -5,33 +5,32 @@ import { useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Home,
-  Search,
-  BookOpen,
+  Heart,
   ListChecks,
   BarChart2,
-  Settings
+  Book,
+  Users,
+  User,
+  UserCheck,
+  Settings,
 } from "lucide-react";
 
 interface SidebarProps {
-  /** collapsed = true  → desktop đã ẩn hẳn (width=0) */
-  /** collapsed = false → desktop mở rộng (width=240px) */
   collapsed: boolean;
-  /** mobileOpen = true  → trên mobile (screen<1024) sidebar slide-in */
-  /** mobileOpen = false → sidebar slide-out */
   mobileOpen: boolean;
   setMobileOpen: (open: boolean) => void;
 }
 
 const navItems = [
   { icon: <Home size={20} />, label: "Dashboard", href: "/dashboard" },
-  { icon: <Search size={20} />, label: "Find Book", href: "/dashboard/find-book" },
-  { icon: <BookOpen size={20} />, label: "Borrow Book", href: "/dashboard/borrow-book" },
-  { icon: <ListChecks size={20} />, label: "Wishlist", href: "/dashboard/wishlist" },
-  { icon: <BarChart2 size={20} />, label: "Reports", href: "/dashboard/report" },
-  { icon: <BarChart2 size={20} />, label: "Book", href: "/dashboard/book" },
-  { icon: <BarChart2 size={20} />, label: "Publisher", href: "/dashboard/publisher" },
-  { icon: <BarChart2 size={20} />, label: "Category", href: "/dashboard/category" },
-  { icon: <Settings size={20} />, label: "Settings", href: "/dashboard/setting" },
+  { icon: <Heart size={20} />, label: "Wishlist", href: "/wishlist" },
+  { icon: <ListChecks size={20} />, label: "Categories", href: "/categories" },
+  { icon: <BarChart2 size={20} />, label: "Reports", href: "/reports" },
+  { icon: <Book size={20} />, label: "Manage Books", href: "/managebooks" },
+  { icon: <Users size={20} />, label: "Publishers", href: "/publishers" },
+  { icon: <User size={20} />, label: "Students", href: "/students" },
+  { icon: <UserCheck size={20} />, label: "Librarians", href: "/librarians" },
+  { icon: <Settings size={20} />, label: "Settings", href: "/settings" },
 ];
 
 export default function Sidebar({
@@ -42,7 +41,6 @@ export default function Sidebar({
   const ref = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
-  // Đóng sidebar khi click ra ngoài (chỉ mobile)
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -57,21 +55,7 @@ export default function Sidebar({
     return () => document.removeEventListener("click", handleClickOutside);
   }, [mobileOpen, setMobileOpen]);
 
-  /**
-   * Tính width:
-   *  - Nếu collapsed = true và mobileOpen = false → width = 0
-   *  - Trong mọi trường hợp còn lại → width = 240px (w-60)
-   */
   const widthClass = collapsed && !mobileOpen ? "w-0" : "w-60";
-
-  /**
-   * Tính translate-x:
-   *  - Trên mobile (screen<1024):
-   *       + mobileOpen=true → translate-x-0
-   *       + mobileOpen=false → translate-x-[-100%] (ẩn)
-   *  - Trên desktop (screen>=1024):
-   *       + luôn translate-x-0 (desktop dùng width để ẩn)
-   */
   const translateClass =
     mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0";
 
@@ -79,10 +63,8 @@ export default function Sidebar({
     <aside
       ref={ref}
       className={`
-        ${widthClass}
-        ${translateClass}
-        flex-shrink-0
-        flex h-full flex-col
+        ${widthClass} ${translateClass}
+        flex-shrink-0 flex h-full flex-col
         bg-[#244055] text-[#FEFEFE]
         transition-all duration-300 ease-in-out
         overflow-hidden
@@ -94,26 +76,26 @@ export default function Sidebar({
       <div className="flex h-16 items-center justify-center border-b border-[#2E4F6E]">
         {!collapsed && (
           <img
-            src="/public/logo.png" // Thay bằng đường dẫn thật
+            src="/public/logo.png"    // giữ nguyên đường dẫn
             alt="Logo"
             className="h-16 w-auto"
           />
         )}
       </div>
 
-      {/* Dòng user */}
+      {/* User */}
       <div
         className={`
-          flex items-center px-4 py-4 transition-opacity duration-300
+          flex items-center px-4 py-4 transition-opacity
           ${collapsed ? "opacity-0" : "opacity-100"}
         `}
       >
         {!collapsed && (
           <>
             <img
-              src="/public/logo_user.png" // Thay bằng đường dẫn thật
+              src="/public/logo_user.png"   // giữ nguyên đường dẫn
               alt="User avatar"
-              className="h-8 w-8 rounded-full object-cover ring-2 ring-[#FEFEFE]"
+              className="h-8 w-8 rounded-full ring-2 ring-[#FEFEFE]"
             />
             <div className="ml-3">
               <p className="truncate text-sm font-semibold">John Doe</p>
@@ -124,7 +106,7 @@ export default function Sidebar({
       </div>
 
       {/* Nav Items */}
-      <ul className="flex-1 space-y-1 overflow-y-auto px-0 py-2 scrollbar-thin scrollbar-thumb-[#2E4F6E] scrollbar-track-transparent">
+      <ul className="flex-1 space-y-1 overflow-y-auto px-0 py-2">
         {navItems.map(({ icon, label, href }) => {
           const isActive = location.pathname === href;
           const activeStyle = isActive
@@ -135,16 +117,14 @@ export default function Sidebar({
             <li
               key={label}
               className={`
-                relative flex h-10 px-4 cursor-pointer items-center
-                transition-colors duration-200 justify-start
+                relative flex h-10 px-4 items-center
+                transition-colors duration-200
                 ${activeStyle}
               `}
             >
-              {/* Link phủ kín toàn bộ <li> */}
               <Link to={href} className="absolute inset-0 z-10" />
-
-              <span className="z-20 flex-shrink-0">{icon}</span>
-              <span className="z-20 ml-3 truncate text-sm leading-none">
+              <span className="z-20">{icon}</span>
+              <span className="z-20 ml-3 truncate text-sm">
                 {label}
               </span>
             </li>

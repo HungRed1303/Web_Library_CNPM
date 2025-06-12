@@ -12,17 +12,18 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage"; // Public
 
-import HomePageUser from "./pages/HomePageUser"; // Public
-import HomePage from "./pages/HomePage"; // Protected
 
-import PublisherManagementPage from "./pages/PublisherManagementPage";
-import CategoryManagementPage from "./pages/CategoryManagementPage";
-import BookManagementPage from "./pages/BookManagementPage";
-import ViewReportPage from "./pages/ViewReportPage";
-import LibrarianManagementPage from "./pages/LibrarianManagementPage";
-import StudentManagementPage from "./pages/StudentManagementPage";
-import ViewBorrowingHistoryPage from "./pages/ViewBorrowingHistoryPage";
-import BooksPage from "./pages/BooksPage"; // Thêm trang BookPage nếu cần
+import HomePageUser          from "./pages/HomePageUser";     // public home
+import HomePage              from "./pages/HomePage";         // protected home (Admin/Lecturer)
+import PublisherManagementPage  from "./pages/PublisherManagementPage";
+import CategoryManagementPage   from "./pages/CategoryManagementPage";
+import BookManagementPage       from "./pages/BookManagementPage";
+import ViewReportPage           from "./pages/ViewReportPage";
+import BooksPage               from "./pages/BooksPage";       // public books
+import LibrarianManagementPage  from "./pages/LibrarianManagementPage";
+import StudentManagementPage    from "./pages/StudentManagementPage";
+import ViewBorrowingHistoryPage  from "./pages/ViewBorrowingHistoryPage";
+
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/books" element={<BooksPage />} />
         </Route>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/password/forgot" element={<ForgotPasswordPage />} />
         <Route path="/password/reset/:token" element={<ResetPasswordPage />} />
@@ -49,7 +51,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="dashboard/librarian" element={<LibrarianManagementPage />} />
+          <Route path="/librarian" element={<LibrarianManagementPage />} />
         </Route>
 
         {/* ---------- Admin + Lecturer Routes (Role = "A" or "L") ---------- */}
@@ -61,12 +63,11 @@ function App() {
           }
         >
           <Route path="/dashboard" element={<HomePage />} />
-          <Route path="/dashboard/category" element={<CategoryManagementPage />} />
-          <Route path="/dashboard/book" element={<BookManagementPage />} />
-          <Route path="/dashboard/report" element={<ViewReportPage />} />
-          <Route path="/dashboard/publisher" element={<PublisherManagementPage />} />
-          <Route path="/dashboard/student" element={<StudentManagementPage />} />
-          <Route path="/dashboard/student/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
+          <Route path="/categories"  element={<CategoryManagementPage />} />
+          <Route path="/managebooks" element={<BookManagementPage />} />
+          <Route path="/reports"   element={<ViewReportPage />} />
+          <Route path="/students" element={<StudentManagementPage />} />
+          <Route path="/publishers" element={<PublisherManagementPage />} />
         </Route>
 
         {/* ---------- Catch-All Route ---------- */}
