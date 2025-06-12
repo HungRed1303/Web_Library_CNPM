@@ -2,12 +2,13 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 16.1 (Debian 16.1-1.pgdg120+1)
--- Dumped by pg_dump version 16.1
+-- Dumped from database version 17.4
+-- Dumped by pg_dump version 17.4
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
 SELECT pg_catalog.set_config('search_path', '', false);
@@ -78,7 +79,12 @@ CREATE TABLE public.book_issues (
     due_date date,
     return_date date,
     fine_amount double precision,
-    status character varying(10)
+    status character varying(10) NOT NULL,
+    reminder_sent boolean DEFAULT false,
+    reminder_sent_at timestamp without time zone,
+    overdue_reminder_sent boolean DEFAULT false,
+    overdue_reminder_sent_at timestamp without time zone,
+    CONSTRAINT book_issues_status_check CHECK (((status)::text = ANY ((ARRAY['returned'::character varying, 'issuing'::character varying])::text[])))
 );
 
 
@@ -115,7 +121,8 @@ CREATE TABLE public.book_requests (
     book_id integer NOT NULL,
     student_id integer NOT NULL,
     request_date date,
-    status character varying(10)
+    status character varying(10),
+    CONSTRAINT book_requests_status_check CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'approved'::character varying])::text[])))
 );
 
 
@@ -149,14 +156,15 @@ ALTER SEQUENCE public.book_requests_request_id_seq OWNED BY public.book_requests
 
 CREATE TABLE public.books (
     book_id integer NOT NULL,
-    title character varying(100),
+    title character varying(100) NOT NULL,
     publisher_id integer NOT NULL,
-    publication_year date,
-    quantity integer,
-    availability character varying(255),
-    price integer,
-    author character varying(50),
-    image_url character varying(255)
+    publication_year date NOT NULL,
+    quantity integer NOT NULL,
+    availability character varying(255) NOT NULL,
+    price integer NOT NULL,
+    author character varying(50) NOT NULL,
+    image_url character varying(255),
+    CONSTRAINT books_availability_check CHECK (((availability)::text = ANY ((ARRAY['available'::character varying, 'unavailable'::character varying])::text[])))
 );
 
 
@@ -264,7 +272,8 @@ CREATE TABLE public.library_cards (
     student_id integer NOT NULL,
     start_date date,
     end_date date,
-    status character varying(10)
+    status character varying(10),
+    CONSTRAINT library_cards_status_check CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'accepted'::character varying])::text[])))
 );
 
 
@@ -524,6 +533,7 @@ ALTER TABLE ONLY public.wishlist ALTER COLUMN wishlist_id SET DEFAULT nextval('p
 
 COPY public.admins (admin_id, user_id) FROM stdin;
 3	13
+4	25
 \.
 
 
@@ -548,11 +558,15 @@ COPY public.book_category (book_id, category_id) FROM stdin;
 -- Data for Name: book_issues; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.book_issues (issue_id, book_id, student_id, issue_date, due_date, return_date, fine_amount, status) FROM stdin;
-2	2	5	2023-04-05	2023-04-19	2023-04-20	10000	returned
-3	3	6	2023-04-10	2023-04-24	\N	0	issued
-5	1	7	2025-05-25	2025-06-08	\N	\N	pending
-4	1	7	2025-05-25	2025-06-08	2025-05-25	0	completed
+COPY public.book_issues (issue_id, book_id, student_id, issue_date, due_date, return_date, fine_amount, status, reminder_sent, reminder_sent_at, overdue_reminder_sent, overdue_reminder_sent_at) FROM stdin;
+2	2	5	2023-04-05	2023-04-19	2023-04-20	10000	returned	f	\N	f	\N
+4	1	7	2025-05-25	2025-06-08	2025-05-25	0	returned	f	\N	f	\N
+6	13	5	2025-06-08	2025-06-22	2025-06-08	0	returned	f	\N	f	\N
+7	13	5	2025-06-08	2025-06-22	2025-06-08	0	returned	f	\N	f	\N
+3	3	6	2023-04-10	2023-04-24	\N	0	issuing	f	\N	f	\N
+5	1	7	2025-05-25	2025-06-08	\N	\N	issuing	f	\N	f	\N
+9	13	5	2025-06-08	2025-06-22	\N	\N	issuing	f	\N	f	\N
+8	13	5	2025-06-08	2025-06-22	2025-06-08	0	returned	f	\N	f	\N
 \.
 
 
@@ -563,6 +577,10 @@ COPY public.book_issues (issue_id, book_id, student_id, issue_date, due_date, re
 COPY public.book_requests (request_id, book_id, student_id, request_date, status) FROM stdin;
 2	3	1	2023-04-11	approved
 4	1	1	2025-05-25	approved
+6	13	5	2025-06-08	approved
+5	13	5	2025-06-08	pending
+8	13	5	2025-06-08	pending
+7	13	5	2025-06-08	approved
 \.
 
 
@@ -571,23 +589,23 @@ COPY public.book_requests (request_id, book_id, student_id, request_date, status
 --
 
 COPY public.books (book_id, title, publisher_id, publication_year, quantity, availability, price, author, image_url) FROM stdin;
-13	Book D	1	2025-02-02	4	\N	20000	BKH	\N
-15	Book D	1	2025-02-02	4	\N	20000	BKH	\N
-16	Book D	1	2025-02-02	4	\N	20000	BKH	\N
-17	Book D	1	2025-02-02	4	\N	20000	BKH	\N
-18	Book D	1	2025-02-02	4	\N	20000	BKH	\N
 1	Book A	1	2020-01-01	9	available	500000	Author A	\N
-19	Book F	1	2025-02-02	4	\N	20000	BKH	\N
 2	Book B	2	2019-01-01	5	available	450000	Author B	
 3	Book C	3	2018-06-15	3	available	600000	Author C	
-6	Book D	1	2025-01-01	4	false	20000	BKH	
-7	Book D	1	2025-01-01	4	false	20000	BKH	
-8	Book D	1	2025-01-01	4	false	20000	BKH	
-9	Book D	1	2025-01-01	4	false	20000	BKH	
-14	Book D	1	2025-01-01	4	false	20000	BKH	
-11	Book D	1	2025-01-01	4	false	20000	BKH	
-10	Book D	1	2025-01-01	4	false	20000	BKH	
-12	Book D	1	2025-01-01	4	false	20000	BKH	/uploads/1749026152909-76654213.png
+12	Book D	1	2025-01-01	4	available	20000	BKH	/uploads/1749026152909-76654213.png
+13	Book D	1	2025-02-02	1	available	20000	BKH	\N
+15	Book D	1	2025-02-02	4	available	20000	BKH	\N
+16	Book D	1	2025-02-02	4	available	20000	BKH	\N
+17	Book D	1	2025-02-02	4	available	20000	BKH	\N
+18	Book D	1	2025-02-02	4	available	20000	BKH	\N
+19	Book F	1	2025-02-02	4	available	20000	BKH	\N
+6	Book D	1	2025-01-01	4	available	20000	BKH	
+7	Book D	1	2025-01-01	4	available	20000	BKH	
+8	Book D	1	2025-01-01	4	available	20000	BKH	
+9	Book D	1	2025-01-01	4	available	20000	BKH	
+14	Book D	1	2025-01-01	4	available	20000	BKH	
+11	Book D	1	2025-01-01	4	available	20000	BKH	
+10	Book D	1	2025-01-01	4	available	20000	BKH	
 \.
 
 
@@ -620,9 +638,9 @@ COPY public.librarians (librarian_id, user_id, start_date, end_date) FROM stdin;
 --
 
 COPY public.library_cards (card_id, student_id, start_date, end_date, status) FROM stdin;
-2	2	2023-02-01	2023-12-31	active
-3	3	2023-03-01	2023-12-31	inactive
-7	1	2025-05-26	2027-05-26	completed
+2	2	2023-02-01	2023-12-31	pending
+3	3	2023-03-01	2023-12-31	accepted
+7	1	2025-05-26	2027-05-26	accepted
 \.
 
 
@@ -663,6 +681,7 @@ COPY public.users (user_id, username, password, email, name, role, reset_token, 
 13	reddo	$2b$10$B256BS.R7PM3bX82uBl9YuEKaBnd4Ukpv5Vs5Q8B14eUfoxpXJczC	leviethung1792k4@gmail.com	LÊ VIET HUNG	A	\N	\N
 24	gh123	$2b$10$YrF/AmXqLmz8fewZg51n5.qXbyneiTAlM2MvmwUTn7FntmOg73BE2	ng1ggggggg1@gmail.com	Hung Khah	L	\N	\N
 17	khanhhung	$2b$10$cLGnFyw0nSEQQIF3XOqFyOcJTDCXgcWgT8i41kW6CLj6S0CryWauu	khung@gmail.com	Hung Dien	S	\N	\N
+25	ABCDE	$2b$10$mgItyaA.swOOefRzhLQexeLp1xUgPwfqSElxvvOSwjD2lcOUZG9v2	bkhh@example.com	Tester	A	\N	\N
 \.
 
 
@@ -671,6 +690,9 @@ COPY public.users (user_id, username, password, email, name, role, reset_token, 
 --
 
 COPY public.wishlist (wishlist_id, student_id, book_id, created_date) FROM stdin;
+5	6	1	2025-06-08
+6	6	2	2025-06-08
+7	6	18	2025-06-08
 \.
 
 
@@ -678,28 +700,28 @@ COPY public.wishlist (wishlist_id, student_id, book_id, created_date) FROM stdin
 -- Name: admins_admin_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.admins_admin_id_seq', 3, true);
+SELECT pg_catalog.setval('public.admins_admin_id_seq', 4, true);
 
 
 --
 -- Name: book_issues_issue_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.book_issues_issue_id_seq', 5, true);
+SELECT pg_catalog.setval('public.book_issues_issue_id_seq', 9, true);
 
 
 --
 -- Name: book_requests_request_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.book_requests_request_id_seq', 4, true);
+SELECT pg_catalog.setval('public.book_requests_request_id_seq', 8, true);
 
 
 --
 -- Name: books_book_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.books_book_id_seq', 19, true);
+SELECT pg_catalog.setval('public.books_book_id_seq', 20, true);
 
 
 --
@@ -720,7 +742,7 @@ SELECT pg_catalog.setval('public.librarians_librarian_id_seq', 5, true);
 -- Name: library_cards_card_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.library_cards_card_id_seq', 7, true);
+SELECT pg_catalog.setval('public.library_cards_card_id_seq', 13, true);
 
 
 --
@@ -741,14 +763,14 @@ SELECT pg_catalog.setval('public.students_student_id_seq', 8, true);
 -- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_user_id_seq', 24, true);
+SELECT pg_catalog.setval('public.users_user_id_seq', 25, true);
 
 
 --
 -- Name: wishlist_wishlist_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.wishlist_wishlist_id_seq', 4, true);
+SELECT pg_catalog.setval('public.wishlist_wishlist_id_seq', 7, true);
 
 
 --
