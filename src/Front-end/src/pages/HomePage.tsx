@@ -1,89 +1,83 @@
 // src/pages/HomePage.tsx
 import { Link } from "react-router-dom";
 import {
-  BookOpen,
   Users,
+  UserCheck,
+  UserPlus,
   BarChart2,
-  Book,
   Settings,
-  Search,
 } from "lucide-react";
 
-/** =============================================================
- *  HomePage – Dashboard Links
- *  Matches PublisherManagementPage theme:
- *  Font      : "Poppins", fallback sans – headings 24 px bold, body 16 px
- *  Colors    : Background #FEFEFE · Accent #467DA7
- *  Layout    : Left-aligned, grid of cards with icons
- *  Styling   : Large rounded corners, subtle shadows, hover effects
- *  Requires  : lucide-react + TailwindCSS 3+ with JIT
- * ===========================================================*/
+/**
+ * HomePage – Dashboard Links
+ * Theme: Gradient background / Accent #033060 / Font Tahoma / Rounded cards / Shadow / Hover
+ */
 
 export default function HomePage() {
   const cards = [
     {
       title: "Manage Publishers",
-      icon: <Users size={32} className="text-[#467DA7]" />,
+      icon: <Users size={32} className="text-[#033060]" />,
       link: "/publishers",
       description: "Thêm, sửa, xóa Publishers",
     },
     {
       title: "Manage Books",
-      icon: <Book size={32} className="text-[#467DA7]" />,
+      icon: <UserPlus size={32} className="text-[#033060]" />,
       link: "/books",
       description: "Quản lý thông tin sách",
     },
     {
-      title: "Find Books",
-      icon: <Search size={32} className="text-[#467DA7]" />,
-      link: "/find-book",
-      description: "Tìm kiếm nhanh sách",
+      title: "Manage Students",
+      icon: <UserCheck size={32} className="text-[#033060]" />,
+      link: "/students",
+      description: "Thêm, sửa, xóa sinh viên",
     },
     {
-      title: "Borrow Books",
-      icon: <BookOpen size={32} className="text-[#467DA7]" />,
-      link: "/borrow-book",
-      description: "Kiểm soát việc mượn trả",
+      title: "Manage Librarians",
+      icon: <Users size={32} className="text-[#033060]" />,
+      link: "/librarians",
+      description: "Thêm, sửa, xóa thủ thư",
     },
     {
       title: "Reports",
-      icon: <BarChart2 size={32} className="text-[#467DA7]" />,
+      icon: <BarChart2 size={32} className="text-[#033060]" />,
       link: "/reports",
       description: "Xem thống kê & báo cáo",
     },
     {
       title: "Settings",
-      icon: <Settings size={32} className="text-[#467DA7]" />,
+      icon: <Settings size={32} className="text-[#033060]" />,
       link: "/settings",
       description: "Tùy chỉnh hệ thống",
     },
   ];
 
   return (
-    <div className="min-h-screen w-full bg-[#FEFEFE] text-gray-900 font-[Poppins]">
+    <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] font-[Tahoma] flex flex-col items-center py-10">
       {/* Header */}
-      <header className="max-w-5xl mx-auto px-6 py-8">
-        <h1 className="text-4xl font-extrabold text-[#467DA7] tracking-tight">
-          Welcome to Library Dashboard
+      <header className="w-full max-w-7xl px-6 mb-10 text-center">
+        <h1 className="text-5xl font-extrabold text-[#033060] drop-shadow">
+          Library Dashboard
         </h1>
-        <p className="mt-2 text-lg text-gray-700">
+        <p className="mt-2 text-lg text-gray-600">
           Chọn chức năng bên dưới để tiếp tục
         </p>
       </header>
 
       {/* Card Grid */}
-      <main className="max-w-5xl mx-auto px-6 pb-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <main className="w-full max-w-7xl px-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {cards.map(({ title, icon, link, description }) => (
             <Link key={title} to={link} className="group">
-              <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow duration-200">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#467DA7]/10">
+              <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-200 border border-transparent group-hover:border-[#033060]">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#033060]/10">
                   {icon}
                 </div>
-                <h2 className="mt-4 text-xl font-semibold text-gray-900 group-hover:text-[#467DA7] transition-colors duration-200">
+                <h2 className="mt-4 text-2xl font-semibold text-[#033060] group-hover:text-[#021c3a] transition-colors duration-200">
                   {title}
                 </h2>
-                <p className="mt-2 text-sm text-gray-600">{description}</p>
+                <p className="mt-2 text-base text-gray-700">{description}</p>
               </div>
             </Link>
           ))}

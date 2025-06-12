@@ -18,6 +18,10 @@ import PublisherManagementPage  from "./pages/PublisherManagementPage";
 import CategoryManagementPage   from "./pages/CategoryManagementPage";
 import BookManagementPage       from "./pages/BookManagementPage";
 import ViewReportPage           from "./pages/ViewReportPage";
+import BooksPage               from "./pages/BooksPage";       // public books
+import LibrarianManagementPage  from "./pages/LibrarianManagementPage";
+import StudentManagementPage    from "./pages/StudentManagementPage";
+import ViewBorrowingHistoryPage  from "./pages/ViewBorrowingHistoryPage";
 
 function App() {
   return (
@@ -35,8 +39,6 @@ function App() {
 
         {/* Các route login/register/forgot/reset */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/librarians" element={<LibrarianManagementPage />} />
-        <Route path="/students" element={<StudentManagementPage />} />
         <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/password/forgot" element={<ForgotPasswordPage />} />
@@ -69,9 +71,11 @@ function App() {
         >
           {/* Lưu ý: ta đổi đường dẫn `/home` cho protected user thành `/dashboard` để không trùng với public */}
           <Route path="/dashboard" element={<HomePage />} />
-          <Route path="/categorys"  element={<CategoryManagementPage />} />
-          <Route path="/books"      element={<BookManagementPage />} />
+          <Route path="/categories"  element={<CategoryManagementPage />} />
+          <Route path="/managebooks"      element={<BookManagementPage />} />
           <Route path="/reports"   element={<ViewReportPage />} />
+          <Route path="/students" element={<StudentManagementPage />} />
+          <Route path="/librarians" element={<LibrarianManagementPage />} />
         </Route>
 
         {/** =====================
