@@ -277,3 +277,4 @@ borrowingHistoryService.formatDate = function(dateString: string) {
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 };
+

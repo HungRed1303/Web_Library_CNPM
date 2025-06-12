@@ -24,37 +24,37 @@ export default function HomePage() {
     {
       title: "Manage Publishers",
       icon: <Users size={32} className="text-[#467DA7]" />,
-      link: "/publishers",
+      link: "/dashboard/publisher",
       description: "Thêm, sửa, xóa Publishers",
     },
     {
       title: "Manage Books",
       icon: <Book size={32} className="text-[#467DA7]" />,
-      link: "/books",
+      link: "/dashboard/book",
       description: "Quản lý thông tin sách",
     },
     {
       title: "Find Books",
       icon: <Search size={32} className="text-[#467DA7]" />,
-      link: "/find-book",
+      link: "/dashboard/find-book",
       description: "Tìm kiếm nhanh sách",
     },
     {
       title: "Borrow Books",
       icon: <BookOpen size={32} className="text-[#467DA7]" />,
-      link: "/borrow-book",
+      link: "/dashboard/borrow-book",
       description: "Kiểm soát việc mượn trả",
     },
     {
       title: "Reports",
       icon: <BarChart2 size={32} className="text-[#467DA7]" />,
-      link: "/reports",
+      link: "/dashboard/report",
       description: "Xem thống kê & báo cáo",
     },
     {
       title: "Settings",
       icon: <Settings size={32} className="text-[#467DA7]" />,
-      link: "/settings",
+      link: "/dashboard/setting",
       description: "Tùy chỉnh hệ thống",
     },
   ];

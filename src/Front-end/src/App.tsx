@@ -49,7 +49,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="/librarians" element={<LibrarianManagementPage />} />
+          <Route path="dashboard/librarian" element={<LibrarianManagementPage />} />
         </Route>
 
         {/* ---------- Admin + Lecturer Routes (Role = "A" or "L") ---------- */}
@@ -61,12 +61,12 @@ function App() {
           }
         >
           <Route path="/dashboard" element={<HomePage />} />
-          <Route path="/category" element={<CategoryManagementPage />} />
-          <Route path="/book" element={<BookManagementPage />} />
-          <Route path="/reports" element={<ViewReportPage />} />
-          <Route path="/publishers" element={<PublisherManagementPage />} />
-          <Route path="/students" element={<StudentManagementPage />} />
-          <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
+          <Route path="/dashboard/category" element={<CategoryManagementPage />} />
+          <Route path="/dashboard/book" element={<BookManagementPage />} />
+          <Route path="/dashboard/report" element={<ViewReportPage />} />
+          <Route path="/dashboard/publisher" element={<PublisherManagementPage />} />
+          <Route path="/dashboard/student" element={<StudentManagementPage />} />
+          <Route path="/dashboard/student/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
         </Route>
 
         {/* ---------- Catch-All Route ---------- */}
