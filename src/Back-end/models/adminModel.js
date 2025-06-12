@@ -23,7 +23,9 @@ const getAdminById = async (admin_id) => {
 const createAdmin = async (user_id) => {
   const result = await pool.query(
     `INSERT INTO admins (user_id)
-     VALUES ($1)`,
+     VALUES ($1)
+     RETURNING *
+     `,
     [user_id]
   );
   return result.rows[0];
@@ -33,8 +35,9 @@ const updateAdmin = async (admin_id, username, email, name) => {
   const result1 = await pool.query(
     `UPDATE users
      SET username = $1, email = $2, name = $3
-     WHERE user_id = (SELECT user_id FROM admins WHERE admin_id = $4)`,
-    [username, email, name, admin_id]
+     WHERE user_id = (SELECT user_id FROM admins WHERE admin_id = $4)
+     `,
+        [username, email, name, admin_id]
   );
   // Nếu affectedRows = 0 tức là không tìm thấy admin
   if (result1.rowCount === 0) {

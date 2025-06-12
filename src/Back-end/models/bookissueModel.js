@@ -15,11 +15,10 @@ const getBookIssueById = async (id)=>{
         FROM book_issues
         WHERE issue_id = $1`,
         [id]);
-
-        if(result.rowCount == 0){
+      
+         if(result.rowCount == 0){
             return null;
         }
-     
         return result.rows[0];
 }
 
@@ -32,9 +31,7 @@ const getBookIssueByIdStudent = async (id)=>{
         WHERE bi.student_id = $1`,
         [id]);
 
-        if(result.rowCount == 0){
-            return null;
-        }
+ 
      
         return result.rows;
 }
@@ -47,6 +44,8 @@ const getBookIssueByStudentBook = async (book_id,student_id)=>{
     `,
     [book_id,student_id]);
     
+ 
+
     return result.rows;
 }
 

@@ -36,7 +36,10 @@ const updateStudent = async (student_id, username, email, name, class_id) => {
          WHERE user_id = (SELECT user_id FROM students WHERE student_id = $4)`,
         [username, email, name, student_id]
     );
-
+     
+    if(result1.rowCount === 0){
+        return null;
+    }
     const result2 = await pool.query(
         `UPDATE students
          SET class_id = $1

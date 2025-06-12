@@ -11,7 +11,7 @@ const toSQLDate = (date) => {
 
 
 const requestLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
-    const {student_id} = req.body;
+    const student_id = req.params.id;
     const student = await LibraryCardModel.getLibraryCardByStudentId(student_id);
     if(student){
         return next(new ErrorHandler("Library Card was request or existed",400));
@@ -31,7 +31,7 @@ const requestLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
 })
 
 const extendLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
-    const {student_id} = req.body;
+    const student_id = req.params.id;
     studentcard = await LibraryCardModel.getLibraryCardByStudentId(student_id);
     if(!studentcard){
         return next(new ErrorHandler("Library Card was not existed",404));
@@ -42,8 +42,13 @@ const extendLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
    end_date.setFullYear(end_date.getFullYear() + 1);
    const formatted_start = toSQLDate(start_date);
    const formatted_end = toSQLDate(end_date);
+   
+   if(studentcard.status == 'pending'){
+    return next (new ErrorHandler("Library Card was not accepted",404) )
+   }
 
-  const result = await LibraryCardModel.updateLibraryCard(studentcard.card_id,student_id,formatted_start,formatted_end, "completed");
+
+  const result = await LibraryCardModel.updateLibraryCard(studentcard.card_id,student_id,formatted_start,formatted_end, "accepted");
   res.status(200).json({
     success:true,
     data:result
@@ -51,7 +56,7 @@ const extendLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
 })
 
 const acceptLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
-    const {student_id} = req.body;
+    const student_id = req.params.id;
     studentcard = await LibraryCardModel.getLibraryCardByStudentId(student_id);
     if(!studentcard){
         return next(new ErrorHandler("Library Card was not existed",404));
@@ -63,7 +68,7 @@ const acceptLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
    const formatted_start = toSQLDate(start_date);
    const formatted_end = toSQLDate(end_date);
 
-  const result = await LibraryCardModel.updateLibraryCard(studentcard.card_id,student_id,formatted_start,formatted_end, "completed");
+  const result = await LibraryCardModel.updateLibraryCard(studentcard.card_id,student_id,formatted_start,formatted_end, "accepted");
   res.status(200).json({
     success:true,
     data:result
@@ -71,7 +76,7 @@ const acceptLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
 })
 
 const deleteLibraryCard = CatchAsyncErrors( async (req,res,next)=>{
-    const {student_id} = req.body;
+    const student_id = req.params.id;
     const card = await LibraryCardModel.getLibraryCardByStudentId(student_id);
     if(!card){
         return next( new ErrorHandler("Card Not Existed",404));

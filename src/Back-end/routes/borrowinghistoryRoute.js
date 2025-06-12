@@ -4,6 +4,6 @@ const {  isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware
 
 const router = express.Router();
 
-router.get("/:id",viewBorrowingHistoryById);
+router.get("/:id",isAuthenticated,viewBorrowingHistoryById);
 
 module.exports = router;
