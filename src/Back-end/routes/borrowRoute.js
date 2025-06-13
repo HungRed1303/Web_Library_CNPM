@@ -1,5 +1,5 @@
 const express = require("express")
-const {getAllBookIssue,  getAllBookRequest,getBookIssueById,getBookRequestById,deleteBookIssue,deleteBookRequest,borrowBook, issueBook, returnBook} = require("../controllers/borrowController");
+const {getAllBookIssue,  getAllBookRequest,getBookIssueById,getBookRequestById,deleteBookIssue,deleteBookRequest,borrowBook, issueBook, returnBook, rejectBookRequest} = require("../controllers/borrowController");
 const {isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware");
 const router = express.Router();
 
@@ -14,6 +14,7 @@ router.delete("/delete-book-issue/:id",isAuthenticated,isAuthorized("A","L"),del
 // API để mượn sách
 router.post("/borrow-book",isAuthenticated,borrowBook)
 router.put("/issue-book/:id",isAuthenticated,isAuthorized("A","L"),issueBook)
+router.put("/reject-book-request/:id",isAuthenticated,isAuthorized("A","L"),rejectBookRequest)
 router.put("/return-book/:id",isAuthenticated,isAuthorized("A","L"),returnBook)
 
 module.exports = router;

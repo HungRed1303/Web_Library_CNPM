@@ -12,7 +12,6 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage"; // Public
 
-
 import HomePageUser          from "./pages/HomePageUser";     // public home
 import HomePage              from "./pages/HomePage";         // protected home (Admin/Lecturer)
 import PublisherManagementPage  from "./pages/PublisherManagementPage";
@@ -23,7 +22,7 @@ import BooksPage               from "./pages/BooksPage";       // public books
 import LibrarianManagementPage  from "./pages/LibrarianManagementPage";
 import StudentManagementPage    from "./pages/StudentManagementPage";
 import ViewBorrowingHistoryPage  from "./pages/ViewBorrowingHistoryPage";
-
+import ApproveBookRequestPage from "./pages/ApproveBookRequestPage"; // Placeholder for approve book request page
 
 function App() {
   return (
@@ -51,7 +50,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="/librarian" element={<LibrarianManagementPage />} />
+          <Route path="/librarians" element={<LibrarianManagementPage />} />
         </Route>
 
         {/* ---------- Admin + Lecturer Routes (Role = "A" or "L") ---------- */}
@@ -68,8 +67,9 @@ function App() {
           <Route path="/reports"   element={<ViewReportPage />} />
           <Route path="/students" element={<StudentManagementPage />} />
           <Route path="/publishers" element={<PublisherManagementPage />} />
+          <Route path="/approve-book-request" element={<ApproveBookRequestPage/>} />
         </Route>
-
+        
         {/* ---------- Catch-All Route ---------- */}
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
