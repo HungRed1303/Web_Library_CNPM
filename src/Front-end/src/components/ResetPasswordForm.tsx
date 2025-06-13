@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "../hooks/use-toast"
 import { useNavigate } from "react-router-dom"
-import { resetPassword } from "../service/Services"
+import { resetPassword } from "../service/authService"
 import { useParams } from "react-router-dom"
 
 export default function ResetPasswordForm() {

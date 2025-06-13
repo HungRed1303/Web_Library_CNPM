@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import { Search, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getAllBooks, getAllCategories } from "../service/Services";
+import { getAllCategories } from "../service/categoryService"; // Giả định có service lấy danh mục
+import {getAllBooks} from "../service/bookService";
 
 // Giả định Service trả về mảng Book với các trường phù hợp: id, title, author, cover, category
 interface Book {

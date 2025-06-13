@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "../hooks/use-toast"
 import { useNavigate } from "react-router-dom"
-import { registerUser } from "../service/Services"
+import { registerUser } from "../service/authService"
 
 export default function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)

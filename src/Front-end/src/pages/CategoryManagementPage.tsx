@@ -5,7 +5,7 @@ import {
   createCategory,
   updateCategoryById,
   deleteCategoryById,
-} from "../service/Services";
+} from "../service/categoryService";
 import { Plus, Pencil, Trash2, CheckCircle, XCircle } from "lucide-react";
 
 /**

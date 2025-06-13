@@ -5,7 +5,7 @@ import {
   createPublisher,
   updatePublisherById,
   deletePublisherById,
-} from "../service/Services";
+} from "../service/publisherService";
 import { Plus, Pencil, Trash2, CheckCircle } from "lucide-react";
 
 /**

@@ -3,7 +3,7 @@ import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "../hooks/use-toast"
 import { useNavigate } from "react-router-dom"
-import { changePassword } from "../service/Services"
+import { changePassword } from "../service/authService"
 
 export default function ChangePasswordForm() {
   const [oldPassword, setOldPassword] = useState("")
