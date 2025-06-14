@@ -16,15 +16,24 @@ const getAllBook = async () => {
 };
 
 
+
+
 const getBookById = async (book_id)=>{
   
   const result = await pool.query(`
-    SELECT b.book_id, b.title,b.publisher_id, b.publication_year, b.quantity, b.availability, b.price, b.author, b.image_url
+    SELECT b.book_id, b.title, b.publisher_id, p.name AS publisher_name,
+           EXTRACT(YEAR FROM b.publication_year) AS publication_year, 
+           b.quantity, b.availability, b.price, b.author, b.image_url,
+           ARRAY_AGG(c.name) AS categories
     FROM books b
-    WHERE b.book_id = $1 
-    `,[book_id]);
-   
-    return result.rows[0];
+    LEFT JOIN publishers p ON b.publisher_id = p.publisher_id
+    LEFT JOIN book_category bc ON b.book_id = bc.book_id
+    LEFT JOIN categories c ON bc.category_id = c.category_id
+    WHERE b.book_id = $1
+    GROUP BY b.book_id, p.name
+  `, [book_id]);
+
+  return result.rows[0];
 };
 
 const getBook = async (book_id) => {

@@ -1,5 +1,5 @@
 const express = require("express");
-const {getAllStudent,getStudentById,deleteStudent,updateStudent } = require("../controllers/studentController");
+const {getAllStudent,getStudentById,deleteStudent,updateStudent,getStudentByUserId } = require("../controllers/studentController");
 const {  isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware");
 
 const router = express.Router();
@@ -11,6 +11,7 @@ const router = express.Router();
 
 router.get("/", getAllStudent);
 router.get("/:id", getStudentById);
+router.get("/user-id/:id",getStudentByUserId)
 router.put("/:id", updateStudent);
 router.delete("/:id", deleteStudent);
 
