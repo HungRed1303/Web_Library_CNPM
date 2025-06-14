@@ -15,16 +15,14 @@ const getAllBook = async () => {
   return result.rows;
 };
 
-
-const getBookById = async (book_id)=>{
-  
+const getBookById = async (book_id) => {
   const result = await pool.query(`
-    SELECT b.book_id, b.title,b.publisher_id, b.publication_year, b.quantity, b.availability, b.price, b.author, b.image_url
+    SELECT b.book_id, b.title, b.publisher_id, b.publication_year, b.quantity, b.availability, b.price, b.author, b.image_url
     FROM books b
-    WHERE b.book_id = $1 
-    `,[book_id]);
-   
-    return result.rows[0];
+    WHERE b.book_id = $1
+  `, [book_id]);
+
+  return result.rows[0];
 };
 
 const getBook = async (book_id) => {
