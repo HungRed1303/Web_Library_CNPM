@@ -19,7 +19,12 @@ export const loginUser = async (email, password) => {
         console.warn("Không thể lưu token vào localStorage:", storageError);
       }
 
-      return { success: true, role: result.user.role };
+      return { 
+        success: true, 
+        role: result.user.role, 
+        id: result.user.id,
+        role_id: result.user.role_id // Thêm dòng này
+      };
     } else {
       return {
         success: false,

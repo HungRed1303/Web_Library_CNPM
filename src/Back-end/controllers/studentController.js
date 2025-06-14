@@ -2,7 +2,6 @@ const StudentModel = require('../models/studentModel');
 const CatchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const {ErrorHandler} = require('../middlewares/errorMiddlewares');
 
-
 const getAllStudent = CatchAsyncErrors(async (req, res, next) => {
     const students = await StudentModel.getAllStudent();
     res.status(200).json({
@@ -52,5 +51,6 @@ module.exports = {
     getAllStudent,
     getStudentById,
     updateStudent,
-    deleteStudent
+    deleteStudent,
 };
+

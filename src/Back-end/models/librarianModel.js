@@ -93,10 +93,19 @@ const deleteLibrarian = async (librarian_id) => {
   return true;
 }
 
+const findByUserId = async (userId) => {
+  const result = await pool.query(
+    'SELECT * FROM librarians WHERE user_id = $1',
+    [userId]
+  );
+  return result.rows.length > 0 ? result.rows[0] : null;
+};
+
 module.exports = {
   getAllLibrarians,
   getLibrarianById,
   createLibrarian,
   updateLibrarian,
-  deleteLibrarian
+  deleteLibrarian,
+  findByUserId
 };

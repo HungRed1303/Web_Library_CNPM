@@ -12,10 +12,18 @@ const LoginForm = () => {
   const [error, setError] = useState("")
   const Navigate = useNavigate()
 
-const handleLoginSuccess = (role) => {
-    localStorage.setItem('user', JSON.stringify({ isLogged: true, role: role }));
-  }
-  
+const handleLoginSuccess = (role, id, role_id) => {
+  localStorage.setItem(
+    'user',
+    JSON.stringify({
+      isLogged: true,
+      role: role,
+      user_id: id,
+      role_id: role_id // Thêm dòng này
+    })
+  );
+};
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true);
@@ -25,7 +33,7 @@ const handleLoginSuccess = (role) => {
 
     if (result.success)
     {
-      handleLoginSuccess(result.role);
+      handleLoginSuccess(result.role, result.id, result.role_id);
       console.log("Login successful");
       if (result.role === 'A')
       {

@@ -23,6 +23,9 @@ import LibrarianManagementPage  from "./pages/LibrarianManagementPage";
 import StudentManagementPage    from "./pages/StudentManagementPage";
 import ViewBorrowingHistoryPage  from "./pages/ViewBorrowingHistoryPage";
 import ApproveBookRequestPage from "./pages/ApproveBookRequestPage"; // Placeholder for approve book request page
+import StudentProfilePage from "./pages/StudentProfilePage"; // Placeholder for student profile page
+import AdminProfilePage from "./pages/AdminProfilePage"; // Placeholder for admin profile page
+import LibrarianProfilePage from "./pages/LibrarianProfilePage"; // Placeholder for librarian profile page
 
 function App() {
   return (
@@ -32,6 +35,7 @@ function App() {
         <Route element={<UserLayout />}>
           <Route path="/home" element={<HomePageUser />} />
           <Route path="/books" element={<BooksPage />} />
+          <Route path="/student/profile/:id" element={<StudentProfilePage />} />
         </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
@@ -40,7 +44,7 @@ function App() {
         <Route path="/password/reset/:token" element={<ResetPasswordPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/password/change" element={<ChangePasswordPage />} />
-
+        {/* ---------- User Routes (Role = "S") ---------- */}
         {/* ---------- Protected Routes ---------- */}
         {/* ---------- Admin Only Routes (Role = "A") ---------- */}
         <Route
@@ -51,6 +55,7 @@ function App() {
           }
         >
           <Route path="/librarians" element={<LibrarianManagementPage />} />
+          <Route path="/profile/admins/:id" element={<AdminProfilePage />} />
         </Route>
 
         {/* ---------- Admin + Lecturer Routes (Role = "A" or "L") ---------- */}
@@ -61,6 +66,7 @@ function App() {
             </ProtectedRoute>
           }
         >
+          <Route path="/profile/librarians/:id" element={<LibrarianProfilePage />} />
           <Route path="/dashboard" element={<HomePage />} />
           <Route path="/categories"  element={<CategoryManagementPage />} />
           <Route path="/managebooks" element={<BookManagementPage />} />

@@ -87,11 +87,27 @@ const deleteStudent = async (student_id) => {
     return true;
 }
 
+const findByUserId = async (userId) => {
+  console.log('StudentModel.findByUserId called with userId:', userId);
+  
+  try {
+    const result = await pool.query(
+      'SELECT * FROM students WHERE user_id = $1',
+      [userId]
+    );
+    console.log('Query result rows:', result.rows);
+    return result.rows.length > 0 ? result.rows[0] : null;
+  } catch (error) {
+    console.error('Database query error:', error);
+    throw error;
+  }
+};
 
 module.exports = {
     getAllStudent,
     getStudentById,
     createStudent,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    findByUserId
 }
