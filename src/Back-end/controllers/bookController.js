@@ -55,8 +55,8 @@ const createBook = CatchAsyncErrors(async (req, res, next) => {
     const book = await BookModel.createBook(title, publisher_id, publication_year, quantity, available, price, author, image_url);
 
     for (let i = 0; i < category_ids.length; i++) {
-     await BookCategoryModel.createBookCategory(book.book_id, category_ids[i]);
-     }
+        await BookCategoryModel.createBookCategory(book.book_id, category_ids[i]);
+    }
 
     res.status(200).json({
         success: true,
@@ -102,11 +102,11 @@ const updateBook = CatchAsyncErrors(async (req, res, next) => {
         return next(new ErrorHandler("Book Not Found", 404));
     }
 
-    // Xóa category cũ, thêm mới
-     const result = await BookCategoryModel.deleteBookCategory(book_id);
-     for (let i = 0; i < category_ids.length; i++) {
-         var temp = await BookCategoryModel.createBookCategory(book_id, category_ids[i]);
-     }
+    //Xóa category cũ, thêm mới
+    const result = await BookCategoryModel.deleteBookCategory(book_id);
+    for (let i = 0; i < category_ids.length; i++) {
+        var temp = await BookCategoryModel.createBookCategory(book_id, category_ids[i]);
+    }
     res.status(200).json({
         success: true,
         data: book

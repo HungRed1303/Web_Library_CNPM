@@ -47,7 +47,7 @@ const getUserStatistics = async () => {
     join users u on u.user_id = st.user_id
     GROUP BY bi.student_id, u.username
     ORDER BY books_borrowed DESC
-  `);
+  `); 
   return result.rows;
 };
 

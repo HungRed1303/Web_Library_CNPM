@@ -3,7 +3,7 @@ import type React from "react"
 import { useState } from "react"
 import { useToast } from "../hooks/use-toast"
 import { useNavigate } from "react-router-dom"
-import { forgotPassword } from "../service/Services"
+import { forgotPassword } from "../service/authService"
 
 export default function ForgotPasswordForm() {
   const [email, setEmail] = useState("")

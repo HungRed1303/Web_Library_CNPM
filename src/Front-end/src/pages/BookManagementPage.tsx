@@ -4,13 +4,33 @@ import {
   createBook,
   updateBookById,
   deleteBookById,
-} from "../service/Services";
-import { Plus, Pencil, Trash2, Image } from "lucide-react";
+} from "../service/bookService";
+
+import { getAllCategories } from "../service/categoryService";
+import { getAllPublishers } from "../service/publisherService";
+
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Search,
+  Image as ImageIcon,
+  CheckCircle,
+  XCircle,
+} from "lucide-react";
+import type { Category } from "./CategoryManagementPage";
+
+export interface Publisher {
+  publisher_id: number;
+  name: string;
+}
 
 export interface Book {
   book_id: number;
   title: string;
   publisher_id: number;
+  publisher_name?: string;
+  categories: string[];
   publication_year: number;
   quantity: number;
   availability: boolean;
@@ -19,60 +39,118 @@ export interface Book {
   image_url: string;
 }
 
-export type BookDTO = Omit<Book, "book_id">;
+export type BookDTO = Omit<Book, "book_id" | "categories" | "publisher_name"> & {
+  category_ids: number[];
+};
 
-const BookManagementPage: React.FC = () => {
-  /* --------------------------- STATE --------------------------- */
+const emptyForm: BookDTO = {
+  title: "",
+  publisher_id: 0,
+  category_ids: [],
+  publication_year: 0,
+  quantity: 0,
+  availability: true,
+  price: 0,
+  author: "",
+  image_url: "",
+};
+
+export default function BookManagementPage() {
   const [books, setBooks] = useState<Book[]>([]);
+  const [allCategories, setAllCategories] = useState<Category[]>([]);
+  const [allPublishers, setAllPublishers] = useState<Publisher[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modal, setModal] = useState<false | "add" | "edit" | "delete">(false);
   const [active, setActive] = useState<Book | null>(null);
-
-  const empty: BookDTO = {
-    title: "",
-    publisher_id: 0,
-    publication_year: 0,
-    quantity: 0,
-    availability: true,
-    price: 0,
-    author: "",
-    image_url: "",
-  };
-  const [form, setForm] = useState<BookDTO>(empty);
+  const [form, setForm] = useState<BookDTO>(emptyForm);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null); // Thêm state cho file
-
-  // Toast states
-  const [toast, setToast] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  /* ------------------------- LOAD LIST ------------------------- */
-  const load = () => {
+  // --- Load initial data ---
+  useEffect(() => {
+    getAllPublishers()
+      .then(res => setAllPublishers(res.data as Publisher[] || []))
+      .catch(() => setAllPublishers([]));
+    getAllCategories()
+      .then(res => setAllCategories(res.data as Category[] || []))
+      .catch(() => setAllCategories([]));
+  }, []);
+
+  useEffect(() => {
+    if (allPublishers.length) loadBooks();
+    // eslint-disable-next-line
+  }, [allPublishers]);
+
+  function loadBooks() {
     setLoading(true);
     getAllBooks()
-      .then((res) => setBooks(res.data as Book[]))
+      .then(res => {
+        const data: Book[] = res.data as Book[];
+        setBooks(
+          data.map(b => ({
+            ...b,
+            publisher_name:
+              allPublishers.find(p => p.publisher_id === b.publisher_id)?.name ||
+              b.publisher_id.toString(),
+          }))
+        );
+      })
       .catch(() => setError("Không tải được dữ liệu"))
       .finally(() => setLoading(false));
-  };
-  useEffect(load, []);
+  }
 
-  /* ------------------------- HELPERS --------------------------- */
-  const openAdd = () => {
-    setForm(empty);
+  // --- Toast auto-hide ---
+  useEffect(() => {
+    if (!toast) return;
+    setShowToast(true);
+    const hide = setTimeout(() => setShowToast(false), 2500);
+    const clear = setTimeout(() => setToast(null), 3000);
+    return () => {
+      clearTimeout(hide);
+      clearTimeout(clear);
+    };
+  }, [toast]);
+
+  // --- Form validation ---
+  function validate(): Record<string, string> {
+    const errs: Record<string, string> = {};
+    if (!form.title.trim()) errs.title = "Title is required";
+    if (!form.author.trim()) errs.author = "Author is required";
+    if (form.publisher_id <= 0) errs.publisher_id = "Publisher is required";
+    if (form.publication_year <= 0) errs.publication_year = "Valid year is required";
+    if (form.quantity < 0) errs.quantity = "Quantity cannot be negative";
+    if (form.price < 0) errs.price = "Price cannot be negative";
+    if (!selectedCategories.length) errs.category_ids = "Select at least one category";
+    return errs;
+  }
+
+  // --- Modal handlers ---
+  function openAdd() {
+    setActive(null);
+    setForm(emptyForm);
+    setSelectedCategories([]);
     setFormErrors({});
     setPreviewImage(null);
-    setSelectedFile(null); // Reset file
+    setSelectedFile(null);
     setModal("add");
-  };
-  
-  const openEdit = (b: Book) => {
+  }
+
+  function openEdit(b: Book) {
     setActive(b);
+    const catIds = allCategories
+      .filter(c => b.categories.includes(c.name))
+      .map(c => c.category_id);
     setForm({
       title: b.title,
       publisher_id: b.publisher_id,
+      category_ids: catIds,
       publication_year: b.publication_year,
       quantity: b.quantity,
       availability: b.availability,
@@ -80,430 +158,312 @@ const BookManagementPage: React.FC = () => {
       author: b.author,
       image_url: b.image_url,
     });
-    setPreviewImage(null);
-    setSelectedFile(null); // Reset file
+    setSelectedCategories(catIds);
     setFormErrors({});
+    setPreviewImage(null);
+    setSelectedFile(null);
     setModal("edit");
-  };
-  
-  const openDelete = (b: Book) => {
+  }
+
+  function openDelete(b: Book) {
     setActive(b);
     setModal("delete");
-  };
-  
-  const closeModal = () => {
+  }
+
+  function closeModal() {
     setModal(false);
     setActive(null);
-    setForm(empty);
+    setForm(emptyForm);
+    setSelectedCategories([]);
     setFormErrors({});
     setPreviewImage(null);
-    setSelectedFile(null); // Reset file
-  };
+    setSelectedFile(null);
+  }
 
-  /* ------------------------- VALIDATE -------------------------- */
-  const validate = (): Record<string, string> => {
-    const e: Record<string, string> = {};
-    if (!form.title.trim()) e.title = "Title is required";
-    if (!form.author.trim()) e.author = "Author is required";
-    if (form.publisher_id <= 0) e.publisher_id = "Publisher ID is required";
-    if (form.publication_year <= 0) e.publication_year = "Valid year is required";
-    if (form.quantity < 0) e.quantity = "Quantity cannot be negative";
-    if (form.price < 0) e.price = "Price cannot be negative";
-    return e;
-  };
-
-  /* ------------------------- HELPER FUNCTIONS ------------------------- */
-  const yearToDate = (year: number): string => {
-    if (!year || year <= 0) return '';
-    return `${year}-01-01`;
-  };
-
-  const dateToYear = (dateString: string): number => {
-    if (!dateString) return 0;
-    return new Date(dateString).getFullYear();
-  };
-
-  const getDateInputValue = (year: number): string => {
-    if (!year || year <= 0) return '';
-    return `${year}-01-01`;
-  };
-
-  // Helper function để tạo URL ảnh đúng
-  const getImageUrl = (imageUrl: string): string => {
-    if (!imageUrl) return '';
-    if (imageUrl.startsWith('http')) return imageUrl;
-    const cleanPath = imageUrl.startsWith('/') ? imageUrl.substring(1) : imageUrl;
-    // Nếu là đường dẫn tương đối từ server (uploads/abc), thêm base URL
-    return `http://localhost:3000/${cleanPath}`;
-  };
-//Test log để kiểm tra dữ liệu sách
-  useEffect(() => {
-  console.log('Books loaded:', books.map(b => ({
-    id: b.book_id,
-    title: b.title,
-    image_url: b.image_url,
-    full_url: getImageUrl(b.image_url)
-  })));
-  }, [books]);
-  /* --------------------------- SAVE ---------------------------- */
-  const handleSave = async () => {
+  // --- Save / Delete handlers ---
+  async function handleSave() {
     const errs = validate();
     setFormErrors(errs);
     if (Object.keys(errs).length) return;
 
     setSubmitting(true);
     try {
-      const formData = new FormData();
-      formData.append('title', form.title);
-      formData.append('publisher_id', form.publisher_id.toString());
-      formData.append('publication_year', yearToDate(form.publication_year));
-      formData.append('quantity', form.quantity.toString());
-      formData.append('availability', form.availability === true ? 'true' : 'false');
-      formData.append('price', form.price.toString());
-      formData.append('author', form.author);
-      
-      // Chỉ append image_url nếu không có file mới được chọn
-      if (!selectedFile) {
-        formData.append('image_url', form.image_url);
-      }
+      const fd = new FormData();
+      fd.append("title", form.title);
+      fd.append("publisher_id", form.publisher_id.toString());
+      fd.append("publication_year", `${form.publication_year}-01-01`);
+      fd.append("quantity", form.quantity.toString());
+      fd.append("availability", form.availability.toString());
+      fd.append("price", form.price.toString());
+      fd.append("author", form.author);
+      selectedCategories.forEach(id => fd.append("category_ids[]", id.toString()));
+      if (selectedFile) fd.append("image", selectedFile);
+      else fd.append("image_url", form.image_url);
 
-      // Thêm file nếu có file mới được chọn
-      if (selectedFile) {
-        formData.append('image', selectedFile);
-      }
-
-      // Sử dụng service functions thay vì fetch trực tiếp
       if (modal === "add") {
-        await createBook(formData);
-        setToast("Book added successfully");
+        await createBook(fd);
+        setToast({ type: "success", message: "Book added successfully" });
       } else if (modal === "edit" && active) {
-        await updateBookById(active.book_id, formData);
-        setToast("Book updated successfully");
+        await updateBookById(active.book_id, fd);
+        setToast({ type: "success", message: "Book updated successfully" });
       }
 
       closeModal();
-      load();
-    } catch (error) {
-      console.error('Save error:', error);
-      setToast("Database error – please try later");
+      loadBooks();
+    } catch {
+      setToast({ type: "error", message: "Database error – please try later" });
     } finally {
       setSubmitting(false);
     }
-  };
+  }
 
-  /* -------------------------- DELETE --------------------------- */
-  const handleDelete = async () => {
+  async function handleDelete() {
     if (!active) return;
     setSubmitting(true);
     try {
       await deleteBookById(active.book_id);
-      setToast("Book deleted");
+      setToast({ type: "success", message: "Book deleted" });
       closeModal();
-      load();
+      loadBooks();
     } catch {
-      setToast("Database error – please try later");
+      setToast({ type: "error", message: "Database error – please try later" });
     } finally {
       setSubmitting(false);
     }
-  };
+  }
 
-  /* ---------------------- HANDLE IMAGE UPLOAD ------------------- */
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // --- Image upload preview ---
+  function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file); // Lưu file để upload
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+    if (!file) return;
+    setSelectedFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => setPreviewImage(reader.result as string);
+    reader.readAsDataURL(file);
+  }
 
-  /* ----------------------- TOAST ANIMATION ---------------------- */
-  useEffect(() => {
-    if (toast) {
-      setShowToast(true);
-      const hideTimer = setTimeout(() => {
-        setShowToast(false);
-      }, 2500);
-      const clearTimer = setTimeout(() => {
-        setToast(null);
-      }, 3000);
-      return () => {
-        clearTimeout(hideTimer);
-        clearTimeout(clearTimer);
-      };
-    }
-  }, [toast]);
+  // --- Utility to build full image URL ---
+  function getImageUrl(path: string): string {
+    if (!path) return "";
+    return path.startsWith("http") ? path : `http://localhost:3000/${path.replace(/^\//, "")}`;
+  }
 
-  /* --------------------------- UI ------------------------------ */
+  // --- Filtered list by search term ---
+  const filtered = books.filter(
+    b =>
+      b.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.publisher_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen w-full bg-[#FEFEFE] text-gray-900 font-[Poppins]">
-      <header className="max-w-5xl mx-auto py-8 pl-6">
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-[#467DA7] text-center">
+    <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] py-10 px-4 md:px-8 font-[Tahoma] flex flex-col items-center">
+
+      {/* Header */}
+      <div className="w-full max-w-7xl bg-gradient-to-b from-[#eaf3fb] to-[#dbeafe] rounded-2xl shadow-lg p-10 mb-10 border border-[#dbeafe] flex flex-col items-center">
+        <h1 className="text-5xl font-extrabold text-[#033060] drop-shadow">
           Book Management
         </h1>
-      </header>
+        <p className="text-gray-600 text-lg">Manage your library books efficiently</p>
+      </div>
 
-      <main className="max-w-5xl mx-auto pl-6 pb-20 text-left">
+      {/* Controls */}
+      <div className="w-full max-w-7xl flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+        <div className="relative w-full md:w-2/3">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#033060] h-5 w-5" />
+          <input
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder="Search by title, author, publisher..."
+            className="pl-12 pr-4 py-3 text-lg rounded-xl border border-[#dbeafe] bg-white shadow focus:border-[#033060] focus:ring-2 focus:ring-blue-100 w-full outline-none transition"
+          />
+        </div>
         <button
           onClick={openAdd}
-          className="flex items-center gap-2 bg-[#467DA7] text-white px-5 py-2.5 rounded-xl shadow-sm hover:bg-[#467DA7]/90 focus-visible:ring-2 focus-visible:ring-[#467DA7] transition"
+          className="flex items-center gap-2 bg-[#033060] text-white px-8 py-3 rounded-xl shadow hover:bg-[#021c3a] border border-[#033060] text-lg transition"
         >
-          <Plus size={18} /> Add Book
+          <Plus className="h-5 w-5" /> Add Book
         </button>
+      </div>
 
-        {loading ? (
-          <p className="mt-8 animate-pulse">Loading…</p>
-        ) : error ? (
-          <p className="mt-8 text-red-600">{error}</p>
-        ) : (
-          <>
-            <div className="hidden md:block overflow-x-auto mt-8 border border-gray-200 rounded-xl shadow-sm">
-              <table className="w-full text-[15px] leading-6">
-                <thead className="bg-[#467DA7]/10 text-gray-800">
-                  <tr>
-                    {[
-                      "ID",
-                      "Cover",
-                      "Title",
-                      "Publisher ID",
-                      "Year",
-                      "Qty",
-                      "Available",
-                      "Price",
-                      "Author",
-                      "Actions",
-                    ].map((h) => (
-                      <th
-                        key={h}
-                        className="px-4 py-3 border-b border-gray-200 text-left font-semibold"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {books.map((b, idx) => (
-                    <tr
-                      key={b.book_id}
-                      className={`${idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                        } hover:bg-[#467DA7]/10 transition`}
-                    >
-                      <td className="px-4 py-3 border-b border-gray-200">
-                        {b.book_id}
-                      </td>
-                      <td className="px-4 py-3 border-b border-gray-200">
-                        {b.image_url ? (
-                          <img
-                            src={getImageUrl(b.image_url)}
-                            alt={b.title}
-                            className="h-16 w-12 object-cover rounded shadow-sm border border-gray-200"
-                            onError={(e) => {
-                              console.log('Image load error:', getImageUrl(b.image_url));
-                              const target = e.currentTarget;
-                              target.style.display = 'none';
-                              // Tạo placeholder khi ảnh lỗi
-                              const placeholder = target.nextElementSibling as HTMLElement;
-                              if (placeholder) {
-                                placeholder.classList.remove('hidden');
-                              }
-                            }}
-                          />
-                        ) : null}
-                        <div className={`h-16 w-12 bg-gray-100 rounded shadow-sm border border-gray-200 flex items-center justify-center ${b.image_url ? 'hidden' : ''}`}>
-                          <Image size={20} className="text-gray-400" />
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 border-b">{b.title}</td>
-                      <td className="px-4 py-3 border-b">{b.publisher_id}</td>
-                      <td className="px-4 py-3 border-b">{b.publication_year}</td>
-                      <td className="px-4 py-3 border-b">{b.quantity}</td>
-                      <td className="px-4 py-3 border-b">
-                        {b.availability ? "Yes" : "No"}
-                      </td>
-                      <td className="px-4 py-3 border-b">{b.price}</td>
-                      <td className="px-4 py-3 border-b">{b.author}</td>
-                      <td className="px-4 py-3 border-b space-x-2">
-                        <IconBtn
-                          icon={<Pencil size={16} />}
-                          onClick={() => openEdit(b)}
-                        />
-                        <IconBtn
-                          icon={<Trash2 size={16} />}
-                          onClick={() => openDelete(b)}
-                          color="red"
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="flex flex-col gap-4 mt-8 md:hidden">
-              {books.map((b) => (
-                <div
-                  key={b.book_id}
-                  className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
-                >
-                  <div className="mb-3">
+      {/* Table */}
+      <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg border border-[#dbeafe] overflow-hidden">
+        <table className="w-full table-fixed">
+          <thead className="bg-[#f5f8fc] border-b border-[#dbeafe]">
+            <tr>
+              {["ID","Cover","Title","Publisher","Categories","Year","Qty","Avail","Price","Author","Actions"].map(h => (
+                <th key={h} className="py-3 px-5 text-center text-[#033060] font-bold">
+                  {h}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={11} className="text-center py-8">
+                  <div className="flex justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#033060]" />
+                  </div>
+                  <p className="text-gray-500 mt-4">Loading…</p>
+                </td>
+              </tr>
+            ) : filtered.length ? (
+              filtered.map((b, idx) => (
+                <tr key={b.book_id} className={`border-b hover:bg-[#f1f5fa] transition`}>
+                  <td className="py-2.5 px-5 text-center">{b.book_id}</td>
+                  <td className="py-2.5 px-5">
                     {b.image_url ? (
                       <img
                         src={getImageUrl(b.image_url)}
                         alt={b.title}
-                        className="w-full max-h-40 object-contain rounded shadow-sm border border-gray-200"
-                        onError={(e) => {
-                          console.log('Mobile image load error:', getImageUrl(b.image_url));
-                          e.currentTarget.style.display = 'none';
-                        }}
+                        className="h-12 w-8 object-cover rounded"
+                        onError={e => (e.currentTarget.style.display = "none")}
                       />
                     ) : (
-                      <div className="w-full h-40 bg-gray-100 rounded shadow-sm border border-gray-200 flex items-center justify-center">
-                        <Image size={40} className="text-gray-400" />
+                      <div className="h-12 w-8 bg-gray-100 rounded flex items-center justify-center">
+                        <ImageIcon className="text-gray-400" />
                       </div>
                     )}
-                  </div>
+                  </td>
+                  <td className="py-2.5 px-5 text-[#033060]">{b.title}</td>
+                  <td className="py-2.5 px-5">{b.publisher_name}</td>
+                  <td className="py-2.5 px-5">{b.categories.join(", ") || "None"}</td>
+                  <td className="py-2.5 px-5 text-center">{b.publication_year}</td>
+                  <td className="py-2.5 px-5 text-center">{b.quantity}</td>
+                  <td className="py-2.5 px-5 text-center">{b.availability ? "Yes":"No"}</td>
+                  <td className="py-2.5 px-5 text-center">{b.price}</td>
+                  <td className="py-2.5 px-5">{b.author}</td>
+                  <td className="py-2.5 px-5 text-center flex justify-center gap-3">
+                    <button onClick={() => openEdit(b)} className="p-2 rounded hover:bg-blue-100">
+                      <Pencil className="h-5 w-5 text-[#033060]" />
+                    </button>
+                    <button onClick={() => openDelete(b)} className="p-2 rounded hover:bg-red-100">
+                      <Trash2 className="h-5 w-5 text-red-600" />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan={11} className="text-center py-8 text-gray-500">
+                  No books found
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
 
-                  <div className="flex justify-between items-center mb-3">
-                    <h3 className="font-bold text-[#467DA7] text-lg text-left">
-                      {b.title}
-                    </h3>
-                    <div className="flex gap-2">
-                      <IconBtn
-                        icon={<Pencil size={16} />}
-                        onClick={() => openEdit(b)}
-                      />
-                      <IconBtn
-                        icon={<Trash2 size={16} />}
-                        onClick={() => openDelete(b)}
-                        color="red"
-                      />
-                    </div>
-                  </div>
-                  <InfoRow label="ID" value={b.book_id} />
-                  <InfoRow label="Publisher ID" value={b.publisher_id} />
-                  <InfoRow label="Year" value={b.publication_year} />
-                  <InfoRow label="Quantity" value={b.quantity} />
-                  <InfoRow
-                    label="Available"
-                    value={b.availability ? "Yes" : "No"}
-                  />
-                  <InfoRow label="Price" value={b.price} />
-                  <InfoRow label="Author" value={b.author} />
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </main>
-
+      {/* Add/Edit Modal */}
       {(modal === "add" || modal === "edit") && (
         <Backdrop>
-          <div className="w-full max-w-md bg-white border-2 border-[#467DA7] rounded-2xl p-8 shadow-xl animate-scale-in text-gray-900 max-h-[90vh] overflow-y-auto">
-            <h2 className="text-xl font-extrabold text-left uppercase mb-6 text-[#467DA7]">
+          <div className="w-full max-w-md bg-white rounded-2xl p-8 shadow-xl animate-scale-in max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl font-extrabold text-[#033060] uppercase mb-6">
               {modal === "add" ? "Add Book" : "Edit Book"}
             </h2>
 
-            {/* Các trường nhập liệu (loại bỏ image_url khỏi form) */}
-            {(Object.keys(empty).filter(key => key !== 'image_url') as (keyof BookDTO)[]).map((f) => (
-              <div key={f} className="mb-5">
-                <label className="block text-sm mb-1 font-medium text-gray-700 capitalize">
-                  {f.replace("_", " ")}
-                  {(f === "title" || f === "author") && (
-                    <span className="text-[#467DA7]"> *</span>
-                  )}
-                </label>
+            {/* Publisher */}
+            <div className="mb-5">
+              <label className="block text-sm mb-1 font-medium">
+                Publisher <span className="text-[#033060]">*</span>
+              </label>
+              <select
+                value={form.publisher_id}
+                onChange={e => setForm({ ...form, publisher_id: +e.target.value })}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#033060] ${
+                  formErrors.publisher_id ? "border-red-500" : "border-gray-300"
+                }`}
+              >
+                <option value={0}>Select publisher</option>
+                {allPublishers.map(pub => (
+                  <option key={pub.publisher_id} value={pub.publisher_id}>
+                    {pub.name}
+                  </option>
+                ))}
+              </select>
+              {formErrors.publisher_id && (
+                <p className="text-xs text-red-500 mt-1">{formErrors.publisher_id}</p>
+              )}
+            </div>
 
-                {f === "availability" ? (
-                  <select
-                    value={form[f] ? "yes" : "no"}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        availability: e.target.value === "yes",
-                      })
-                    }
-                    className={inputCls(formErrors[f])}
-                  >
-                    <option value="yes">Yes</option>
-                    <option value="no">No</option>
-                  </select>
-                ) : f === "publication_year" ? (
+            {/* Other inputs */}
+            {(["title","author","publication_year","quantity","price"] as const).map(key => (
+              <div key={key} className="mb-5">
+                <label className="block text-sm mb-1 font-medium">
+                  {key.replace("_"," ").replace(/\b\w/g,c=>c.toUpperCase())}
+                  {(key==="title"||key==="author") && <span className="text-[#033060]">*</span>}
+                </label>
+                {key==="publication_year" ? (
                   <input
                     type="date"
-                    value={getDateInputValue(form.publication_year)}
-                    onChange={(e) => {
-                      const year = e.target.value ? dateToYear(e.target.value) : 0;
-                      setForm({
-                        ...form,
-                        publication_year: year,
-                      });
+                    value={form.publication_year ? `${form.publication_year}-01-01` : ""}
+                    onChange={e => {
+                      const yr = e.target.value ? new Date(e.target.value).getFullYear() : 0;
+                      setForm({ ...form, publication_year: yr });
                     }}
-                    className={inputCls(formErrors[f])}
-                    placeholder="Select publication date"
-                  />
-                ) : f === "publisher_id" ||
-                  f === "quantity" ||
-                  f === "price" ? (
-                  <input
-                    type="number"
-                    value={form[f] as number}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        [f]: Number(e.target.value),
-                      } as BookDTO)
-                    }
-                    className={inputCls(formErrors[f])}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#033060] ${
+                      formErrors[key] ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
                 ) : (
                   <input
-                    value={form[f] as string}
-                    onChange={(e) =>
-                      setForm({ ...form, [f]: e.target.value } as BookDTO)
+                    type={key==="quantity"||key==="price"?"number":"text"}
+                    value={form[key] as any}
+                    onChange={e =>
+                      setForm({
+                        ...form,
+                        [key]: key==="quantity"||key==="price" ? +e.target.value : e.target.value,
+                      } as BookDTO)
                     }
-                    className={inputCls(formErrors[f])}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#033060] ${
+                      formErrors[key] ? "border-red-500" : "border-gray-300"
+                    }`}
                   />
                 )}
-                {formErrors[f] && (
-                  <p className="text-xs text-[#467DA7] mt-1">
-                    {formErrors[f]}
-                  </p>
+                {formErrors[key] && (
+                  <p className="text-xs text-red-500 mt-1">{formErrors[key]}</p>
                 )}
               </div>
             ))}
 
-            {/* Hiển thị ảnh hiện tại khi edit */}
-            {modal === "edit" && active?.image_url && (
-              <div className="mb-5">
-                <label className="block text-sm mb-1 font-medium text-gray-700">
-                  Current Image
-                </label>
-                <img
-                  src={getImageUrl(active.image_url)}
-                  alt="Current book cover"
-                  className="max-h-32 rounded shadow border border-gray-200"
-                  onError={(e) => {
-                    console.log('Current image load error:', getImageUrl(active.image_url));
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Trường upload ảnh mới */}
+            {/* Category */}
             <div className="mb-5">
-              <label className="block text-sm mb-1 font-medium text-gray-700 capitalize">
-                {modal === "edit" ? "Change Book Cover Image" : "Book Cover Image"}
+              <label className="block text-sm mb-1 font-medium">
+                Category <span className="text-[#033060]">*</span>
+              </label>
+              <select
+                value={selectedCategories[0] || 0}
+                onChange={e => {
+                  const value = Number(e.target.value);
+                  setSelectedCategories(value > 0 ? [value] : []);
+                }}
+                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#033060] ${
+                  formErrors.category_ids ? "border-red-500" : "border-gray-300"
+                }`}
+              >
+                <option value={0}>Select category</option>
+                {allCategories.map(cat => (
+                  <option key={cat.category_id} value={cat.category_id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+              {formErrors.category_ids && (
+                <p className="text-xs text-red-500 mt-1">{formErrors.category_ids}</p>
+              )}
+            </div>
+
+            {/* Image upload */}
+            <div className="mb-5">
+              <label className="block text-sm mb-1 font-medium">
+                {modal === "edit" ? "Change Cover Image" : "Cover Image"}
               </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageUpload}
-                className={inputCls()}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#033060]"
               />
               {previewImage && (
                 <div className="mt-3">
@@ -517,94 +477,68 @@ const BookManagementPage: React.FC = () => {
               )}
             </div>
 
-            <div className="flex justify-end gap-3 mt-8">
+            <div className="flex justify-end gap-4 mt-8">
               <button
                 onClick={closeModal}
-                className="px-4 py-2 border border-gray-400 rounded-lg hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-[#467DA7] transition"
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-2 focus:ring-[#033060]"
               >
                 Cancel
               </button>
               <button
-                disabled={submitting}
                 onClick={handleSave}
-                className="px-5 py-2 bg-[#467DA7] text-white font-semibold rounded-lg hover:bg-[#467DA7]/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#467DA7] transition"
-              >
-                {submitting ? "Saving…" : "Save"}
-              </button>
+                disabled={submitting}
+                className="px-5 py-2 bg-[#033060] text-white rounded-lg hover:bg-[#021c3a] disabled:opacity-50 focus:ring-2 focus:ring-[#033060]"
+              >{submitting ? "Saving…" : "Save"}</button>
             </div>
           </div>
         </Backdrop>
       )}
 
+      {/* Delete Confirmation */}
       {modal === "delete" && active && (
         <Backdrop>
-          <div className="w-full max-w-xs bg-white border-2 border-[#467DA7] rounded-2xl p-8 shadow-xl text-center animate-scale-in text-gray-900">
+          <div className="w-full max-w-xs bg-white rounded-2xl p-8 shadow-xl animate-scale-in text-center">
             <p className="mb-8 text-lg">
-              Delete <span className="font-extrabold text-[#467DA7]">{active.title}</span>?
+              Delete <span className="font-extrabold text-[#033060]">{active.title}</span>?
             </p>
             <div className="flex justify-center gap-8">
               <button
                 onClick={closeModal}
-                className="px-4 py-2 border border-gray-400 rounded-lg hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-[#467DA7] transition"
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 focus:ring-2 focus:ring-[#033060]"
               >
                 No
               </button>
               <button
-                disabled={submitting}
                 onClick={handleDelete}
-                className="px-4 py-2 bg-[#467DA7] text-white font-semibold rounded-lg hover:bg-[#467DA7]/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#467DA7] transition"
-              >
-                {submitting ? "Deleting…" : "Yes"}
-              </button>
+                disabled={submitting}
+                className="px-4 py-2 bg-[#033060] text-white rounded-lg hover:bg-[#021c3a] disabled:opacity-50 focus:ring-2 focus:ring-[#033060]"
+              >{submitting ? "Deleting…" : "Yes"}</button>
             </div>
           </div>
         </Backdrop>
       )}
 
+      {/* Toast */}
       {toast && (
         <div
-          className={`fixed bottom-6 right-6 bg-[#467DA7] text-white px-4 py-2 rounded-lg shadow-lg transition-opacity duration-500 ${showToast ? "opacity-100" : "opacity-0"
-            }`}
+          className={`fixed bottom-6 right-6 flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg bg-white transition-opacity duration-500 ${
+            showToast ? "opacity-100" : "opacity-0"
+          }`}
         >
-          {toast}
+          {toast.type === "success" ? (
+            <CheckCircle className="h-5 w-5 text-green-500" />
+          ) : (
+            <XCircle className="h-5 w-5 text-red-500" />
+          )}
+          <span className="text-[#033060] font-medium">{toast.message}</span>
         </div>
       )}
     </div>
   );
-};
-
-export default BookManagementPage;
+}
 
 const Backdrop: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 animate-fade-in">
     {children}
   </div>
 );
-
-const IconBtn: React.FC<{
-  icon: React.ReactElement;
-  onClick: () => void;
-  color?: "red";
-}> = ({ icon, onClick, color }) => (
-  <button
-    onClick={onClick}
-    className={`p-2 rounded-full hover:bg-${color === "red" ? "red" : "[#467DA7]"
-      }/10 focus-visible:ring-2 focus-visible:ring-[#467DA7] transition`}
-  >
-    {icon}
-  </button>
-);
-
-const InfoRow: React.FC<{ label: string; value: React.ReactNode }> = ({
-  label,
-  value,
-}) => (
-  <p className="text-sm mb-1 text-left">
-    <span className="font-medium">{label}: </span>
-    {value}
-  </p>
-);
-
-const inputCls = (err?: string) =>
-  `w-full bg-white border ${err ? "border-[#467DA7]" : "border-gray-300"
-  } rounded-lg px-3 py-2 text-sm placeholder:text-gray-400 outline-none focus:ring-2 focus:ring-[#467DA7] focus:border-[#467DA7] transition`;

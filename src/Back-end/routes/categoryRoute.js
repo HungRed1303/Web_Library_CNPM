@@ -4,10 +4,10 @@ const {  isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware
 
 const router = express.Router();
 
-router.get("/",isAuthenticated,getAllCategory);
-router.get("/:id",isAuthenticated,getCategoryById);
-router.post("/",isAuthenticated,isAuthorized("A","L"),createCategory);
-router.put("/:id",isAuthenticated, isAuthorized("A","L"),updateCategory);
-router.delete("/:id",isAuthenticated,isAuthorized("A","L"),deleteCategory);
+router.get("/",getAllCategory);
+router.get("/:id",getCategoryById);
+router.post("/",isAuthorized("A","L"),createCategory);
+router.put("/:id", isAuthorized("A","L"),updateCategory);
+router.delete("/:id",isAuthorized("A","L"),deleteCategory);
 
 module.exports = router;

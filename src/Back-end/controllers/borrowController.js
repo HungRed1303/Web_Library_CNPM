@@ -3,116 +3,117 @@ const BookRequestModel = require("../models/bookrequestModel");
 const BookModel = require("../models/bookModel")
 const StudentModel = require("../models/studentModel")
 const CatchAsyncErrors = require('../middlewares/catchAsyncErrors');
-const {ErrorHandler} = require('../middlewares/errorMiddlewares');
+const { ErrorHandler } = require('../middlewares/errorMiddlewares');
+const e = require("express");
 
 const toSQLDate = (date) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0'); // tháng bắt đầu từ 0
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // tháng bắt đầu từ 0
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 };
 
-const calculateFine = (dueDate)=>{
+const calculateFine = (dueDate) => {
     const finePerHour = 0.1;
     const today = new Date();
     const jsDueDate = new Date(dueDate);
-    if(today > jsDueDate){
-        const lateHours = Math.ceil((today-jsDueDate)/(1000*60*60));
-        const fine =lateHours*finePerHour; 
-        return fine;     
+    if (today > jsDueDate) {
+        const lateHours = Math.ceil((today - jsDueDate) / (1000 * 60 * 60));
+        const fine = lateHours * finePerHour;
+        return fine;
     }
     return 0;
 }
 
-const getAllBookIssue = CatchAsyncErrors(async (req,res,next)=>{
+const getAllBookIssue = CatchAsyncErrors(async (req, res, next) => {
     const result = await BookIssueModel.getAllBookIssue();
     res.status(200).json({
-        success:true,
+        success: true,
         data: result
     })
 })
 
-const getBookIssueById = CatchAsyncErrors(async (req,res,next)=>{
+const getBookIssueById = CatchAsyncErrors(async (req, res, next) => {
     const id = req.params.id;
     const result = await BookIssueModel.getBookIssueById(id);
-    if(!result){
+    if (!result) {
         return next(new ErrorHandler("Book issue not found", 404));
     }
     res.status(200).json({
-        success:true,
-        data:result
-    })
-})
-
-const deleteBookIssue = CatchAsyncErrors( async (req,res,next)=>{
-    const id = req.params.id;
-    const result = await BookIssueModel.deleteBookIssue(id);
-    if(!result){
-        return next(new ErrorHandler("Book Issue Not Exist",404));
-    }
-    res.status(200).json({
-        success:true,
+        success: true,
         data: result
     })
 })
 
-const getAllBookRequest = CatchAsyncErrors(async (req,res,next)=>{
+const deleteBookIssue = CatchAsyncErrors(async (req, res, next) => {
+    const id = req.params.id;
+    const result = await BookIssueModel.deleteBookIssue(id);
+    if (!result) {
+        return next(new ErrorHandler("Book Issue Not Exist", 404));
+    }
+    res.status(200).json({
+        success: true,
+        data: result
+    })
+})
+
+const getAllBookRequest = CatchAsyncErrors(async (req, res, next) => {
     const result = await BookRequestModel.getAllBookRequest();
     res.status(200).json({
         success: true,
         data: result
     })
 })
-const getBookRequestById = CatchAsyncErrors( async(req,res,next)=>{
+const getBookRequestById = CatchAsyncErrors(async (req, res, next) => {
     const id = req.params.id;
     const result = await BookRequestModel.getBookRequestById(id);
 
-    if(!result){
-        return next(new ErrorHandler("Book Request Not Exist",404));
+    if (!result) {
+        return next(new ErrorHandler("Book Request Not Exist", 404));
     }
     res.status(200).json({
-        success:true,
+        success: true,
         data: result
     })
 })
 
-const deleteBookRequest = CatchAsyncErrors(async (req,res,next)=>{
+const deleteBookRequest = CatchAsyncErrors(async (req, res, next) => {
     const id = req.params.id;
     const result = await BookRequestModel.deleteBookRequest(id);
-    if(!result){
-        return next(new ErrorHandler("Book Request Not Exist",404));
-   }
-   res.status(200).json({
-    success:true,
-    data:result
-   })
+    if (!result) {
+        return next(new ErrorHandler("Book Request Not Exist", 404));
+    }
+    res.status(200).json({
+        success: true,
+        data: result
+    })
 })
 
-const borrowBook = CatchAsyncErrors(async (req,res,next)=>{
-    const {book_id,student_id} = req.body;
+const borrowBook = CatchAsyncErrors(async (req, res, next) => {
+    const { book_id, student_id } = req.body;
     const book = await BookModel.getBookById(book_id);
 
-    if(!book){
-        
-        return next(new ErrorHandler("Book Not Exist",400));
+    if (!book) {
+
+        return next(new ErrorHandler("Book Not Exist", 400));
     }
 
     const student = await StudentModel.getStudentById(student_id);
 
-    if(!student){
+    if (!student) {
 
-        return next(new ErrorHandler("Student Not Exist",400));
+        return next(new ErrorHandler("Student Not Exist", 400));
     }
-    const bookissues = await BookIssueModel.getBookIssueByStudentBook(book_id,student_id);
+    const bookissues = await BookIssueModel.getBookIssueByStudentBook(book_id, student_id);
     const isAlreadyBorrowed = bookissues.some(issue => issue.status === 'issuing');
-   
-    if( isAlreadyBorrowed){
-        return next( new ErrorHandler("Book Already Borrowes",400));
+
+    if (isAlreadyBorrowed) {
+        return next(new ErrorHandler("Book Already Borrowes", 400));
     }
-    const request_date = toSQLDate(new Date()); 
-    const result = await BookRequestModel.createBookRequest(book_id,student_id,request_date);
+    const request_date = toSQLDate(new Date());
+    const result = await BookRequestModel.createBookRequest(book_id, student_id, request_date);
     res.status(200).json({
-        success:true,
+        success: true,
         data: result
     })
 })
@@ -128,7 +129,10 @@ const issueBook = CatchAsyncErrors(async (req,res,next)=>{
     const student = await StudentModel.getStudentById(student_id);
 
     if(!student){
+        console.log("Student Not Exist");
+        console.log(student);
         return next(new ErrorHandler("Student Not Exist",400));
+        console.log(student);
     }
     const book = await BookModel.getBookById(book_id);
     
@@ -140,7 +144,7 @@ const issueBook = CatchAsyncErrors(async (req,res,next)=>{
         return next(new ErrorHandler("Book Not Available",400));
     }
     
-      const bookissues = await BookIssueModel.getBookIssueByStudentBook(book_id,student_id);
+    const bookissues = await BookIssueModel.getBookIssueByStudentBook(book_id,student_id);
     const isAlreadyBorrowed = bookissues.some(issue => issue.status === 'issuing');
    
     if( isAlreadyBorrowed){
@@ -174,49 +178,85 @@ const issueBook = CatchAsyncErrors(async (req,res,next)=>{
 
 })
 
-const returnBook = CatchAsyncErrors(async (req,res,next)=>{
-  const issue_id = req.params.id;
-  const issue = await BookIssueModel.getBookIssueById(issue_id);
-  if (!issue) {
-    return next(new ErrorHandler("Issue Not Exist", 400));
-  }
-  const {book_id,student_id,issue_date,due_date,return_date,fine_amount,status} = issue;
-  const student = await StudentModel.getStudentById(student_id);
+// Reject a book request
+const rejectBookRequest = CatchAsyncErrors(async (req, res, next) => {
+    const request_id = req.params.id;
+    const request = await BookRequestModel.getBookRequestById(request_id);
 
-   if(!student){
-        return next(new ErrorHandler("Student Not Exist",400));
+    if (!request) {
+        return next(new ErrorHandler("Request Not Exist", 400));
     }
-   const book = await BookModel.getBookById(book_id);
 
-   if(!book){
-        return next(new ErrorHandler("Book Not Exist",400));
+    const { book_id, student_id, request_date } = request;
+    const student = await StudentModel.getStudentById(student_id);
+    if (!student) {
+        return next(new ErrorHandler("Student Not Exist", 400));
     }
-    const bookissues = await BookIssueModel.getBookIssueByStudentBook(book_id,student_id);
+    const book = await BookModel.getBookById(book_id);
+    if (!book) {
+        return next(new ErrorHandler("Book Not Exist", 400));
+    }
+    // Update the book request status to "rejected"
+    const status = "rejected";
+
+    const result = await BookRequestModel.updateBookRequest(
+        request_id,
+        book_id,
+        student_id,
+        request_date,
+        status
+    );
+
+    res.status(200).json({
+        success: true,
+        message: "Book request rejected",
+        data: result,
+    });
+});
+
+const returnBook = CatchAsyncErrors(async (req, res, next) => {
+    const issue_id = req.params.id;
+    const issue = await BookIssueModel.getBookIssueById(issue_id);
+    if (!issue) {
+        return next(new ErrorHandler("Issue Not Exist", 400));
+    }
+    const { book_id, student_id, issue_date, due_date, return_date, fine_amount, status } = issue;
+    const student = await StudentModel.getStudentById(student_id);
+
+    if (!student) {
+        return next(new ErrorHandler("Student Not Exist", 400));
+    }
+    const book = await BookModel.getBookById(book_id);
+
+    if (!book) {
+        return next(new ErrorHandler("Book Not Exist", 400));
+    }
+    const bookissues = await BookIssueModel.getBookIssueByStudentBook(book_id, student_id);
     const isAlreadyBorrowed = bookissues.some(issue1 => issue1.status === 'issuing');
-   
-    if( !isAlreadyBorrowed){
-        return next( new ErrorHandler("You have not borrow this book",400));
+
+    if (!isAlreadyBorrowed) {
+        return next(new ErrorHandler("You have not borrow this book", 400));
     }
     let quantity = book.quantity + 1;
 
     let availability = quantity > 0 ? "available" : "unavailable";
-    const result0 = await BookModel.updateBook(book_id,book.title,book.publisher_id, toSQLDate(book.publication_year),quantity,availability,book.price,book.author);
-    
+    const result0 = await BookModel.updateBook(book_id, book.title, book.publisher_id, toSQLDate(book.publication_year), quantity, availability, book.price, book.author);
+
     const returnDate = toSQLDate(new Date());
     const fine = calculateFine(due_date);
     const newstatus = "returned";
 
-    const result = await BookIssueModel.updateBookIssue(issue_id,book_id,student_id,issue_date,due_date,returnDate,fine,newstatus);
+    const result = await BookIssueModel.updateBookIssue(issue_id, book_id, student_id, issue_date, due_date, returnDate, fine, newstatus);
 
     res.status(200).json({
-        success:true,
+        success: true,
         data0: result0,
         data1: result
     })
 
 })
 
-module.exports ={
+module.exports = {
     getAllBookIssue,
     getAllBookRequest,
     getBookIssueById,
@@ -225,5 +265,6 @@ module.exports ={
     deleteBookRequest,
     borrowBook,
     issueBook,
-    returnBook
+    returnBook,
+    rejectBookRequest
 }

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
-import {loginUser} from "../service/Services"
+import {loginUser} from "../service/authService"
 import { useNavigate } from "react-router-dom"
 
 const LoginForm = () => {
