@@ -103,11 +103,23 @@ const findByUserId = async (userId) => {
   }
 };
 
+const getStudentByUserId = async (user_id) =>{
+      const result = await pool.query(
+    `SELECT s.student_id, u.username, u.email, u.name, s.class_id
+     FROM students s
+     JOIN users u ON s.user_id = u.user_id
+     WHERE s.user_id = $1`,
+    [user_id]
+  );
+  return result.rows[0];
+}
+
 module.exports = {
     getAllStudent,
     getStudentById,
     createStudent,
     updateStudent,
     deleteStudent,
-    findByUserId
+    findByUserId,
+    getStudentByUserId
 }
