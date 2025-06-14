@@ -18,11 +18,11 @@ type BookData = {
 };
 
 interface TokenPayload {
-  id: number; // hoặc id tùy vào token của bạn
-  exp?: number;    // (tuỳ chọn) thời gian hết hạn
-  iat?: number;    // (tuỳ chọn) thời gian phát hành
-  // thêm các trường khác nếu token có, ví dụ: name, email, role,...
+  id: number;
+  exp?: number;
+  iat?: number;
 }
+
 export default function BookDetailPage() {
   const { id } = useParams<{ id: string }>();
   const bookId = parseInt(id || '0');
@@ -31,6 +31,14 @@ export default function BookDetailPage() {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [isBorrowed, setIsBorrowed] = useState(false);
+
+  // Helper để tạo URL ảnh đầy đủ (tương tự BookListPage)
+  const getImageUrl = (imageUrl: string | null): string => {
+    if (!imageUrl) return "";
+    if (imageUrl.startsWith("http")) return imageUrl;
+    const cleanPath = imageUrl.startsWith("/") ? imageUrl.substring(1) : imageUrl;
+    return `http://localhost:3000/${cleanPath}`;
+  };
 
   const getBookById = async (id: number): Promise<BookData> => {
     const token = localStorage.getItem('token');
@@ -59,83 +67,81 @@ export default function BookDetailPage() {
     }
   }
 
-const actualHandleBorrowBook = async (book_id: number) => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    throw new Error("No token found");
-  }
- 
-  try {
-    // 🔓 Giải mã token để lấy user_id
-    const decoded = jwtDecode<TokenPayload>(token);
-    const user_id =  decoded.id;
-    
-    console.log(decoded.id)
-
-    if (!user_id) {
-      throw new Error("Không tìm thấy user_id trong token");
+  const actualHandleBorrowBook = async (book_id: number) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error("No token found");
     }
 
-    // 📥 Gọi API để lấy student_id từ user_id
-    const studentRes = await fetch(`http://localhost:3000/api/students/user-id/${user_id}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
+    try {
+      const decoded = jwtDecode<TokenPayload>(token);
+      const user_id = decoded.id;
+
+      console.log(decoded.id)
+
+      if (!user_id) {
+        throw new Error("Không tìm thấy user_id trong token");
       }
-    });
-    
-    console.log(studentRes)
-    if (!studentRes.ok) {
-      throw new Error("Không thể lấy thông tin student_id từ user_id");
+
+      const studentRes = await fetch(`http://localhost:3000/api/students/user-id/${user_id}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      console.log(studentRes)
+      if (!studentRes.ok) {
+        throw new Error("Không thể lấy thông tin student_id từ user_id");
+      }
+
+      const studentData = await studentRes.json();
+      const student_id = studentData?.data?.student_id;
+
+      if (!student_id) {
+        throw new Error("Dữ liệu student_id không hợp lệ");
+      }
+
+      const borrowRes = await fetch('http://localhost:3000/api/borrow/borrow-book', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ book_id, student_id })
+      });
+
+      if (!borrowRes.ok) {
+        throw new Error('Mượn sách thất bại');
+      }
+
+      const result = await borrowRes.json();
+      return result.data;
+    } catch (error) {
+      console.error("Error handleBorrowBook", error);
+      throw error;
     }
+  };
 
-    const studentData = await studentRes.json();
-    const student_id = studentData?.data?.student_id;
-
-    if (!student_id) {
-      throw new Error("Dữ liệu student_id không hợp lệ");
+  const handleBorrowBook = async (book_id: number) => {
+    try {
+      await actualHandleBorrowBook(book_id);
+      setIsBorrowed(true);
+    } catch (error) {
+      console.error("Mượn sách lỗi", error);
     }
+  };
 
-    // 📤 Gửi yêu cầu mượn sách
-    const borrowRes = await fetch('http://localhost:3000/api/borrow/borrow-book', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`
-      },
-      body: JSON.stringify({ book_id, student_id })
-    });
-
-    if (!borrowRes.ok) {
-      throw new Error('Mượn sách thất bại');
-    }
-
-    const result = await borrowRes.json();
-    return result.data;
-  } catch (error) {
-    console.error("Error handleBorrowBook", error);
-    throw error;
-  }
-};
-
-const handleBorrowBook = async (book_id: number) => {
-  try {
-    await actualHandleBorrowBook(book_id); // tách logic ra ngoài nếu cần
-    setIsBorrowed(true); // ✅ sau khi mượn thành công
-  } catch (error) {
-    console.error("Mượn sách lỗi", error);
-  }
-};
   useEffect(() => {
     const fetchBookData = async () => {
       try {
         setLoading(true)
         const data = await getBookById(bookId)
-        console.log('Book data received:', data) // Debug log
+        console.log('Book data received:', data)
         setBookData(data)
       } catch (err) {
-        console.error('Error fetching book:', err) // Debug log
+        console.error('Error fetching book:', err)
         setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {
         setLoading(false)
@@ -145,16 +151,9 @@ const handleBorrowBook = async (book_id: number) => {
     fetchBookData()
   }, [bookId])
 
-  // Default image when no image is provided
-  const bookImages = [
-    bookData?.image_url || "/placeholder.svg?height=600&width=450",
-    "/placeholder.svg?height=600&width=450",
-    "/placeholder.svg?height=600&width=450",
-    "/placeholder.svg?height=600&width=450",
-    "/placeholder.svg?height=600&width=450",
-  ]
+  // Tạo URL ảnh cho sách (sử dụng logic tương tự BookListPage)
+  const bookImageUrl = bookData?.image_url ? getImageUrl(bookData.image_url) : "";
 
-  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] flex items-center justify-center">
@@ -166,14 +165,13 @@ const handleBorrowBook = async (book_id: number) => {
     )
   }
 
-  // Error state
   if (error) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-500 text-lg mb-4">Lỗi: {error}</div>
-          <button 
-            onClick={() => window.location.reload()} 
+          <button
+            onClick={() => window.location.reload()}
             className="bg-[#033060] text-white px-4 py-2 rounded-lg hover:bg-[#033060]/90"
           >
             Thử lại
@@ -183,16 +181,14 @@ const handleBorrowBook = async (book_id: number) => {
     )
   }
 
-  // Main render
   return (
     <div
       className="min-h-screen bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7]"
       style={{ fontFamily: "Poppins, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-          <button 
+          <button
             onClick={() => window.history.back()}
             className="flex items-center gap-2 hover:text-[#033060] cursor-pointer transition-colors"
           >
@@ -201,25 +197,36 @@ const handleBorrowBook = async (book_id: number) => {
           </button>
         </nav>
 
-        {/* Main Content */}
         <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-12">
           {/* Left Column - Book Images */}
           <div className="space-y-4">
-            {/* Main Image */}
             <div className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-white shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <img
-                src={bookImages[selectedImage] || "/placeholder.svg"}
-                alt={bookData?.title || "Book cover"}
-                className="w-full h-full object-cover"
-              />
+              {bookImageUrl ? (
+                <img
+                  src={bookImageUrl}
+                  alt={bookData?.title || "Book cover"}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    // Tạo placeholder element
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'w-full h-full bg-gray-100 flex items-center justify-center';
+                    placeholder.innerHTML = '<span class="text-gray-400">No Image</span>';
+                    e.currentTarget.parentNode?.appendChild(placeholder);
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                  <span className="text-gray-400">No Image</span>
+                </div>
+              )}
 
               {/* Status Badge */}
               <div className="absolute top-4 left-4">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium shadow-sm ${
-                  bookData?.availability === 'available' 
-                    ? 'bg-green-500 text-white' 
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium shadow-sm ${bookData?.availability === 'available'
+                    ? 'bg-green-500 text-white'
                     : 'bg-red-500 text-white'
-                }`}>
+                  }`}>
                   {bookData?.availability === 'available' ? 'Có sẵn' : 'Hết sách'}
                 </span>
               </div>
@@ -228,7 +235,6 @@ const handleBorrowBook = async (book_id: number) => {
 
           {/* Right Column - Book Information */}
           <div className="space-y-6">
-            {/* Book Title & Author */}
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 leading-tight">
                 {bookData?.title || 'Không có tiêu đề'}
@@ -241,7 +247,6 @@ const handleBorrowBook = async (book_id: number) => {
               </p>
             </div>
 
-            {/* Detailed Information */}
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
               <h3 className="font-semibold text-gray-900 mb-4 text-lg">Thông tin chi tiết</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -272,7 +277,6 @@ const handleBorrowBook = async (book_id: number) => {
               </div>
             </div>
 
-            {/* Genre Tags */}
             <div>
               <h3 className="font-semibold text-gray-900 mb-3 text-lg">Thể loại</h3>
               <div className="flex flex-wrap gap-2">
@@ -292,18 +296,15 @@ const handleBorrowBook = async (book_id: number) => {
               </div>
             </div>
 
-            {/* Book Status */}
-            <div className={`border rounded-2xl p-4 ${
-              bookData?.availability === 'available' 
-                ? 'bg-green-50 border-green-200' 
+            <div className={`border rounded-2xl p-4 ${bookData?.availability === 'available'
+                ? 'bg-green-50 border-green-200'
                 : 'bg-red-50 border-red-200'
-            }`}>
-              <div className={`flex items-center gap-2 ${
-                bookData?.availability === 'available' ? 'text-green-700' : 'text-red-700'
               }`}>
+              <div className={`flex items-center gap-2 ${bookData?.availability === 'available' ? 'text-green-700' : 'text-red-700'
+                }`}>
                 <BookOpen className="w-5 h-5 flex-shrink-0" />
                 <span className="font-semibold">
-                  {bookData?.availability === 'available' 
+                  {bookData?.availability === 'available'
                     ? `Còn ${bookData?.quantity || 0} bản, thời gian mượn tối đa: 14 ngày`
                     : 'Hiện tại không có sách'
                   }
@@ -311,25 +312,23 @@ const handleBorrowBook = async (book_id: number) => {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex gap-4 pt-4 flex-col sm:flex-row">
-<button 
-  onClick={() => handleBorrowBook(bookData?.book_id)}
-  disabled={bookData?.availability !== 'available' || isBorrowed}
-  className={`flex-1 rounded-2xl py-3 px-6 text-lg font-semibold transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] ${
-    isBorrowed
-      ? 'bg-gray-500 text-white cursor-not-allowed'
-      : bookData?.availability === 'available'
-        ? 'bg-[#033060] hover:bg-[#033060]/90 text-white'
-        : 'bg-gray-400 text-white cursor-not-allowed'
-  }`}
->
-  {isBorrowed
-    ? 'Đã gửi yêu cầu'
-    : bookData?.availability === 'available'
-      ? 'Mượn ngay'
-      : 'Hết sách'}
-</button>
+              <button
+                onClick={() => handleBorrowBook(bookData?.book_id)}
+                disabled={bookData?.availability !== 'available' || isBorrowed}
+                className={`flex-1 rounded-2xl py-3 px-6 text-lg font-semibold transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] ${isBorrowed
+                    ? 'bg-gray-500 text-white cursor-not-allowed'
+                    : bookData?.availability === 'available'
+                      ? 'bg-[#033060] hover:bg-[#033060]/90 text-white'
+                      : 'bg-gray-400 text-white cursor-not-allowed'
+                  }`}
+              >
+                {isBorrowed
+                  ? 'Đã gửi yêu cầu'
+                  : bookData?.availability === 'available'
+                    ? 'Mượn ngay'
+                    : 'Hết sách'}
+              </button>
               <button className="flex-1 border-2 border-[#033060] text-[#033060] hover:bg-[#033060]/5 rounded-2xl py-3 px-6 text-lg font-semibold transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
                 Thêm vào yêu thích
               </button>
@@ -340,3 +339,4 @@ const handleBorrowBook = async (book_id: number) => {
     </div>
   )
 }
+
