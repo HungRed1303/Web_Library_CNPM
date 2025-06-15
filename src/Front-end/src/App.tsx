@@ -29,7 +29,7 @@ import AdminProfilePage from "./pages/AdminProfilePage"; // Placeholder for admi
 import LibrarianProfilePage from "./pages/LibrarianProfilePage"; // Placeholder for librarian profile page
 
 import BookDetailPage from "./pages/DetailBookPage";
-
+import ReturnBookPage from "./pages/ReturnBookPage";
 
 function App() {
   return (
@@ -82,7 +82,7 @@ function App() {
           <Route path="/students" element={<StudentManagementPage />} />
           <Route path="/publishers" element={<PublisherManagementPage />} />
           <Route path="/approve-book-request" element={<ApproveBookRequestPage/>} />
-          
+          <Route path="/return-book" element = {<ReturnBookPage/>}/>
         </Route>
         
         {/* ---------- Catch-All Route ---------- */}
