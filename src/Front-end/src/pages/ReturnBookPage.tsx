@@ -21,60 +21,6 @@ interface BookIssue {
   overdue_reminder_sent_at: string | null;
 }
 
-// Mock data based on your API structure
-const mockData: BookIssue[] = [
-  {
-    issue_id: 5,
-    book_id: 1,
-    student_id: 7,
-    issue_date: "2025-05-24T17:00:00.000Z",
-    due_date: "2025-06-07T17:00:00.000Z",
-    return_date: null,
-    fine_amount: null,
-    status: "issuing",
-    reminder_sent: false,
-    reminder_sent_at: null,
-    overdue_reminder_sent: false,
-    overdue_reminder_sent_at: null,
-    student_name: "Hung Khah",
-    book_title: "Book A"
-  },
-  {
-    issue_id: 6,
-    book_id: 2,
-    student_id: 8,
-    issue_date: "2025-05-20T17:00:00.000Z",
-    due_date: "2025-06-03T17:00:00.000Z",
-    return_date: "2025-06-10T17:00:00.000Z",
-    fine_amount: 35,
-    status: "returned",
-    reminder_sent: true,
-    reminder_sent_at: "2025-06-01T17:00:00.000Z",
-    overdue_reminder_sent: true,
-    overdue_reminder_sent_at: "2025-06-05T17:00:00.000Z",
-    student_name: "John Smith",
-    book_title: "Advanced Mathematics"
-  },
-  {
-    issue_id: 7,
-    book_id: 3,
-    student_id: 9,
-    issue_date: "2025-05-15T17:00:00.000Z",
-    due_date: "2025-05-28T17:00:00.000Z",
-    return_date: null,
-    fine_amount: null,
-    status: "overdue",
-    reminder_sent: true,
-    reminder_sent_at: "2025-05-26T17:00:00.000Z",
-    overdue_reminder_sent: true,
-    overdue_reminder_sent_at: "2025-05-30T17:00:00.000Z",
-    student_name: "Alice Johnson",
-    book_title: "Physics Fundamentals"
-  }
-];
-
-// API Service Functions
-
 const BookReturnManagement = () => {
   const [books, setBooks] = useState<BookIssue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,7 +30,7 @@ const BookReturnManagement = () => {
   const [showToast, setShowToast] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   // Fetch data from database
   useEffect(() => {
@@ -145,7 +91,7 @@ const BookReturnManagement = () => {
   const calculateFineAmount = (book: BookIssue): number => {
     // If book is returned and has a fine amount, use it
     if (book.return_date && book.fine_amount !== null) {
-      return book.fine_amount;
+      return parseFloat(book.fine_amount.toFixed(2));
     }
     
     // If book is not returned, calculate current fine
@@ -158,7 +104,7 @@ const BookReturnManagement = () => {
         const diffTime = today.getTime() - jsDueDate.getTime();
         const lateHours = Math.ceil(diffTime / (1000 * 60 * 60));
         const fine = lateHours * finePerHour;
-        return Math.round(fine * 100) / 100;
+        return parseFloat(fine.toFixed(2));
       }
     }
     
@@ -315,7 +261,7 @@ const BookReturnManagement = () => {
     issued: books.filter((b) => b.status === "issuing").length,
     overdue: books.filter((b) => b.status === "overdue").length,
     returned: books.filter((b) => b.status === "returned").length,
-    totalFines: books.reduce((sum, book) => sum + (book.fine_amount || 0), 0),
+    totalFines: parseFloat(books.reduce((sum, book) => sum + (book.fine_amount || 0), 0).toFixed(2)),
   };
 
   // Reset page when filter changes
@@ -353,7 +299,7 @@ const BookReturnManagement = () => {
           <div className="text-gray-600">Returned</div>
         </div>
         <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="text-3xl font-bold text-orange-600 mb-2">${stats.totalFines}</div>
+          <div className="text-3xl font-bold text-orange-600 mb-2">${stats.totalFines.toFixed(2)}</div>
           <div className="text-gray-600">Total Fines</div>
         </div>
       </div>
@@ -462,12 +408,12 @@ const BookReturnManagement = () => {
                             book.status === "returned" ? "text-green-600" : "text-red-600"
                           }`}>
                             <DollarSign className="w-4 h-4" />
-                            {fineAmount}
+                            {fineAmount.toFixed(2)}
                           </span>
                         ) : (
                           <span className="text-green-600 flex items-center justify-center gap-1">
                             <DollarSign className="w-4 h-4" />
-                            0
+                            0.00
                           </span>
                         )}
                       </td>
