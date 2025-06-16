@@ -430,7 +430,7 @@ const BookReturnManagement = () => {
                           <User className="w-4 h-4 text-blue-600" />
                           <div>
                             <div className="font-semibold">{book.student_name || 'N/A'}</div>
-                            <div className="text-sm text-gray-600">ID: {book.student_id}</div>
+                           
                           </div>
                         </div>
                       </td>
@@ -439,7 +439,7 @@ const BookReturnManagement = () => {
                           <BookOpen className="w-4 h-4 text-green-600" />
                           <div>
                             <div className="font-semibold">{book.book_title || 'N/A'}</div>
-                            <div className="text-sm text-gray-600">Book ID: {book.book_id}</div>
+                         
                           </div>
                         </div>
                       </td>
