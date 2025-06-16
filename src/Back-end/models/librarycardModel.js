@@ -29,7 +29,6 @@ const createLibraryCard = async (student_id,start_date,end_date,status = "pendin
     return result.rows[0];
 }
 
-
 const updateLibraryCard = async (library_card_id,student_id, start_date,end_date, status)=>{
     const card = await pool.query(`
         SELECT *

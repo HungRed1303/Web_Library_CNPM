@@ -2,7 +2,6 @@ const StudentModel = require('../models/studentModel');
 const CatchAsyncErrors = require('../middlewares/catchAsyncErrors');
 const {ErrorHandler} = require('../middlewares/errorMiddlewares');
 
-
 const getAllStudent = CatchAsyncErrors(async (req, res, next) => {
     const students = await StudentModel.getAllStudent();
     res.status(200).json({
@@ -48,9 +47,22 @@ const deleteStudent = CatchAsyncErrors(async (req, res, next) => {
     });
 });
 
+const getStudentByUserId =CatchAsyncErrors(async (req, res, next) => {
+    const user_id = req.params.id;
+    const student = await StudentModel.getStudentByUserId(user_id);
+    if (!student) {
+        return next(new ErrorHandler('Student not found', 404));
+    }
+    res.status(200).json({
+        success: true,
+        data: student
+    });
+});
 module.exports = {
     getAllStudent,
     getStudentById,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    getStudentByUserId
 };
+

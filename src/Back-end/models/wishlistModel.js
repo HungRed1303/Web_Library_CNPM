@@ -15,6 +15,7 @@ const insertBookWishList = async (student_id,book_id,created_date)=>{
     const result = await pool.query(`
         INSERT INTO wishlist (student_id,book_id,created_date)
         VALUES ($1,$2,$3)
+        RETURNING *
         `,
         [student_id,book_id,created_date]);
 

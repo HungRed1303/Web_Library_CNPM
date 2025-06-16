@@ -23,8 +23,8 @@ const getPublisherById = CatchAsyncErrors(async (req, res, next) => {
 });
 
 const createPublisher = CatchAsyncErrors(async (req, res, next) => {
-    const { name, address, phone_number } = req.body;
-    const publisher = await PublisherModel.createPublisher(name, address, phone_number);
+    const { name, address, email, phone_number } = req.body;
+    const publisher = await PublisherModel.createPublisher(name, address, email, phone_number);
     res.status(201).json({
         success: true,
         data: publisher
@@ -33,8 +33,8 @@ const createPublisher = CatchAsyncErrors(async (req, res, next) => {
 
 const updatePublisher = CatchAsyncErrors(async (req, res, next) => {
     const publisher_id = req.params.id;
-    const { name, address, phone_number } = req.body;
-    const publisher = await PublisherModel.updatePublisher(publisher_id, name, address, phone_number);
+    const { name, address, email, phone_number } = req.body;
+    const publisher = await PublisherModel.updatePublisher(name, address, email, phone_number, publisher_id);
     if (!publisher) {
         return next(new ErrorHandler('Publisher not found', 404));
     }

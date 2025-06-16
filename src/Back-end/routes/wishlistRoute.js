@@ -4,7 +4,7 @@ const {  isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware
 
 router = express.Router();
 
-router.get("/",getWishListByStudentId);
+router.get("/:id",getWishListByStudentId);
 router.post("/",insertBookWishList);
 router.delete("/",deleteBookWishList);
 

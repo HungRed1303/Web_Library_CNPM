@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
-import {loginUser} from "../service/Services"
+import {loginUser} from "../service/authService"
 import { useNavigate } from "react-router-dom"
 
 const LoginForm = () => {
@@ -12,9 +12,18 @@ const LoginForm = () => {
   const [error, setError] = useState("")
   const Navigate = useNavigate()
 
-const handleLoginSuccess = (role: string) => {
-    localStorage.setItem('user', JSON.stringify({ isLogged: true, role: role }));
-  }
+const handleLoginSuccess = (role, id, role_id) => {
+  localStorage.setItem(
+    'user',
+    JSON.stringify({
+      isLogged: true,
+      role: role,
+      user_id: id,
+      role_id: role_id // Thêm dòng này
+    })
+  );
+};
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true);
@@ -24,19 +33,19 @@ const handleLoginSuccess = (role: string) => {
 
     if (result.success)
     {
-      handleLoginSuccess(result.role);
+      handleLoginSuccess(result.role, result.id, result.role_id);
       console.log("Login successful");
       if (result.role === 'A')
       {
-        Navigate('/A');
+        Navigate('/dashboard');
       }
       else if (result.role === 'S')
       {
-        Navigate('/S');
+        Navigate('/');
       }
       else if(result.role === 'L') 
       {
-        Navigate('/L');
+        Navigate('/dashboard');
       }
     }
     else {

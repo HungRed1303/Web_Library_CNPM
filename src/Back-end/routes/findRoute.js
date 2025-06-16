@@ -4,6 +4,6 @@ const {  isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware
 
 const router = express.Router();
 
-router.get('/search', findBooks);
+router.get('/search',isAuthenticated, findBooks);
 
 module.exports = router;

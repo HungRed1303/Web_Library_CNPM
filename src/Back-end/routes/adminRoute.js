@@ -3,8 +3,8 @@ const {getAllAdmin,getAdminById,deleteAdmin,updateAdmin } = require("../controll
 const {  isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware");
 
 const router = express.Router();
-router.get("/", getAllAdmin);
-router.get("/:id", getAdminById);
-router.put("/:id", updateAdmin);
-router.delete("/:id", deleteAdmin);
+router.get("/",isAuthenticated,isAuthorized("A"), getAllAdmin);
+router.get("/:id",isAuthenticated,isAuthorized("A"), getAdminById);
+router.put("/:id",isAuthenticated,isAuthorized("A"), updateAdmin);
+router.delete("/:id",isAuthenticated,isAuthorized("A"), deleteAdmin);
 module.exports = router;

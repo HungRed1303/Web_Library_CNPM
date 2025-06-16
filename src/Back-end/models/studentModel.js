@@ -2,7 +2,7 @@ const pool = require('../Database/config.js');
 
 const getAllStudent = async () => {
   const result = await pool.query(
-    `SELECT s.student_id, u.username, u.email, u.name, s.class
+    `SELECT s.student_id, u.username, u.email, u.name, s.class_id   
      FROM students s
      JOIN users u ON s.user_id = u.user_id`
   );
@@ -11,7 +11,7 @@ const getAllStudent = async () => {
 
 const getStudentById = async (student_id) => {
   const result = await pool.query(
-    `SELECT s.student_id, u.username, u.email, u.name, s.class
+    `SELECT s.student_id, u.username, u.email, u.name, s.class_id
      FROM students s
      JOIN users u ON s.user_id = u.user_id
      WHERE s.student_id = $1`,
@@ -36,7 +36,10 @@ const updateStudent = async (student_id, username, email, name, class_id) => {
          WHERE user_id = (SELECT user_id FROM students WHERE student_id = $4)`,
         [username, email, name, student_id]
     );
-
+     
+    if(result1.rowCount === 0){
+        return null;
+    }
     const result2 = await pool.query(
         `UPDATE students
          SET class_id = $1
@@ -84,11 +87,39 @@ const deleteStudent = async (student_id) => {
     return true;
 }
 
+const findByUserId = async (userId) => {
+  console.log('StudentModel.findByUserId called with userId:', userId);
+  
+  try {
+    const result = await pool.query(
+      'SELECT * FROM students WHERE user_id = $1',
+      [userId]
+    );
+    console.log('Query result rows:', result.rows);
+    return result.rows.length > 0 ? result.rows[0] : null;
+  } catch (error) {
+    console.error('Database query error:', error);
+    throw error;
+  }
+};
+
+const getStudentByUserId = async (user_id) =>{
+      const result = await pool.query(
+    `SELECT s.student_id, u.username, u.email, u.name, s.class_id
+     FROM students s
+     JOIN users u ON s.user_id = u.user_id
+     WHERE s.user_id = $1`,
+    [user_id]
+  );
+  return result.rows[0];
+}
 
 module.exports = {
     getAllStudent,
     getStudentById,
     createStudent,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    findByUserId,
+    getStudentByUserId
 }

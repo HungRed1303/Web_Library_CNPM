@@ -1,4 +1,6 @@
 // src/components/Footer.tsx
+"use client";
+
 import { Facebook, Twitter, Instagram, Phone, Mail } from "lucide-react";
 
 const Footer = () => {
