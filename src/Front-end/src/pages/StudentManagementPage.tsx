@@ -72,7 +72,10 @@ export default function StudentManagementPage() {
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null)
   const [showToast, setShowToast] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [currentPage, setCurrentPage] = useState(1)
   const navigate = useNavigate()
+
+  const itemsPerPage = 10
 
   useEffect(() => {
     fetchStudents()
@@ -311,6 +314,8 @@ export default function StudentManagementPage() {
   )
 
   const sortedStudents = [...filteredStudents].sort((a, b) => a.student_id - b.student_id);
+  const totalPages = Math.ceil(sortedStudents.length / itemsPerPage);
+  const paginatedStudents = sortedStudents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleViewBorrowingHistory = (studentId: number) => {
     navigate(`/students/borrowingHistory?studentId=${studentId}`)
@@ -375,8 +380,8 @@ export default function StudentManagementPage() {
                     <p className="text-gray-500 mt-4">Loading students...</p>
                   </td>
                 </tr>
-              ) : sortedStudents.length > 0 ? (
-                sortedStudents.map((student) => (
+              ) : paginatedStudents.length > 0 ? (
+                paginatedStudents.map((student) => (
                   <tr key={student.student_id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
                     <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[60px]">{student.student_id}</td>
                     <td className="py-2.5 px-5 text-left text-[#033060] text-base w-[180px] max-w-xs break-words whitespace-normal" title={student.username}>{student.username}</td>
@@ -423,6 +428,26 @@ export default function StudentManagementPage() {
               )}
             </tbody>
           </table>
+          {/* Pagination */}
+          <div className="py-4 px-6 flex justify-between items-center">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+              className={`px-4 py-2 rounded ${currentPage === 1 ? "text-gray-300" : "text-[#033060] hover:bg-blue-100"}`}
+            >
+              Previous
+            </button>
+            <span className="text-[#033060] font-medium">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+              className={`px-4 py-2 rounded ${currentPage === totalPages ? "text-gray-300" : "text-[#033060] hover:bg-blue-100"}`}
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 

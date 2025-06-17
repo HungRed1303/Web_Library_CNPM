@@ -5,7 +5,6 @@ export const getBookById = async (id) => {
   if (!token) {
     throw new Error("No token found");
   }
-
     try {
       const response = await fetch(`http://localhost:3000/api/books/${id}`, {
         method: 'GET',
@@ -81,4 +80,4 @@ export const actualHandleBorrowBook = async (book_id) => {
     console.error("Error handleBorrowBook:", error);
     throw error;
   }
-};
+}

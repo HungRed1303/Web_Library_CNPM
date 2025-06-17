@@ -20,7 +20,6 @@ export default function ReportPage() {
   });
   const [sectionLoading, setSectionLoading] = useState({
     summary: true,
-    weekly: true,
     genre: true,
     readers: true
   });
@@ -36,7 +35,6 @@ export default function ReportPage() {
       setError(null);
       setSectionLoading({
         summary: true,
-        weekly: true,
         genre: true,
         readers: true
       });
@@ -49,7 +47,6 @@ export default function ReportPage() {
         totalTypes,
         genreData,
         topReadersData,
-        weeklyData
       ] = await Promise.all([
         reportService.getTotalBook().catch(err => {
           console.error('Error fetching total books:', err);
@@ -74,13 +71,6 @@ export default function ReportPage() {
         reportService.getTopReader(5).catch(err => {
           console.error('Error fetching top readers:', err);
           return { data: [] };
-        }),
-        reportService.getIssueReturnBookWeek(
-          new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          new Date().toISOString().split('T')[0]
-        ).catch(err => {
-          console.error('Error fetching weekly stats:', err);
-          return { data: { tong_luot_muon: 0, tong_luot_tra: 0 } };
         })
       ]);
 
@@ -93,7 +83,6 @@ export default function ReportPage() {
 
       setGenreStats(genreData.data);
       setTopReaders(topReadersData.data);
-      setWeeklyStats(weeklyData.data);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch reports');
@@ -102,7 +91,6 @@ export default function ReportPage() {
       setLoading(false);
       setSectionLoading({
         summary: false,
-        weekly: false,
         genre: false,
         readers: false
       });
@@ -195,27 +183,6 @@ export default function ReportPage() {
               <div className="text-xl md:text-2xl font-bold text-green-600">{stats.totalTypes}</div>
             </div>
           </>
-        )}
-      </div>
-
-      {/* Weekly Statistics */}
-      <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-6 mb-6" style={{boxShadow: '0 4px 32px 0 rgba(3,48,96,0.08)'}}>
-        <h2 className="text-2xl font-bold text-[#033060] mb-4">Weekly Statistics</h2>
-        {sectionLoading.weekly ? (
-          <div className="flex justify-center items-center h-32">
-            <RefreshCw className="h-8 w-8 text-[#033060] animate-spin" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-[#f5f8fc] rounded-xl p-4">
-              <h3 className="text-lg font-semibold text-[#033060] mb-2">Total Borrows</h3>
-              <p className="text-3xl font-bold text-blue-600">{weeklyStats.tong_luot_muon}</p>
-            </div>
-            <div className="bg-[#f5f8fc] rounded-xl p-4">
-              <h3 className="text-lg font-semibold text-[#033060] mb-2">Total Returns</h3>
-              <p className="text-3xl font-bold text-green-600">{weeklyStats.tong_luot_tra}</p>
-            </div>
-          </div>
         )}
       </div>
 

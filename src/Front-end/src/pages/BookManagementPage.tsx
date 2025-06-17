@@ -72,6 +72,9 @@ export default function BookManagementPage() {
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 10;
 
   // --- Load initial data ---
   useEffect(() => {
@@ -256,6 +259,10 @@ export default function BookManagementPage() {
       b.publisher_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const sorted = [...filtered].sort((a, b) => a.book_id - b.book_id);
+  const totalPages = Math.ceil(sorted.length / itemsPerPage);
+  const paginated = sorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] py-10 px-4 md:px-8 font-[Tahoma] flex flex-col items-center">
 
@@ -308,8 +315,8 @@ export default function BookManagementPage() {
                   <p className="text-gray-500 mt-4">Loading…</p>
                 </td>
               </tr>
-            ) : filtered.length ? (
-              filtered.map((b, idx) => (
+            ) : paginated.length ? (
+              paginated.map((b, idx) => (
                 <tr key={b.book_id} className={`border-b hover:bg-[#f1f5fa] transition`}>
                   <td className="py-2.5 px-5 text-center">{b.book_id}</td>
                   <td className="py-2.5 px-5">
@@ -353,6 +360,26 @@ export default function BookManagementPage() {
             )}
           </tbody>
         </table>
+        {/* Pagination */}
+        <div className="py-4 px-6 flex justify-between items-center">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(currentPage - 1)}
+            className={`px-4 py-2 rounded ${currentPage === 1 ? "text-gray-300" : "text-[#033060] hover:bg-blue-100"}`}
+          >
+            Previous
+          </button>
+          <span className="text-[#033060] font-medium">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(currentPage + 1)}
+            className={`px-4 py-2 rounded ${currentPage === totalPages ? "text-gray-300" : "text-[#033060] hover:bg-blue-100"}`}
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       {/* Add/Edit Modal */}
@@ -409,7 +436,13 @@ export default function BookManagementPage() {
                 ) : (
                   <input
                     type={key==="quantity"||key==="price"?"number":"text"}
+                    min={key==="quantity"||key==="price" ? "0" : undefined}
                     value={form[key] as any}
+                    onFocus={(e) => {
+                      if ((key === "quantity" || key === "price") && form[key] === 0) {
+                        e.target.value = "";
+                      }
+                    }}
                     onChange={e =>
                       setForm({
                         ...form,

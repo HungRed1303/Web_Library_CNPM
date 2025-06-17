@@ -6,9 +6,7 @@ import {
   Heart,
   BookOpen,
   CreditCard,
-  Bell,
   User as UserIcon,
-  Globe,
   ChevronDown,
   Menu,
   X,
@@ -22,9 +20,6 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [languageOpen, setLanguageOpen] = useState(false);
-
   const { toast } = useToast();
   const [isRequesting, setIsRequesting] = useState(false);
 
@@ -194,71 +189,6 @@ export default function Header() {
           >
             {isRequesting ? "Requesting..." : hasLibraryCard ? "Request is pending!" : "Request Library Card"}
           </button>
-          {/* Notifications */}
-          <div className="relative">
-            <button
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
-              className="relative rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition focus:outline-none"
-              title="Thông báo"
-            >
-              <Bell className="h-6 w-6" />
-              {/* Ví dụ badge */}
-              <span className="absolute -top-1 -right-1 inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                3
-              </span>
-            </button>
-            {notificationsOpen && (
-              <div className="absolute right-0 mt-2 w-64 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                <div className="py-2">
-                  <Link
-                    to="/notifications"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    Thẻ thư viện đã được duyệt
-                  </Link>
-                  <Link
-                    to="/notifications"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    Sách "JavaScript Cơ bản" sắp quá hạn
-                  </Link>
-                  <Link
-                    to="/notifications"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    Sách "React nâng cao" đã quá hạn
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Language Selector */}
-          <div className="relative">
-            <button
-              onClick={() => setLanguageOpen(!languageOpen)}
-              className="flex items-center space-x-1 rounded-md px-3 py-2 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition focus:outline-none"
-              title="Ngôn ngữ"
-            >
-              <Globe className="h-5 w-5" />
-              <span>VN</span>
-              <ChevronDown className="h-4 w-4" />
-            </button>
-            {languageOpen && (
-              <div className="absolute right-0 mt-2 w-32 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                <div className="py-1">
-                  <button className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100">
-                    Tiếng Việt
-                  </button>
-                  <button className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100">
-                    English
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </nav>
-
         {/* Right side: Profile / Login & Register */}
         <div className="hidden md:flex items-center space-x-4">
           {isAuthenticated ? (
@@ -335,7 +265,6 @@ export default function Header() {
           )}
         </button>
       </div>
-
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-gray-200 bg-[#FEFEFE]">
@@ -416,72 +345,6 @@ export default function Header() {
             >
               {isRequesting ? "Requesting..." : hasLibraryCard ? "Request is pending!" : "Request Library Card"}
             </button>
-
-            {/* Notifications */}
-            <div className="relative">
-              <button
-                onClick={() => setNotificationsOpen(!notificationsOpen)}
-                className="relative w-full rounded-lg bg-gray-100 px-4 py-2 text-left text-gray-700 hover:bg-gray-200 focus:outline-none transition"
-                title="Thông báo"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Bell className="h-5 w-5" />
-                    <span>Thông báo</span>
-                  </div>
-                  <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                    3
-                  </span>
-                </div>
-              </button>
-              {notificationsOpen && (
-                <div className="mt-2 space-y-1 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                  <Link
-                    to="/notifications"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    Thẻ thư viện đã được duyệt
-                  </Link>
-                  <Link
-                    to="/notifications"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    Sách "JavaScript Cơ bản" sắp quá hạn
-                  </Link>
-                  <Link
-                    to="/notifications"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    Sách "React nâng cao" đã quá hạn
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Language Selector */}
-            <div className="relative">
-              <button
-                onClick={() => setLanguageOpen(!languageOpen)}
-                className="flex w-full items-center justify-between rounded-lg bg-gray-100 px-4 py-2 text-gray-700 hover:bg-gray-200 focus:outline-none transition"
-                title="Ngôn ngữ"
-              >
-                <div className="flex items-center space-x-2">
-                  <Globe className="h-5 w-5" />
-                  <span>VN</span>
-                </div>
-                <ChevronDown className="h-4 w-4" />
-              </button>
-              {languageOpen && (
-                <div className="mt-2 space-y-1 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                  <button className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100">
-                    Tiếng Việt
-                  </button>
-                  <button className="block w-full px-4 py-2 text-left text-gray-700 hover:bg-gray-100">
-                    English
-                  </button>
-                </div>
-              )}
-            </div>
 
             {/* Profile or Login/Register */}
             <div className="pt-4 border-t border-gray-200 space-y-2">
