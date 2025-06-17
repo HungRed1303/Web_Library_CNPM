@@ -45,12 +45,12 @@ const register = CatchAsyncErrors(async (req, res, next) => {
   });
 });
 
-
 const login = CatchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
     return next(new ErrorHandler('Email and password are required', 400));
   }
+  
   const user = await UserModel.findUserByEmail(email);
   if (!user) return next(new ErrorHandler('Invalid email or password', 401));
   
@@ -61,32 +61,49 @@ const login = CatchAsyncErrors(async (req, res, next) => {
     expiresIn: '1d',
   });
 
-  // --- Bổ sung lấy student_id nếu là sinh viên ---
-  let student_id = null;
-  if (user.role === 'S') {
-    const student = await StudentModel.getStudentByUserId(user.user_id);
-    if (student) student_id = student.student_id;
+  // Lấy thêm ID của role tương ứng
+  let roleId = null;
+  
+  try {
+    switch (user.role) {
+      case 'S':
+        const student = await StudentModel.findByUserId(user.user_id);
+        roleId = student ? student.student_id : null;
+        break;
+
+      case 'L':
+        const librarian = await LibrarianModel.findByUserId(user.user_id);
+        roleId = librarian ? librarian.librarian_id : null;
+        break;
+
+      case 'A':
+        const admin = await AdminModel.findByUserId(user.user_id);
+        roleId = admin ? admin.admin_id : null;
+        break;
+    }
+  } catch (roleError) {
+    console.warn(`Could not fetch ${user.role} ID:`, roleError);
   }
 
   res
-  .cookie("token",token,{
-    expires: new Date(
-      Date.now() + process.env.COOKIE_EXPIRE*24*60*60*1000
-    ),
-    httpOnly: true
-  })
-  .json({
-    success: true,
-    token,
-    user: {
-      id: user.user_id,
-      username: user.username,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      student_id,
-    },
-  });
+    .cookie("token", token, {
+      expires: new Date(
+        Date.now() + process.env.COOKIE_EXPIRE * 24 * 60 * 60 * 1000
+      ),
+      httpOnly: true
+    })
+    .json({
+      success: true,
+      token,
+      user: {
+        id: user.user_id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        role_id: roleId // Thêm role_id
+      },
+    });
 });
 
 const verifyOTP = CatchAsyncErrors(async (req, res, next) => {

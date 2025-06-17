@@ -18,9 +18,10 @@ router.get("/:id", getBookById);
 // Create and update book with image upload
 // router.post("/", isAuthenticated, isAuthorized("A", "L"), upload.single('image'), createBook);
 router.post("/", upload.single('image'), createBook);
-router.put("/:id", upload.single('image'), updateBook);
+router.put("/:id",isAuthenticated, upload.single('image'), updateBook);
 
 // Delete book
 router.delete("/:id", deleteBook);
 
 module.exports = router;
+  

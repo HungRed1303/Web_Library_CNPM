@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Book, Calendar, DollarSign, AlertCircle, RefreshCw, ArrowLeft } from "lucide-react";
-import borrowingHistoryService from "../service/Services";
+import borrowingHistoryService from "../service/borrowingHistoryService";
 import { useNavigate } from "react-router-dom";
 
 export default function BorrowingHistoryPage() {
@@ -277,3 +277,4 @@ borrowingHistoryService.formatDate = function(dateString: string) {
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 };
+

@@ -101,5 +101,5 @@ module.exports = {
   updateResetToken,
   clearResetToken,
   findUserByResetToken,
-  updatePassword
+  updatePassword,
 };

@@ -23,7 +23,8 @@ const getLibrarianById = async (librarian_id) => {
 const createLibrarian = async (user_id) => {
   const result = await pool.query(
     `INSERT INTO librarians (user_id, start_date)
-     VALUES ($1, CURRENT_DATE)`,
+     VALUES ($1, CURRENT_DATE)
+     RETURNING *`,
     [user_id]
   );
   return result.rows[0];
@@ -38,9 +39,14 @@ const updateLibrarian = async (librarian_id, username, email, name, start_date, 
   const result1 = await pool.query(
     `UPDATE users
      SET username = $1, email = $2, name = $3
-     WHERE user_id = (SELECT user_id FROM librarians WHERE librarian_id = $4)`,
+     WHERE user_id = (SELECT user_id FROM librarians WHERE librarian_id = $4)
+     `,
     [username, email, name, librarian_id]
   );
+  
+  if (result1.rowCount ==0){
+    return null;
+  }
 
   const result2 = await pool.query(
     `UPDATE librarians
@@ -87,10 +93,19 @@ const deleteLibrarian = async (librarian_id) => {
   return true;
 }
 
+const findByUserId = async (userId) => {
+  const result = await pool.query(
+    'SELECT * FROM librarians WHERE user_id = $1',
+    [userId]
+  );
+  return result.rows.length > 0 ? result.rows[0] : null;
+};
+
 module.exports = {
   getAllLibrarians,
   getLibrarianById,
   createLibrarian,
   updateLibrarian,
-  deleteLibrarian
+  deleteLibrarian,
+  findByUserId
 };

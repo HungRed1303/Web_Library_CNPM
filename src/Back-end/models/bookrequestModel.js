@@ -2,24 +2,31 @@ const pool = require("../Database/config");
 
 const getAllBookRequest = async ()=>{
     const result  = await pool.query(`
-        SELECT *
-        FROM book_requests
+        SELECT br.request_id, br.student_id, br.book_id, br.request_date, br.status, u.name AS student_name, b.title AS book_title
+        FROM book_requests br
+        JOIN students st ON br.student_id = st.student_id
+        JOIN users u ON st.user_id = u.user_id
+        AND u.role = 'S'
+        JOIN books b ON br.book_id = b.book_id
+        ORDER BY br.request_date DESC
         `);
-    
         return result.rows;
 }
 
 const getBookRequestById = async (id)=>{
     const result = await pool.query(`
-        SELECT * 
-        FROM book_requests
+        SELECT br.request_id,br.student_id,br.book_id, br.request_date, br.status, u.name AS student_name, b.title AS book_title
+        FROM book_requests br
+        JOIN students st ON br.student_id = st.student_id
+        JOIN books b ON br.book_id = b.book_id
+        JOIN users u ON st.user_id = u.user_id
         WHERE request_id = $1`,
         [id]);
 
-        if(result.rowCount == 0){
+      if(result.rowCount == 0){
             return null;
         }
-     
+        
         return result.rows[0];
 }
 
@@ -27,6 +34,7 @@ const createBookRequest = async (book_id,student_id,request_date,status = "pendi
   const result = await pool.query(`
     INSERT INTO book_requests (book_id,student_id,request_date,status)
     VALUES ($1,$2,$3,$4)
+    RETURNING *
     `,[book_id,student_id,request_date,status]);
 
     return result.rows[0];

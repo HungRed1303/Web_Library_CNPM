@@ -2,8 +2,9 @@
 import { useState, useEffect } from "react";
 import { Search, ChevronDown, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { getAllBooks, getAllCategories, addBookToWishlist, getWishListByStudentId, deleteBookFromWishlist } from "../service/Services";
+import { getAllBooks, getAllCategories, addBookToWishlist, getWishListByStudentId, deleteBookFromWishlist } from "../service/wishListService";
 import React from "react";
+
 
 // Giả định Service trả về mảng Book với các trường phù hợp: id, title, author, cover, category
 interface Book {

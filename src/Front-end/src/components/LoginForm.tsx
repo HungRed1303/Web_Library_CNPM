@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Eye, EyeOff } from "lucide-react"
-import {loginUser} from "../service/Services"
+import {loginUser} from "../service/authService"
 import { useNavigate } from "react-router-dom"
 
 const LoginForm = () => {
@@ -12,19 +12,18 @@ const LoginForm = () => {
   const [error, setError] = useState("")
   const Navigate = useNavigate()
 
-const handleLoginSuccess = (user) => {
-  // Lưu toàn bộ thông tin user trả về từ backend, bao gồm student_id nếu có
-  localStorage.setItem('user', JSON.stringify({
-    isLogged: true,
-    role: user.role,
-    student_id: user.student_id || null,
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    name: user.name
-  }));
-}
-  
+const handleLoginSuccess = (role, id, role_id) => {
+  localStorage.setItem(
+    'user',
+    JSON.stringify({
+      isLogged: true,
+      role: role,
+      user_id: id,
+      role_id: role_id // Thêm dòng này
+    })
+  );
+};
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true);
@@ -32,19 +31,19 @@ const handleLoginSuccess = (user) => {
 
     const result = await loginUser(email, password);
 
-    if (result.success && result.user)
+    if (result.success)
     {
-      handleLoginSuccess(result.user);
+      handleLoginSuccess(result.role, result.id, result.role_id);
       console.log("Login successful");
-      if (result.user.role === 'A')
+      if (result.role === 'A')
       {
         Navigate('/dashboard');
       }
-      else if (result.user.role === 'S')
+      else if (result.role === 'S')
       {
         Navigate('/');
       }
-      else if(result.user.role === 'L') 
+      else if(result.role === 'L') 
       {
         Navigate('/dashboard');
       }

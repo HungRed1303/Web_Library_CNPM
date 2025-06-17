@@ -1,12 +1,18 @@
 const pool = require("../Database/config");
 
-const getAllBookIssue = async ()=>{
-    const result  = await pool.query(`
-        SELECT *
+const getAllBookIssue = async () => {
+    const result = await pool.query(`
+        SELECT 
+            book_issues.*, 
+            users.name AS student_name, 
+            books.title AS book_title
         FROM book_issues
-        `);
-    
-        return result.rows;
+        JOIN students ON book_issues.student_id = students.student_id
+        JOIN users ON students.user_id = users.user_id
+        JOIN books ON book_issues.book_id = books.book_id
+    `);
+
+    return result.rows;
 }
 
 const getBookIssueById = async (id)=>{
@@ -15,11 +21,10 @@ const getBookIssueById = async (id)=>{
         FROM book_issues
         WHERE issue_id = $1`,
         [id]);
-
-        if(result.rowCount == 0){
+      
+         if(result.rowCount == 0){
             return null;
         }
-     
         return result.rows[0];
 }
 
@@ -32,9 +37,7 @@ const getBookIssueByIdStudent = async (id)=>{
         WHERE bi.student_id = $1`,
         [id]);
 
-        if(result.rowCount == 0){
-            return null;
-        }
+ 
      
         return result.rows;
 }
@@ -47,6 +50,8 @@ const getBookIssueByStudentBook = async (book_id,student_id)=>{
     `,
     [book_id,student_id]);
     
+ 
+
     return result.rows;
 }
 

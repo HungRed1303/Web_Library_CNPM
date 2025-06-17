@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react"
 import { Pencil, Trash2, Search, CheckCircle, XCircle, Users, UserPlus } from "lucide-react"
-import { getAllLibrarians, getLibrarianById, updateLibrarianById, deleteLibrarianById, createLibrarian } from "../service/Services"
+import { getAllLibrarians, getLibrarianById, updateLibrarianById, deleteLibrarianById, createLibrarian } from "../service/librarianService"
 
 interface Librarian {
   librarian_id: number

@@ -24,6 +24,7 @@ const createCategory = async (name, description) =>{
     const result = await pool.query(`
         INSERT INTO categories (name,description)
         VALUES ($1,$2)
+        RETURNING *
         `,[name,description])
 
         return result.rows[0];
@@ -34,7 +35,13 @@ const updateCategory = async (category_id,name,description)=>{
     UPDATE categories
     SET name = $1, description = $2
     WHERE category_id = $3
+    RETURNING *
     `,[name,description,category_id]);
+
+    if(result.rowCount == 0){
+        return null;
+    }
+    
     return {category_id,name,description};
 }
 

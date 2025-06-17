@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getWishListByStudentId, deleteBookFromWishlist } from "../service/Services";
+import { getWishListByStudentId, deleteBookFromWishlist } from "../service/wishListService";
 import { Link } from "react-router-dom";
 import { Trash2 } from "lucide-react";
 

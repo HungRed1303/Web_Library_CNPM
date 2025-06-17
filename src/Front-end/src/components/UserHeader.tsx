@@ -66,6 +66,10 @@ export default function Header() {
     navigate("/login");
   };
 
+  const raw = localStorage.getItem("user");
+  const userData = raw ? JSON.parse(raw) : null;
+  const roleID = userData?.role_id;
+
   return (
     <header className="sticky top-0 z-20 bg-[#FEFEFE] border-b border-gray-200">
       <div className="container mx-auto flex items-center justify-between px-6 py-4 lg:px-8">
@@ -245,7 +249,7 @@ export default function Header() {
                 <div className="absolute right-0 mt-2 w-44 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
                   <div className="py-1">
                     <Link
-                      to="/profile"
+                      to={`/student/profile/${roleID}`}
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                     >
                       Thông tin cá nhân
@@ -460,7 +464,7 @@ export default function Header() {
               {isAuthenticated ? (
                 <div className="space-y-1">
                   <Link
-                    to="/profile"
+                    to={`/student/profile/${roleID}`}
                     className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
                   >
                     Thông tin cá nhân

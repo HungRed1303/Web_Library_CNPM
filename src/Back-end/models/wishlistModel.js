@@ -13,10 +13,11 @@ const getAllWishListByIdStudent = async (id)=>{
 
 const insertBookWishList = async (student_id,book_id,created_date,note)=>{
     const result = await pool.query(`
-        INSERT INTO wishlist (student_id,book_id,created_date,note)
-        VALUES ($1,$2,$3,$4)
+        INSERT INTO wishlist (student_id,book_id,created_date)
+        VALUES ($1,$2,$3)
+        RETURNING *
         `,
-        [student_id,book_id,created_date,note]);
+        [student_id,book_id,created_date]);
 
     return result.rows[0]; 
 }

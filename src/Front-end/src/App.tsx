@@ -12,17 +12,25 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage"; // Public
 
-import HomePageUser from "./pages/HomePageUser"; // Public
-import HomePage from "./pages/HomePage"; // Protected
+import HomePageUser          from "./pages/HomePageUser";     // public home
+import HomePage              from "./pages/HomePage";         // protected home (Admin/Lecturer)
+import PublisherManagementPage  from "./pages/PublisherManagementPage";
+import CategoryManagementPage   from "./pages/CategoryManagementPage";
+import BookManagementPage       from "./pages/BookManagementPage";
+import ViewReportPage           from "./pages/ViewReportPage";
+import BooksPage               from "./pages/BooksPage";       // public books
+import LibrarianManagementPage  from "./pages/LibrarianManagementPage";
+import StudentManagementPage    from "./pages/StudentManagementPage";
+import ViewBorrowingHistoryPage  from "./pages/ViewBorrowingHistoryPage";
+import ApproveBookRequestPage from "./pages/ApproveBookRequestPage"; // Placeholder for approve book request page
 
-import PublisherManagementPage from "./pages/PublisherManagementPage";
-import CategoryManagementPage from "./pages/CategoryManagementPage";
-import BookManagementPage from "./pages/BookManagementPage";
-import ViewReportPage from "./pages/ViewReportPage";
-import LibrarianManagementPage from "./pages/LibrarianManagementPage";
-import StudentManagementPage from "./pages/StudentManagementPage";
-import ViewBorrowingHistoryPage from "./pages/ViewBorrowingHistoryPage";
-import BooksPage from "./pages/BooksPage"; // Thêm trang BookPage nếu cần
+import StudentProfilePage from "./pages/StudentProfilePage"; // Placeholder for student profile page
+import AdminProfilePage from "./pages/AdminProfilePage"; // Placeholder for admin profile page
+import LibrarianProfilePage from "./pages/LibrarianProfilePage"; // Placeholder for librarian profile page
+
+import BookDetailPage from "./pages/DetailBookPage";
+import ReturnBookPage from "./pages/ReturnBookPage";
+
 import WishListPage from "./pages/WishListPage";
 
 function App() {
@@ -33,15 +41,20 @@ function App() {
         <Route element={<UserLayout />}>
           <Route path="/home" element={<HomePageUser />} />
           <Route path="/books" element={<BooksPage />} />
+          <Route path="/student/profile/:id" element={<StudentProfilePage />} />
+          <Route path="/books/detail-book/:id" element={<BookDetailPage />} />
           <Route path="/wishlist" element={<WishListPage />} />
+
         </Route>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/password/forgot" element={<ForgotPasswordPage />} />
         <Route path="/password/reset/:token" element={<ResetPasswordPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/password/change" element={<ChangePasswordPage />} />
 
+        {/* ---------- User Routes (Role = "S") ---------- */}
         {/* ---------- Protected Routes ---------- */}
         {/* ---------- Admin Only Routes (Role = "A") ---------- */}
         <Route
@@ -52,8 +65,10 @@ function App() {
           }
         >
           <Route path="/librarians" element={<LibrarianManagementPage />} />
+          <Route path="/profile/admins/:id" element={<AdminProfilePage />} />
         </Route>
-
+          
+        
         {/* ---------- Admin + Lecturer Routes (Role = "A" or "L") ---------- */}
         <Route
           element={
@@ -62,15 +77,17 @@ function App() {
             </ProtectedRoute>
           }
         >
+          <Route path="/profile/librarians/:id" element={<LibrarianProfilePage />} />
           <Route path="/dashboard" element={<HomePage />} />
-          <Route path="/category" element={<CategoryManagementPage />} />
-          <Route path="/book" element={<BookManagementPage />} />
-          <Route path="/reports" element={<ViewReportPage />} />
-          <Route path="/publishers" element={<PublisherManagementPage />} />
+          <Route path="/categories"  element={<CategoryManagementPage />} />
+          <Route path="/managebooks" element={<BookManagementPage />} />
+          <Route path="/reports"   element={<ViewReportPage />} />
           <Route path="/students" element={<StudentManagementPage />} />
-          <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
+          <Route path="/publishers" element={<PublisherManagementPage />} />
+          <Route path="/approve-book-request" element={<ApproveBookRequestPage/>} />
+          <Route path="/return-book" element = {<ReturnBookPage/>}/>
         </Route>
-
+        
         {/* ---------- Catch-All Route ---------- */}
         <Route path="*" element={<Navigate to="/home" replace />} />
       </Routes>
