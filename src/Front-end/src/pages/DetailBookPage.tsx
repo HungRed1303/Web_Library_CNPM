@@ -226,7 +226,7 @@ export default function BookDetailPage() {
 
             <div className="flex gap-4 pt-4 flex-col sm:flex-row">
               <button
-                onClick={() => handleBorrowBook(bookData?.book_id)}
+                onClick={() => handleBorrowBook(bookData?.book_id as number)}
                 disabled={bookData?.availability !== 'available' || isBorrowed}
                 className={`flex-1 rounded-2xl py-3 px-6 text-lg font-semibold transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] ${isBorrowed
                     ? 'bg-gray-500 text-white cursor-not-allowed'

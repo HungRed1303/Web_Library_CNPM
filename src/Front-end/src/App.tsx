@@ -17,7 +17,6 @@ import HomePage              from "./pages/HomePage";         // protected home 
 import PublisherManagementPage  from "./pages/PublisherManagementPage";
 import CategoryManagementPage   from "./pages/CategoryManagementPage";
 import BookManagementPage       from "./pages/BookManagementPage";
-import ViewReportPage           from "./pages/ViewReportPage";
 import BooksPage               from "./pages/BooksPage";       // public books
 import LibrarianManagementPage  from "./pages/LibrarianManagementPage";
 import StudentManagementPage    from "./pages/StudentManagementPage";
@@ -30,6 +29,7 @@ import LibrarianProfilePage from "./pages/LibrarianProfilePage"; // Placeholder 
 
 import BookDetailPage from "./pages/DetailBookPage";
 import ReturnBookPage from "./pages/ReturnBookPage";
+import ReportPage from "./pages/ReportPage"; // Placeholder for report page
 
 function App() {
   return (
@@ -78,7 +78,8 @@ function App() {
           <Route path="/dashboard" element={<HomePage />} />
           <Route path="/categories"  element={<CategoryManagementPage />} />
           <Route path="/managebooks" element={<BookManagementPage />} />
-          <Route path="/reports"   element={<ViewReportPage />} />
+
+          <Route path="/report"   element={<ReportPage />} />
           <Route path="/students" element={<StudentManagementPage />} />
           <Route path="/publishers" element={<PublisherManagementPage />} />
           <Route path="/approve-book-request" element={<ApproveBookRequestPage/>} />

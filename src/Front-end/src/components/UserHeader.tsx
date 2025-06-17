@@ -14,6 +14,9 @@ import {
   X,
 } from "lucide-react";
 
+import { useToast } from "../hooks/use-toast";
+import { libraryCardRequestService } from "../service/libraryCardRequestService";
+
 export default function Header() {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,6 +24,10 @@ export default function Header() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
+
+  const { toast } = useToast();
+  const [isRequesting, setIsRequesting] = useState(false);
+
 
   // State dùng để lưu thông tin user (đã đăng nhập hay chưa, tên, v.v.)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -69,6 +76,30 @@ export default function Header() {
   const raw = localStorage.getItem("user");
   const userData = raw ? JSON.parse(raw) : null;
   const roleID = userData?.role_id;
+
+  const handleLibraryCardRequest = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated || hasLibraryCard || isRequesting) return;
+    
+    setIsRequesting(true);
+    try {
+      await libraryCardRequestService.requestLibraryCard(roleID);
+      toast({
+        title: "Success!",
+        description: "Library Card Request sent!",
+        className: "bg-green-600 text-white border-green-400",
+      });
+      setHasLibraryCard(true);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to request library card. Please try again.",
+        className: "bg-red-600 text-white border-red-400",
+      });
+    } finally {
+      setIsRequesting(false);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-20 bg-[#FEFEFE] border-b border-gray-200">
@@ -151,20 +182,14 @@ export default function Header() {
           </Link>
 
           {/* Request Library Card */}
-          <Link
-            to={
-              isAuthenticated
-                ? hasLibraryCard
-                  ? "/card-status"
-                  : "/request-card"
-                : "/login"
-            }
-            className="rounded-md px-3 py-2 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition"
-            title={hasLibraryCard ? "Trạng thái thẻ" : "Request Library Card"}
+          <button
+            onClick={handleLibraryCardRequest}
+            disabled={!isAuthenticated || hasLibraryCard || isRequesting}
+            className="rounded-md px-3 py-2 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
+            title={hasLibraryCard ? "Request is pending!" : "Request Library Card"}
           >
-            {hasLibraryCard ? "Trạng thái thẻ" : "Request Library Card"}
-          </Link>
-
+            {isRequesting ? "Requesting..." : hasLibraryCard ? "Request is pending!" : "Request Library Card"}
+          </button>
           {/* Notifications */}
           <div className="relative">
             <button
@@ -191,13 +216,13 @@ export default function Header() {
                     to="/notifications"
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                   >
-                    Sách “JavaScript Cơ bản” sắp quá hạn
+                    Sách "JavaScript Cơ bản" sắp quá hạn
                   </Link>
                   <Link
                     to="/notifications"
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                   >
-                    Sách “React nâng cao” đã quá hạn
+                    Sách "React nâng cao" đã quá hạn
                   </Link>
                 </div>
               </div>
@@ -379,19 +404,14 @@ export default function Header() {
             </div>
 
             {/* Request Library Card */}
-            <Link
-              to={
-                isAuthenticated
-                  ? hasLibraryCard
-                    ? "/card-status"
-                    : "/request-card"
-                  : "/login"
-              }
-              className="block rounded-lg bg-[#467DA7] px-4 py-2 text-center text-white text-sm font-medium hover:bg-[#3a6b9b] transition-colors"
-              title={hasLibraryCard ? "Trạng thái thẻ" : "Đăng ký thẻ"}
+            <button
+              onClick={handleLibraryCardRequest}
+              disabled={!isAuthenticated || hasLibraryCard || isRequesting}
+              className="block w-full rounded-lg bg-[#467DA7] px-4 py-2 text-center text-white text-sm font-medium hover:bg-[#3a6b9b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title={hasLibraryCard ? "Request is pending!" : "Request Library Card"}
             >
-              {hasLibraryCard ? "Trạng thái thẻ" : "Đăng ký thẻ"}
-            </Link>
+              {isRequesting ? "Requesting..." : hasLibraryCard ? "Request is pending!" : "Request Library Card"}
+            </button>
 
             {/* Notifications */}
             <div className="relative">
@@ -422,13 +442,13 @@ export default function Header() {
                     to="/notifications"
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                   >
-                    Sách “JavaScript Cơ bản” sắp quá hạn
+                    Sách "JavaScript Cơ bản" sắp quá hạn
                   </Link>
                   <Link
                     to="/notifications"
                     className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                   >
-                    Sách “React nâng cao” đã quá hạn
+                    Sách "React nâng cao" đã quá hạn
                   </Link>
                 </div>
               )}

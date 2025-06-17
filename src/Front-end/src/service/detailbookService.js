@@ -1,11 +1,10 @@
 import { jwtDecode } from 'jwt-decode';
 
-
- export const getBookById = async (id)=> {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error("No token found");
-    }
+export const getBookById = async (id) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error("No token found");
+  }
 
     try {
       const response = await fetch(`http://localhost:3000/api/books/${id}`, {
