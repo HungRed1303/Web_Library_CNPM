@@ -23,7 +23,8 @@ export const loginUser = async (email, password) => {
         success: true, 
         role: result.user.role, 
         id: result.user.id,
-        role_id: result.user.role_id // Thêm dòng này
+        role_id: result.user.role_id,
+        name: result.user.name
       };
     } else {
       return {
@@ -44,7 +45,7 @@ export const changePassword = async (oldPassword, newPassword, confirmPassword) 
     return { success: false, error: "Mật khẩu mới và xác nhận mật khẩu không khớp." };
   }
 
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");  
   if (!token) {
     return { success: false, error: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại." };
   }

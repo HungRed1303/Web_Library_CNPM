@@ -41,10 +41,9 @@ function App() {
           <Route path="/books" element={<BooksPage />} />
           <Route path="/student/profile/:id" element={<StudentProfilePage />} />
           <Route path="/books/detail-book/:id" element={<BookDetailPage />} />
-
+          <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
         </Route>
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/password/forgot" element={<ForgotPasswordPage />} />
         <Route path="/password/reset/:token" element={<ResetPasswordPage />} />
@@ -83,6 +82,7 @@ function App() {
           <Route path="/publishers" element={<PublisherManagementPage />} />
           <Route path="/approve-book-request" element={<ApproveBookRequestPage/>} />
           <Route path="/return-book" element = {<ReturnBookPage/>}/>
+          <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
         </Route>
         
         {/* ---------- Catch-All Route ---------- */}

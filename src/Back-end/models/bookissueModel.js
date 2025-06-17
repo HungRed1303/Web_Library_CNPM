@@ -15,6 +15,7 @@ const getAllBookIssue = async () => {
     return result.rows;
 }
 
+
 const getBookIssueById = async (id)=>{
     const result = await pool.query(`
         SELECT * 

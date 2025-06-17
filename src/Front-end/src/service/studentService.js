@@ -170,3 +170,20 @@ export const deleteStudentById = async (id) => {
   // If backend returns data on successful delete, return responseBody.data
   return responseBody.data; // Or return responseBody if backend doesn't wrap in data
 };
+
+
+export const updateStudent = async (studentId, studentData) => {
+  const response = await fetch(`http://localhost:3000/api/students/${studentId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(studentData),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to update student');
+  }
+  
+  return response.json();
+};

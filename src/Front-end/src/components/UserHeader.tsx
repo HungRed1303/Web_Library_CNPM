@@ -70,6 +70,10 @@ export default function Header() {
   const userData = raw ? JSON.parse(raw) : null;
   const roleID = userData?.role_id;
 
+  const handleViewBorrowingHistory = () => {
+    navigate(`/students/borrowingHistory?studentId=${roleID}`)
+  }
+
   return (
     <header className="sticky top-0 z-20 bg-[#FEFEFE] border-b border-gray-200">
       <div className="container mx-auto flex items-center justify-between px-6 py-4 lg:px-8">
@@ -142,13 +146,14 @@ export default function Header() {
           </Link>
 
           {/* Borrowing History */}
-          <Link
-            to={isAuthenticated ? "/history" : "/login"}
+          <button
+            onClick={handleViewBorrowingHistory}
             className="relative rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition"
             title="Borrowing History"
           >
             <BookOpen className="h-6 w-6" />
-          </Link>
+            <span className="sr-only">Borrowing History</span>
+          </button>
 
           {/* Request Library Card */}
           <Link
@@ -368,14 +373,14 @@ export default function Header() {
                 <Heart className="h-6 w-6" />
                 <span className="sr-only">Wishlist</span>
               </Link>
-              <Link
-                to={isAuthenticated ? "/history" : "/login"}
+              <button
+                onClick={handleViewBorrowingHistory}
                 className="relative rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition"
                 title="Lịch sử mượn"
               >
                 <BookOpen className="h-6 w-6" />
                 <span className="sr-only">Lịch sử mượn</span>
-              </Link>
+              </button>
             </div>
 
             {/* Request Library Card */}

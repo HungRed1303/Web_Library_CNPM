@@ -41,6 +41,18 @@ export default function Sidebar({
   const ref = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
+  // Lấy user từ localStorage
+  const rawUser = localStorage.getItem("user");
+  const user = rawUser ? JSON.parse(rawUser) : null;
+
+  const displayName = user?.name || "User";
+  const roleMap: Record<string, string> = {
+    A: "Admin",
+    L: "Librarian",
+    S: "Student",
+  };
+  const displayRole = roleMap[user?.role] || "Unknown";
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -76,7 +88,7 @@ export default function Sidebar({
       <div className="flex h-16 items-center justify-center border-b border-[#2E4F6E]">
         {!collapsed && (
           <img
-            src="/public/logo.png"    // giữ nguyên đường dẫn
+            src="/public/logo.png"
             alt="Logo"
             className="h-16 w-auto"
           />
@@ -93,13 +105,13 @@ export default function Sidebar({
         {!collapsed && (
           <>
             <img
-              src="/public/logo_user.png"   // giữ nguyên đường dẫn
+              src="/public/logo_user.png"
               alt="User avatar"
               className="h-8 w-8 rounded-full ring-2 ring-[#FEFEFE]"
             />
             <div className="ml-3">
-              <p className="truncate text-sm font-semibold">John Doe</p>
-              <p className="truncate text-xs text-[#D0E1F9]">Librarian</p>
+              <p className="truncate text-sm font-semibold">{displayName}</p>
+              <p className="truncate text-xs text-[#D0E1F9]">{displayRole}</p>
             </div>
           </>
         )}
@@ -124,9 +136,7 @@ export default function Sidebar({
             >
               <Link to={href} className="absolute inset-0 z-10" />
               <span className="z-20">{icon}</span>
-              <span className="z-20 ml-3 truncate text-sm">
-                {label}
-              </span>
+              <span className="z-20 ml-3 truncate text-sm">{label}</span>
             </li>
           );
         })}
