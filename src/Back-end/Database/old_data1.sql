@@ -919,7 +919,11 @@ ALTER TABLE ONLY public.wishlist
 ALTER TABLE ONLY public.wishlist
     ADD CONSTRAINT fk_wishlist_student FOREIGN KEY (student_id) REFERENCES public.students(student_id) ON DELETE CASCADE;
 
-
+ALTER TABLE book_issues 
+ADD COLUMN reminder_sent BOOLEAN DEFAULT FALSE,
+ADD COLUMN reminder_sent_at TIMESTAMP,
+ADD COLUMN overdue_reminder_sent BOOLEAN DEFAULT FALSE,
+ADD COLUMN overdue_reminder_sent_at TIMESTAMP;
 --
 -- PostgreSQL database dump complete
 --

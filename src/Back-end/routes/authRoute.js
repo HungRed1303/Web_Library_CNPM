@@ -1,5 +1,5 @@
 const express = require("express");
-const { register, login,logout,forGotPassword,resetPassword} = require("../controllers/authController");
+const { register,changePassword, login,logout,forGotPassword,resetPassword} = require("../controllers/authController");
 const {isAuthenticated} = require("../middlewares/authMiddleware");
 
 const router = express.Router();
@@ -9,5 +9,7 @@ router.post('/login', login);
 router.post('/password/forgot', forGotPassword);
 router.put('/password/reset/:token', resetPassword);
 router.get('/logout', isAuthenticated, logout);
+router.put('/password/change',isAuthenticated, changePassword);
 
 module.exports = router;
+

@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Book, Calendar, DollarSign, Search, AlertCircle, RefreshCw, ArrowLeft } from "lucide-react";
-import borrowingHistoryService from "../service/Services";
+import { Book, Calendar, DollarSign, AlertCircle, RefreshCw, ArrowLeft } from "lucide-react";
+import borrowingHistoryService from "../service/borrowingHistoryService";
 import { useNavigate } from "react-router-dom";
 
 export default function BorrowingHistoryPage() {
-  const [searchTerm, setSearchTerm] = useState("");
   const [borrowingHistory, setBorrowingHistory] = useState<any[]>([]);
   const [stats, setStats] = useState({
     totalBorrowed: 0,
@@ -66,15 +65,8 @@ export default function BorrowingHistoryPage() {
     id: record.issue_id || record.id // fallback nếu có id khác
   }));
 
-  // Filter history based on search term
-  const filteredHistory = mappedHistory.filter((record) =>
-    (record.book_title && record.book_title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (record.author && record.author.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (record.isbn && record.isbn.includes(searchTerm))
-  );
-
   // Lấy tên sinh viên từ dữ liệu nếu có
-  const studentName = borrowingHistory.length > 0 ? (borrowingHistory[0].name || borrowingHistory[0].username || borrowingHistory[0].email || null) : null;
+  const studentName = borrowingHistory.length > 0 ? (borrowingHistory[0].name || borrowingHistory[0]["username"] || borrowingHistory[0].email || null) : null;
 
   // Loading state
   if (loading) {
@@ -109,38 +101,6 @@ export default function BorrowingHistoryPage() {
     );
   }
 
-  // Hàm tính số ngày trễ
-  function getLateDays(due: string, returned: string) {
-    if (!due || !returned) return 0;
-    const dueDate = new Date(due);
-    const returnedDate = new Date(returned);
-    const diff = Math.floor((returnedDate.getTime() - dueDate.getTime()) / (1000 * 60 * 60 * 24));
-    return diff > 0 ? diff : 0;
-  }
-
-  // Hàm tính tổng số tiền phạt và số sách quá hạn
-  function getStats(records: any[]) {
-    let totalFines = 0;
-    let overdue = 0;
-    records.forEach(record => {
-      let fine = Number(record.fine_amount) || 0;
-      const lateDays = getLateDays(record.due_date, record.returned_date);
-      const finePerDay = 0.1; // USD per day
-      if (lateDays > 0) fine = lateDays * finePerDay;
-      totalFines += fine;
-      if (
-        (record.returned_date && getLateDays(record.due_date, record.returned_date) > 0) ||
-        record.status === 'overdue'
-      ) {
-        overdue++;
-      }
-    });
-    return { totalFines, overdue };
-  }
-
-  // Trong component, lấy lại stats
-  const { totalFines, overdue } = getStats(filteredHistory);
-
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] py-10 px-4 md:px-8 font-[Tahoma] flex flex-col items-center">
       {/* Header */}
@@ -156,21 +116,6 @@ export default function BorrowingHistoryPage() {
             ? `Borrowing history for ${studentName}`
             : (studentId ? `Borrowing history for student ID ${studentId}` : "Track your borrowed books, due dates, and fines")}
         </p>
-      </div>
-
-      {/* Search Bar */}
-      <div className="w-full max-w-7xl mb-8">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#033060] h-5 w-5" />
-          <input
-            type="text"
-            placeholder="Search by book title, author, or ISBN..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-12 pr-4 py-3 text-lg rounded-xl border border-[#dbeafe] bg-white shadow focus:border-[#033060] focus:ring-2 focus:ring-blue-100 w-full outline-none transition-all duration-150"
-            style={{boxShadow: '0 1px 4px 0 #e0e7ef'}}
-          />
-        </div>
       </div>
 
       {/* Summary Cards */}
@@ -196,7 +141,7 @@ export default function BorrowingHistoryPage() {
             <h3 className="text-[#033060] font-semibold text-sm md:text-base">Overdue Books</h3>
             <AlertCircle className="h-5 w-5 text-red-600" />
           </div>
-          <div className="text-xl md:text-2xl font-bold text-red-600">{overdue}</div>
+          <div className="text-xl md:text-2xl font-bold text-red-600">{stats.overdue}</div>
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg border border-[#dbeafe] p-2 md:p-3" style={{boxShadow: '0 2px 12px 0 rgba(3,48,96,0.08)'}}>
@@ -204,7 +149,7 @@ export default function BorrowingHistoryPage() {
             <h3 className="text-[#033060] font-semibold text-sm md:text-base">Total Fines</h3>
             <DollarSign className="h-5 w-5 text-red-600" />
           </div>
-          <div className="text-xl md:text-2xl font-bold text-red-600">${totalFines.toFixed(2)}</div>
+          <div className="text-xl md:text-2xl font-bold text-red-600">${stats.totalFines.toFixed(2)}</div>
         </div>
       </div>
 
@@ -217,12 +162,12 @@ export default function BorrowingHistoryPage() {
           </p>
         </div>
         
-        {filteredHistory.length === 0 ? (
+        {mappedHistory.length === 0 ? (
           <div className="p-12 text-center">
             <Book className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-gray-500 mb-2">No Records Found</h3>
             <p className="text-gray-400">
-              {searchTerm ? 'No books match your search criteria.' : 'No borrowing history available.'}
+              No borrowing history available.
             </p>
           </div>
         ) : (
@@ -241,7 +186,7 @@ export default function BorrowingHistoryPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredHistory.map((record) => (
+                {mappedHistory.map((record) => (
                   <tr key={record.id} className="border-b border-[#dbeafe] hover:bg-[#f1f5fa] transition">
                     <td className="py-3 px-5 text-center w-20">{record.id || '-'}</td>
                     <td className="py-3 px-5 text-left break-words whitespace-normal max-w-xs w-64">{record.book_title || '-'}</td>
@@ -251,17 +196,9 @@ export default function BorrowingHistoryPage() {
                     <td className="py-3 px-5 text-center text-[#033060] text-base w-32">{record.returned_date ? borrowingHistoryService.formatDate(record.returned_date) : '-'}</td>
                     <td className="py-3 px-5 text-center w-28">{borrowingHistoryService.getStatusDisplayText(record.status)}</td>
                     <td className="py-3 px-5 text-center font-medium w-24">
-                      {(() => {
-                        let fine = Number(record.fine_amount) || 0;
-                        const lateDays = getLateDays(record.due_date, record.returned_date);
-                        const finePerDay = 0.1; // USD per day
-                        if (lateDays > 0) fine = lateDays * finePerDay;
-                        return (
-                          <span className={fine === 0 ? "text-green-600" : "text-red-600"}>
-                            ${fine.toFixed(2)}
-                          </span>
-                        );
-                      })()}
+                      <span className={Number(record.fine_amount) === 0 ? "text-green-600" : "text-red-600"}>
+                        ${Number(record.fine_amount || 0).toFixed(2)}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -271,7 +208,7 @@ export default function BorrowingHistoryPage() {
         )}
       </div>
 
-      {/* Thêm nút Return ở góc dưới bên trái */}
+      {/* Return button ở góc dưới bên trái */}
       <div className="fixed bottom-4 left-4 z-50">
         <button
           onClick={() => navigate('/students')}
@@ -287,7 +224,7 @@ export default function BorrowingHistoryPage() {
   );
 }
 
-// Đưa hàm calculateStats ra ngoài component
+// Hàm calculateStats đã được cập nhật để sử dụng fine_amount từ database
 function calculateStats(records: any[]) {
   const stats = {
     totalBorrowed: records.length,
@@ -296,6 +233,7 @@ function calculateStats(records: any[]) {
     overdue: 0,
     totalFines: 0,
   };
+  
   records.forEach(record => {
     if (record.status === 'borrowed' || record.status === 'pending') {
       stats.currentlyBorrowed++;
@@ -306,8 +244,10 @@ function calculateStats(records: any[]) {
     if (record.status === 'overdue') {
       stats.overdue++;
     }
+    // Sử dụng fine_amount trực tiếp từ database
     stats.totalFines += Number(record.fine_amount) || 0;
   });
+  
   return stats;
 }
 
@@ -337,3 +277,4 @@ borrowingHistoryService.formatDate = function(dateString: string) {
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
 };
+

@@ -8,7 +8,13 @@ import {
   createPublisher,
   updatePublisherById,
   deletePublisherById,
-} from "../service/Services";
+} from "../service/publisherService";
+
+
+/**
+ * PublisherManagementPage – Add / Edit / Delete
+ * Theme: Gradient background / Accent #033060 / Font Tahoma / Rounded cards / Shadow
+ */
 
 export interface Publisher {
   publisher_id: number;

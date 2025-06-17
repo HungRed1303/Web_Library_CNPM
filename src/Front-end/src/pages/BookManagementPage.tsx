@@ -4,9 +4,11 @@ import {
   createBook,
   updateBookById,
   deleteBookById,
-  getAllCategories,
-  getAllPublishers,
-} from "../service/Services";
+} from "../service/bookService";
+
+import { getAllCategories } from "../service/categoryService";
+import { getAllPublishers } from "../service/publisherService";
+
 import {
   Plus,
   Pencil,

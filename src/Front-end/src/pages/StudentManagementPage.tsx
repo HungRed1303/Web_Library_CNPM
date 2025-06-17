@@ -8,7 +8,7 @@ import {
   updateStudentById, 
   deleteStudentById, 
   createStudent 
-} from "../service/Services"
+} from "../service/studentService"
 import { useNavigate } from "react-router-dom"
 
 interface Student {

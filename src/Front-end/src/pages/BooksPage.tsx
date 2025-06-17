@@ -2,7 +2,8 @@
 import { useState, useEffect } from "react";
 import { Search, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getAllBooks, getAllCategories } from "../service/Services";
+import { getAllCategories } from "../service/categoryService"; // Giả định có service lấy danh mục
+import {getAllBooks} from "../service/bookService";
 
 // Giả định Service trả về mảng Book với các trường phù hợp: id, title, author, cover, category
 interface Book {
@@ -189,7 +190,7 @@ export default function BookListPage() {
                       <p className="mt-1 text-sm text-gray-600">— {book.author}</p>
                     </div>
                     <Link
-                      to={`/books/${book.id}`}
+                      to={`/books/detail-book/${book.id}`}
                       className="mt-4 inline-block self-start rounded-md bg-[#467DA7] px-4 py-2 text-sm font-medium text-white hover:bg-[#3a6b9b] transition"
                     >
                       Xem chi tiết

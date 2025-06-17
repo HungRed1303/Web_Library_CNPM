@@ -4,6 +4,7 @@ const createBookCategory = async (book_id, category_id)=>{
  const result = await pool.query(`
     INSERT INTO book_category (book_id,category_id)
     VALUES ($1,$2)
+    RETURNING *
     `,
     [book_id,category_id]);
 
