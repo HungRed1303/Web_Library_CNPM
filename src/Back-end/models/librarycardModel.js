@@ -1,18 +1,21 @@
 const pool = require("../Database/config")
 
-const getAllLibraryCard = async ()=>{
+const getAllLibraryCards = async ()=>{
     const result = await pool.query(`
-        SELECT *
-        FROM library_cards
-        `);
+        SELECT lc.card_id, u.username as student_name, lc.start_date, lc.end_date, lc.status, u.email as user_email,s.student_id
+        FROM library_cards as lc
+        JOIN students as s ON lc.student_id = s.student_id
+        JOIN users as u ON s.user_id = u.user_id`);
 
     return result.rows;
 }
 
 const getLibraryCardByStudentId = async (student_id)=>{
     const result = await pool.query(`
-        SELECT *
-        FROM library_cards lc
+        SELECT lc.card_id, u.username as student_name, lc.start_date, lc.end_date, lc.status, u.email as user_email,s.student_id
+        FROM library_cards as lc
+        JOIN students as s ON lc.student_id = s.student_id
+        JOIN users as u ON s.user_id = u.user_id
         WHERE lc.student_id = $1
         `,[student_id]);
     
@@ -69,9 +72,9 @@ const deleteLibraryCard = async (library_card_id)=>{
 }
 
 module.exports = {
-    getAllLibraryCard,
-    getLibraryCardByStudentId,
+    getAllLibraryCards,
     createLibraryCard,
     updateLibraryCard,
-    deleteLibraryCard
+    deleteLibraryCard,
+    getLibraryCardByStudentId
 }

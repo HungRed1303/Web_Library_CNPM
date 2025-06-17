@@ -40,9 +40,9 @@ export default function HomePage() {
       description: "Thêm, sửa, xóa thủ thư",
     },
     {
-      title: "Reports",
+      title: "Report",
       icon: <BarChart2 size={32} className="text-[#033060]" />,
-      link: "/reports",
+      link: "/report",
       description: "Xem thống kê & báo cáo",
     },
     {

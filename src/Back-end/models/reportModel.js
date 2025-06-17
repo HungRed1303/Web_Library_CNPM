@@ -66,15 +66,15 @@ const getTotalBook = async () =>{
     FROM books b
     `)
 
-    const result2 = await pool.query(`
-      SELECT COUNT(*) as total
-      FROM book_issues bi
-      WHERE bi.status = 'issuing'
-      `)
+  const result2 = await pool.query(`
+    SELECT COUNT(*) as total
+    FROM book_issues bi
+    WHERE bi.status = 'issuing'
+    `)
    
-    result = result1.rows[0].total + result2.rows[0].total
+  const total = Number(result1.rows[0].total || 0) + Number(result2.rows[0].total || 0)
 
-    return { "total": result};
+  return { "total": total};
 }
 
 const getTotalIssuedBook = async ()=>{

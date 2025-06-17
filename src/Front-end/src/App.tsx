@@ -17,12 +17,12 @@ import HomePage              from "./pages/HomePage";         // protected home 
 import PublisherManagementPage  from "./pages/PublisherManagementPage";
 import CategoryManagementPage   from "./pages/CategoryManagementPage";
 import BookManagementPage       from "./pages/BookManagementPage";
-import ViewReportPage           from "./pages/ViewReportPage";
 import BooksPage               from "./pages/BooksPage";       // public books
 import LibrarianManagementPage  from "./pages/LibrarianManagementPage";
 import StudentManagementPage    from "./pages/StudentManagementPage";
 import ViewBorrowingHistoryPage  from "./pages/ViewBorrowingHistoryPage";
 import ApproveBookRequestPage from "./pages/ApproveBookRequestPage"; // Placeholder for approve book request page
+import ApproveRequestLibraryCardPage from "./pages/ApproveRequestLibraryCardPage";
 
 import StudentProfilePage from "./pages/StudentProfilePage"; // Placeholder for student profile page
 import AdminProfilePage from "./pages/AdminProfilePage"; // Placeholder for admin profile page
@@ -30,6 +30,7 @@ import LibrarianProfilePage from "./pages/LibrarianProfilePage"; // Placeholder 
 
 import BookDetailPage from "./pages/DetailBookPage";
 import ReturnBookPage from "./pages/ReturnBookPage";
+import ReportPage from "./pages/ReportPage"; // Placeholder for report page
 
 function App() {
   return (
@@ -77,10 +78,13 @@ function App() {
           <Route path="/dashboard" element={<HomePage />} />
           <Route path="/categories"  element={<CategoryManagementPage />} />
           <Route path="/managebooks" element={<BookManagementPage />} />
-          <Route path="/reports"   element={<ViewReportPage />} />
+
+          <Route path="/report"   element={<ReportPage />} />
           <Route path="/students" element={<StudentManagementPage />} />
           <Route path="/publishers" element={<PublisherManagementPage />} />
           <Route path="/approve-book-request" element={<ApproveBookRequestPage/>} />
+          <Route path="/approve-request-library-card" element={<ApproveRequestLibraryCardPage/>} />
+
           <Route path="/return-book" element = {<ReturnBookPage/>}/>
           <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
         </Route>

@@ -1,11 +1,13 @@
 const express = require("express")
-const { deleteLibraryCard,requestLibraryCard,extendLibraryCard,acceptLibraryCard}= require("../controllers/librarycardController")
+const { deleteLibraryCard,requestLibraryCard,extendLibraryCard,approveLibraryCard, getAllLibraryCards, getLibraryCardByStudentId}= require("../controllers/librarycardController")
 const {  isAuthenticated, isAuthorized} = require("../middlewares/authMiddleware");
 
 router = express.Router();
 
-router.post("/request/:id",isAuthenticated,requestLibraryCard)
-router.put("/accept/:id",isAuthenticated,isAuthorized("A","L"),acceptLibraryCard)
+router.get("/", isAuthenticated,isAuthorized("A","L"), getAllLibraryCards);
+router.get("/:id", isAuthenticated,isAuthorized("A","L"), getLibraryCardByStudentId);
+router.post("/request/:id",requestLibraryCard)
+router.put("/approve/:id",isAuthenticated,isAuthorized("A","L"),approveLibraryCard)
 router.put("/extend/:id",isAuthenticated,isAuthorized("A","L"),extendLibraryCard)
 router.delete("/delete/:id",isAuthenticated,isAuthorized("A","L"),deleteLibraryCard)
 

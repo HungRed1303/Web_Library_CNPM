@@ -175,7 +175,60 @@ const createOverdueTemplate = (studentName, bookTitle, dueDate, daysOverdue) => 
     `;
 };
 
-module.exports = { generationVerificationOtpEmailTemplate, generationForgotPasswordEmailTemplate, createOverdueTemplate, createReminderTemplate };
+const createLibraryCardAcceptanceTemplate = ({
+    studentName,
+    cardId,
+    startDate,
+    endDate,
+}) => {
+    return `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9f9f9;">
+            <div style="background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h1 style="color: #2c3e50; margin: 0;">📚 THE H Library</h1>
+                    <div style="width: 50px; height: 3px; background-color: #3498db; margin: 10px auto;"></div>
+                </div>
+
+                <h2 style="color: #27ae60; margin-bottom: 20px;">Library Card Request Accepted</h2>
+
+                <p style="font-size: 16px; line-height: 1.6; color: #34495e;">
+                    Dear <strong style="color: #2c3e50;">${studentName}</strong>,
+                </p>
+
+                <p style="font-size: 16px; line-height: 1.6; color: #34495e;">
+                    Your request for a library card has been accepted. Here are the details:
+                </p>
+
+                <div style="background-color: #ecf0f1; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px 0; font-weight: bold; color: #2c3e50; width: 140px;">📇 Name:</td>
+                            <td style="padding: 8px 0; color: #34495e;">${studentName}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; font-weight: bold; color: #2c3e50;">#️⃣ Card Number:</td>
+                            <td style="padding: 8px 0; color: #34495e;">${cardId}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; font-weight: bold; color: #2c3e50;">📅 Issue Date:</td>
+                            <td style="padding: 8px 0; color: #34495e;">${startDate}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; font-weight: bold; color: #2c3e50;">⌛ Expiry Date:</td>
+                            <td style="padding: 8px 0; color: #34495e;">${endDate}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <p style="font-size: 16px; line-height: 1.6; color: #34495e;">
+                    You can use this card to borrow books at our library. Please keep your card safe and do not share your information with others.
+                </p>
+            </div>
+        </div>
+    `;
+};
+
+module.exports = { generationVerificationOtpEmailTemplate, generationForgotPasswordEmailTemplate, createOverdueTemplate, createReminderTemplate, createLibraryCardAcceptanceTemplate};
 // Cách sử dụng:
 // const emailHtml = generateVerificationOtpEmailTemplate("123456");
 // console.log(emailHtml);
