@@ -9,6 +9,16 @@ const toSQLDate = (date) => {
   return `${year}-${month}-${day}`;
 };
 
+const getAllLibraryCards = CatchAsyncErrors(async(req,res,next)=>{
+    const libraryCards = await LibraryCardModel.getAllLibraryCards();
+    if(!libraryCards){
+        return next(new ErrorHandler("Library Cards Not Found",404));
+    }
+    res.status(200).json({
+        success:true,
+        data:libraryCards
+    })
+})
 
 const requestLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
     const student_id = req.params.id;
@@ -55,7 +65,7 @@ const extendLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
   })
 })
 
-const acceptLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
+const approveLibraryCard = CatchAsyncErrors(async(req,res,next)=>{
     const student_id = req.params.id;
     studentcard = await LibraryCardModel.getLibraryCardByStudentId(student_id);
     if(!studentcard){
@@ -91,8 +101,9 @@ const deleteLibraryCard = CatchAsyncErrors( async (req,res,next)=>{
     })
 })
 module.exports = {
+    getAllLibraryCards,
     requestLibraryCard,
     extendLibraryCard,
-    acceptLibraryCard,
+    approveLibraryCard,
     deleteLibraryCard
 }

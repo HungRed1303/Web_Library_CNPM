@@ -22,6 +22,7 @@ import LibrarianManagementPage  from "./pages/LibrarianManagementPage";
 import StudentManagementPage    from "./pages/StudentManagementPage";
 import ViewBorrowingHistoryPage  from "./pages/ViewBorrowingHistoryPage";
 import ApproveBookRequestPage from "./pages/ApproveBookRequestPage"; // Placeholder for approve book request page
+import ApproveRequestLibraryCardPage from "./pages/ApproveRequestLibraryCardPage";
 
 import StudentProfilePage from "./pages/StudentProfilePage"; // Placeholder for student profile page
 import AdminProfilePage from "./pages/AdminProfilePage"; // Placeholder for admin profile page
@@ -83,6 +84,8 @@ function App() {
           <Route path="/students" element={<StudentManagementPage />} />
           <Route path="/publishers" element={<PublisherManagementPage />} />
           <Route path="/approve-book-request" element={<ApproveBookRequestPage/>} />
+          <Route path="/approve-request-library-card" element={<ApproveRequestLibraryCardPage/>} />
+
           <Route path="/return-book" element = {<ReturnBookPage/>}/>
         </Route>
         

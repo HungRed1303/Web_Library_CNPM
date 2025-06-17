@@ -1,0 +1,267 @@
+// src/pages/ApproveRequestLibraryCard.tsx
+
+import React, { useState, useEffect } from 'react';
+import { Search, Check, X, Clipboard } from 'lucide-react';
+import {
+  libraryCardRequestService as libraryService
+} from '../service/libraryCardRequestService';
+
+type ToastType = { type: 'success' | 'error'; message: string } | null;
+
+type LibraryCard = {
+  card_id: number;
+  student_name: string;
+  user_email: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+};
+
+const ApproveRequestLibraryCardPage: React.FC = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [libraryCards, setLibraryCards] = useState<LibraryCard[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [toast, setToast] = useState<ToastType>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(libraryCards.length / itemsPerPage);
+
+  useEffect(() => {
+    fetchLibraryCards();
+  }, []);
+
+  const fetchLibraryCards = async () => {
+    try {
+      setIsLoading(true);
+      const data = await libraryService.getAllLibraryCards();
+      setLibraryCards(data || []);
+    } catch (err) {
+      console.error('Error loading library cards:', err);
+      showToastMessage('error', 'Unable to load cards!');
+      setLibraryCards([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const showToastMessage = (type: 'success' | 'error', message: string) => {
+    setToast({ type, message });
+    setShowToast(true);
+    const hide = setTimeout(() => setShowToast(false), 2000);
+    const clear = setTimeout(() => setToast(null), 2500);
+    return () => {
+      clearTimeout(hide);
+      clearTimeout(clear);
+    };
+  };
+
+  const handleApprove = async (id: number) => {
+    try {
+      await libraryService.approveLibraryCardRequest(id);
+      await fetchLibraryCards();
+      showToastMessage('success', 'Card approved!');
+    } catch (err) {
+      console.error('Error approving card:', err);
+      showToastMessage('error', 'Failed to approve!');
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'approved':
+        return 'text-green-600 bg-green-50 border-green-200';
+      case 'rejected':
+        return 'text-red-600 bg-red-50 border-red-200';
+      default:
+        return 'text-[#033060] bg-blue-50 border-blue-200';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'Pending';
+      case 'approved':
+        return 'Approved';
+      case 'rejected':
+        return 'Rejected';
+      default:
+        return status || 'Unknown';
+    }
+  };
+
+  const formatDate = (d: string) => {
+    if (!d) return 'N/A';
+    try {
+      return new Date(d).toLocaleDateString('en-GB');
+    } catch {
+      return d;
+    }
+  };
+
+  const filtered = libraryCards.filter((card) => {
+    const haystack = [
+      card.student_name,
+      card.user_email,
+      card.card_id.toString(),
+    ]
+      .join(' ')
+      .toLowerCase();
+    const matchesSearch = haystack.includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === 'all' ||
+      card.status.toLowerCase() === statusFilter.toLowerCase();
+    return matchesSearch && matchesStatus;
+  });
+
+  const sorted = [...filtered].sort((a, b) => a.card_id - b.card_id);
+  const pageItems = sorted.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] py-10 px-4 md:px-8 font-[Tahoma] flex flex-col items-center">
+      <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg p-8 mb-10">
+        <div className="flex items-center mb-4">
+          <Clipboard className="h-10 w-10 text-[#033060] mr-3" />
+          <h1 className="text-4xl font-bold text-[#033060]">Library Card Approval</h1>
+        </div>
+        <div className="flex flex-col md:flex-row justify-between gap-4 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#033060] h-5 w-5" />
+            <input
+              type="text"
+              placeholder="Search by student, email, or ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-12 pr-4 py-3 text-lg rounded-xl border border-[#dbeafe] bg-white shadow w-full"
+            />
+          </div>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-5 py-3 text-lg rounded-xl border border-[#dbeafe] bg-white shadow min-w-[200px]"
+          >
+            <option value="all">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg border overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left table-auto">
+            <thead className="bg-[#f5f8fc] text-[#033060] text-base font-bold">
+              <tr>
+                <th className="py-3 px-5 text-center">Card ID</th>
+                <th className="py-3 px-5">Student</th>
+                <th className="py-3 px-5">User Email</th>
+                <th className="py-3 px-5">Start Date</th>
+                <th className="py-3 px-5">End Date</th>
+                <th className="py-3 px-5 text-center">Status</th>
+                <th className="py-3 px-5 text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-10">
+                    Loading...
+                  </td>
+                </tr>
+              ) : pageItems.length > 0 ? (
+                pageItems.map((card) => (
+                  <tr key={card.card_id} className="border-t text-[#033060]">
+                    <td className="text-center py-3 px-5 font-semibold">{card.card_id}</td>
+                    <td className="py-3 px-5">{card.student_name}</td>
+                    <td className="py-3 px-5">{card.user_email}</td>
+                    <td className="py-3 px-5">{formatDate(card.start_date)}</td>
+                    <td className="py-3 px-5">{formatDate(card.end_date)}</td>
+                    <td className="text-center py-3 px-5">
+                      <span
+                        className={`px-3 py-1 rounded-lg border text-sm font-medium ${getStatusColor(
+                          card.status
+                        )}`}
+                      >
+                        {getStatusText(card.status)}
+                      </span>
+                    </td>
+                    <td className="text-center py-3 px-5">
+                      {card.status.toLowerCase() === 'pending' && (
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => handleApprove(card.card_id)}
+                            className="text-green-600 hover:bg-green-100 px-3 py-1 rounded border"
+                          >
+                            <Check className="inline-block w-4 h-4 mr-1" />
+                            Approve
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="text-center py-10 text-gray-500">
+                    No requests found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="py-4 px-6 flex justify-between items-center">
+          <button
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(currentPage - 1)}
+            className={`px-4 py-2 rounded ${
+              currentPage === 1 ? 'text-gray-300' : 'text-[#033060] hover:bg-blue-100'
+            }`}
+          >
+            Previous
+          </button>
+          <span className="text-[#033060] font-medium">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage(currentPage + 1)}
+            className={`px-4 py-2 rounded ${
+              currentPage === totalPages
+                ? 'text-gray-300'
+                : 'text-[#033060] hover:bg-blue-100'
+            }`}
+          >
+            Next
+          </button>
+        </div>
+      </div>
+
+      {/* Toast */}
+      {toast && (
+        <div
+          className={`fixed left-1/2 -translate-x-1/2 bottom-10 px-6 py-4 rounded-xl shadow-lg z-50 text-lg font-semibold flex items-center gap-3 ${
+            toast.type === 'success'
+              ? 'bg-green-50 text-green-700'
+              : 'bg-red-50 text-red-700'
+          } ${showToast ? 'opacity-100' : 'opacity-0'}`}
+        >
+          {toast.type === 'success' ? <Check className="w-5 h-5" /> : <X className="w-5 h-5" />}
+          {toast.message}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ApproveRequestLibraryCardPage;
