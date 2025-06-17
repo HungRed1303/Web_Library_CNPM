@@ -4,7 +4,10 @@ const BASE = "http://localhost:3000/api";
  * @returns {Promise<{ data: object[] }>}
  */
 export const getAllBooks = async () => {
-  const res = await fetch(`${BASE}/books`);
+  const token = localStorage.getItem("token"); // nếu có token
+  const res = await fetch(`${BASE}/books`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   if (!res.ok) throw new Error("GET /books failed");
   return res.json(); // { data: [...] }
 };
@@ -57,8 +60,10 @@ export const updateBookById = async (id, formData) => {
  * @param {number} id
  */
 export const deleteBookById = async (id) => {
+  const token = localStorage.getItem("token");
   const res = await fetch(`${BASE}/books/${id}`, {
     method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error("DELETE /books/:id failed");
 };

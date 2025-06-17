@@ -44,7 +44,9 @@ export const changePassword = async (oldPassword, newPassword, confirmPassword) 
   if (newPassword !== confirmPassword) {
     return { success: false, error: "Mật khẩu mới và xác nhận mật khẩu không khớp." };
   }
-
+  if (!oldPassword){
+    return { success: false, error: "Mật khẩu cũ sai." };
+  }
   const token = localStorage.getItem("token");  
   if (!token) {
     return { success: false, error: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại." };
@@ -68,6 +70,7 @@ export const changePassword = async (oldPassword, newPassword, confirmPassword) 
       return {
         success: false,
         error: result.error || "Không thể thay đổi mật khẩu.",
+        message : result.message || "Có lỗi xảy ra khi thay đổi mật khẩu.",
       };
     }
   } catch (err) {

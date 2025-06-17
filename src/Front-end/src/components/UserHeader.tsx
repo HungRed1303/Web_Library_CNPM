@@ -23,7 +23,6 @@ export default function Header() {
   const { toast } = useToast();
   const [isRequesting, setIsRequesting] = useState(false);
 
-
   // State dùng để lưu thông tin user (đã đăng nhập hay chưa, tên, v.v.)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
@@ -75,10 +74,11 @@ export default function Header() {
   const handleViewBorrowingHistory = () => {
     navigate(`/students/borrowingHistory?studentId=${roleID}`)
   }
+
   const handleLibraryCardRequest = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!isAuthenticated || hasLibraryCard || isRequesting) return;
-    
+
     setIsRequesting(true);
     try {
       await libraryCardRequestService.requestLibraryCard(roleID);
@@ -189,6 +189,8 @@ export default function Header() {
           >
             {isRequesting ? "Requesting..." : hasLibraryCard ? "Request is pending!" : "Request Library Card"}
           </button>
+        </nav>
+
         {/* Right side: Profile / Login & Register */}
         <div className="hidden md:flex items-center space-x-4">
           {isAuthenticated ? (
@@ -214,16 +216,11 @@ export default function Header() {
                       Thông tin cá nhân
                     </Link>
                     <Link
-                      to="/password/reset/:token"
+                      onClick ={() => navigate("/password/change")}
+                      to="/password/change"
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
                     >
                       Đổi mật khẩu
-                    </Link>
-                    <Link
-                      to="/account-management"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    >
-                      Quản lý tài khoản
                     </Link>
                     <button
                       onClick={handleLogout}
@@ -265,6 +262,7 @@ export default function Header() {
           )}
         </button>
       </div>
+
       {/* Mobile menu */}
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-gray-200 bg-[#FEFEFE]">
@@ -299,11 +297,11 @@ export default function Header() {
                     Thể loại sách
                   </Link>
                   <Link
-                    to="/publishers"
+                    to="/books"
                     className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    title="Nhà xuất bản"
+                    title="ALL BOOKS"
                   >
-                    Nhà xuất bản
+                    ALL BOOKS
                   </Link>
                   <Link
                     to="/authors"
@@ -356,18 +354,12 @@ export default function Header() {
                   >
                     Thông tin cá nhân
                   </Link>
-                  <Link
-                    to="/ResetPasswordForm"
+                  <button
+                    onClick={() => navigate("/password/change")}
                     className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
                   >
                     Đổi mật khẩu
-                  </Link>
-                  <Link
-                    to="/account-management"
-                    className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
-                  >
-                    Quản lý tài khoản
-                  </Link>
+                  </button>
                   <button
                     onClick={handleLogout}
                     className="block w-full rounded-lg px-4 py-2 text-left text-gray-700 hover:bg-gray-100"

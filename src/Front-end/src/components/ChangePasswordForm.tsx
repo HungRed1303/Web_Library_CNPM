@@ -1,5 +1,5 @@
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Eye, EyeOff } from "lucide-react"
 import { useToast } from "../hooks/use-toast"
 import { useNavigate } from "react-router-dom"
@@ -19,8 +19,34 @@ export default function ChangePasswordForm() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const [userRole, setUserRole] = useState<string | null>(null)
   const { toast } = useToast()
   const navigate = useNavigate()
+
+  // Lấy thông tin user từ localStorage khi component mount
+  useEffect(() => {
+    try {
+      const userStr = localStorage.getItem("user")
+      if (userStr) {
+        const userData = JSON.parse(userStr)
+        // Kiểm tra các trường có thể chứa role
+        const role = userData.role || userData.role_type || userData.user_type
+        setUserRole(role)
+        console.log("User data:", userData) // Debug log
+        console.log("User role:", role) // Debug log
+      } else {
+        // Nếu không có user data, có thể lấy role riêng
+        const roleFromStorage = localStorage.getItem("role")
+        setUserRole(roleFromStorage)
+        console.log("Role from storage:", roleFromStorage) // Debug log
+      }
+    } catch (error) {
+      console.error("Error parsing user data:", error)
+      // Fallback to role from localStorage
+      const roleFromStorage = localStorage.getItem("role")
+      setUserRole(roleFromStorage)
+    }
+  }, [])
 
   const validateForm = () => {
     const newErrors = {
@@ -29,6 +55,10 @@ export default function ChangePasswordForm() {
       confirmPassword: "",
     }
     let valid = true
+    if (!oldPassword){
+      newErrors.oldPassword = "Old password is incorrect"
+      valid = false
+    }
 
     if (!oldPassword) {
       newErrors.oldPassword = "Old password is required"
@@ -59,22 +89,41 @@ export default function ChangePasswordForm() {
 
     try {
       const result = await changePassword(oldPassword, newPassword, confirmPassword)
-      console.log("Change password result:", result) // Debug log
       
       if (result.success) {
         // Hiển thị thông báo thành công trên form
         setShowSuccessMessage(true)
         toast({
           title: "Success!",
-          description: result.message,
+          description: result.message || "Password changed successfully!",
           className: "bg-green-600 text-white border-green-400",
         })
-        // Quay về dashboard sau 2 giây
-        setTimeout(() => navigate("/dashboard"), 2000)
+
+        // Reset form
+        setOldPassword("")
+        setNewPassword("")
+        setConfirmPassword("")
+        
+        // Điều hướng dựa trên role
+        setTimeout(() => {
+          console.log("Navigating based on role:", userRole) // Debug log
+          
+          if (userRole === "S" || userRole === "student") {
+            // Nếu là sinh viên, chuyển hướng về trang home
+            navigate("/home")
+          } else if (userRole === "A" || userRole === "admin" || userRole === "L" || userRole === "librarian") {
+            // Nếu là admin hoặc librarian, chuyển hướng về dashboard
+            navigate("/dashboard")
+          } else {
+            // Mặc định về home nếu không xác định được role
+            console.log("Unknown role, navigating to home")
+            navigate("/home")
+          }
+        }, 2000)
       } else {
         toast({
           title: "Error",
-          description: result.error || "Failed to change password.",
+          description: result.error || result.message || "Failed to change password.",
           className: "bg-red-600 text-white border-red-400",
         })
       }
@@ -97,6 +146,7 @@ export default function ChangePasswordForm() {
         <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-4 text-center">
           <div className="font-bold">✅ Success!</div>
           <div className="text-sm">Your password has been changed!</div>
+          <div className="text-xs mt-1">Redirecting in 2 seconds...</div>
         </div>
       )}
       
@@ -106,6 +156,7 @@ export default function ChangePasswordForm() {
         </h1>
         <div className="h-1 w-24 bg-[#033060] mx-auto mt-2 rounded-full shadow-[0_0_10px_rgba(3,48,96,0.7)]"></div>
         <p className="text-[#033060] mt-2">Update your account password</p>
+        {/* Debug info - có thể xóa sau khi test xong */}
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
