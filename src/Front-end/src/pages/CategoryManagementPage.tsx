@@ -34,6 +34,9 @@ export default function CategoryManagementPage() {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 10;
 
   useEffect(() => { load(); }, []);
 
@@ -156,7 +159,10 @@ export default function CategoryManagementPage() {
                 </tr>
               </thead>
               <tbody>
-                {categories.map((c,i) => (
+                {[...categories]
+                  .sort((a, b) => a.category_id - b.category_id)
+                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  .map((c,i) => (
                   <tr key={c.category_id} className={`border-b ${i%2===0?"bg-white":"bg-[#e3ecf7]"} hover:bg-[#f1f5fa] transition`}>
                     <td className="py-2.5 px-5">{c.category_id}</td>
                     <td className="py-2.5 px-5">{c.name}</td>
@@ -173,6 +179,26 @@ export default function CategoryManagementPage() {
                 ))}
               </tbody>
             </table>
+            {/* Pagination */}
+            <div className="py-4 px-6 flex justify-between items-center">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(currentPage - 1)}
+                className={`px-4 py-2 rounded ${currentPage === 1 ? "text-gray-300" : "text-[#033060] hover:bg-blue-100"}`}
+              >
+                Previous
+              </button>
+              <span className="text-[#033060] font-medium">
+                Page {currentPage} of {Math.ceil(categories.length / itemsPerPage)}
+              </span>
+              <button
+                disabled={currentPage === Math.ceil(categories.length / itemsPerPage)}
+                onClick={() => setCurrentPage(currentPage + 1)}
+                className={`px-4 py-2 rounded ${currentPage === Math.ceil(categories.length / itemsPerPage) ? "text-gray-300" : "text-[#033060] hover:bg-blue-100"}`}
+              >
+                Next
+              </button>
+            </div>
           </div>
         )}
       </main>
