@@ -4,6 +4,7 @@ import {
   createBook,
   updateBookById,
   deleteBookById,
+  addBookToWishlist,
 } from "../service/Services";
 import { Plus, Pencil, Trash2, Image } from "lucide-react";
 
@@ -48,6 +49,10 @@ const BookManagementPage: React.FC = () => {
   // Toast states
   const [toast, setToast] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
+
+  const [wishlistNote, setWishlistNote] = useState<string>("");
+  const [wishlistBook, setWishlistBook] = useState<Book | null>(null);
+  const [wishlistModal, setWishlistModal] = useState(false);
 
   /* ------------------------- LOAD LIST ------------------------- */
   const load = () => {
@@ -98,6 +103,12 @@ const BookManagementPage: React.FC = () => {
     setFormErrors({});
     setPreviewImage(null);
     setSelectedFile(null); // Reset file
+  };
+
+  const openWishlistModal = (book: Book) => {
+    setWishlistBook(book);
+    setWishlistNote("");
+    setWishlistModal(true);
   };
 
   /* ------------------------- VALIDATE -------------------------- */
@@ -220,6 +231,23 @@ const BookManagementPage: React.FC = () => {
     }
   };
 
+  const handleAddToWishlist = async () => {
+    if (!wishlistBook) return;
+    try {
+      // Lấy student_id từ localStorage (giả sử đã lưu khi đăng nhập)
+      const studentId = parseInt(localStorage.getItem("student_id") || "0", 10);
+      await addBookToWishlist({
+        student_id: studentId,
+        book_id: wishlistBook.book_id,
+        note: wishlistNote,
+      });
+      setToast("Đã thêm vào wishlist!");
+      setWishlistModal(false);
+    } catch (e) {
+      setToast("Lỗi khi thêm vào wishlist!");
+    }
+  };
+
   /* ----------------------- TOAST ANIMATION ---------------------- */
   useEffect(() => {
     if (toast) {
@@ -336,6 +364,12 @@ const BookManagementPage: React.FC = () => {
                           onClick={() => openDelete(b)}
                           color="red"
                         />
+                        <button
+                          onClick={() => openWishlistModal(b)}
+                          className="ml-2 px-3 py-1 bg-pink-500 text-white rounded hover:bg-pink-600"
+                        >
+                          Thêm vào wishlist
+                        </button>
                       </td>
                     </tr>
                   ))}
@@ -555,6 +589,36 @@ const BookManagementPage: React.FC = () => {
                 className="px-4 py-2 bg-[#467DA7] text-white font-semibold rounded-lg hover:bg-[#467DA7]/90 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-[#467DA7] transition"
               >
                 {submitting ? "Deleting…" : "Yes"}
+              </button>
+            </div>
+          </div>
+        </Backdrop>
+      )}
+
+      {wishlistModal && wishlistBook && (
+        <Backdrop>
+          <div className="w-full max-w-xs bg-white border-2 border-[#467DA7] rounded-2xl p-8 shadow-xl text-center animate-scale-in text-gray-900">
+            <h2 className="text-lg font-bold mb-4">Thêm vào wishlist</h2>
+            <p className="mb-2 font-medium">{wishlistBook.title}</p>
+            <textarea
+              className="w-full border rounded p-2 mb-4"
+              placeholder="Ghi chú cho cuốn sách này (tùy chọn)..."
+              value={wishlistNote}
+              onChange={e => setWishlistNote(e.target.value)}
+              rows={3}
+            />
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => setWishlistModal(false)}
+                className="px-4 py-2 border border-gray-400 rounded-lg hover:bg-gray-100"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleAddToWishlist}
+                className="px-4 py-2 bg-[#467DA7] text-white font-semibold rounded-lg hover:bg-[#467DA7]/90"
+              >
+                Lưu
               </button>
             </div>
           </div>

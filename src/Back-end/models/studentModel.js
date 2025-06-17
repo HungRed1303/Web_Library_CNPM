@@ -84,11 +84,20 @@ const deleteStudent = async (student_id) => {
     return true;
 }
 
+// Lấy student theo user_id
+const getStudentByUserId = async (user_id) => {
+  const result = await pool.query(
+    `SELECT * FROM students WHERE user_id = $1`,
+    [user_id]
+  );
+  return result.rows[0];
+}
 
 module.exports = {
     getAllStudent,
     getStudentById,
     createStudent,
     updateStudent,
-    deleteStudent
+    deleteStudent,
+    getStudentByUserId
 }

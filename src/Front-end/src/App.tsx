@@ -23,6 +23,7 @@ import LibrarianManagementPage from "./pages/LibrarianManagementPage";
 import StudentManagementPage from "./pages/StudentManagementPage";
 import ViewBorrowingHistoryPage from "./pages/ViewBorrowingHistoryPage";
 import BooksPage from "./pages/BooksPage"; // Thêm trang BookPage nếu cần
+import WishListPage from "./pages/WishListPage";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
         <Route element={<UserLayout />}>
           <Route path="/home" element={<HomePageUser />} />
           <Route path="/books" element={<BooksPage />} />
+          <Route path="/wishlist" element={<WishListPage />} />
         </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />

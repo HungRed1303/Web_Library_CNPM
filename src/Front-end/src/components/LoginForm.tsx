@@ -12,9 +12,18 @@ const LoginForm = () => {
   const [error, setError] = useState("")
   const Navigate = useNavigate()
 
-const handleLoginSuccess = (role) => {
-    localStorage.setItem('user', JSON.stringify({ isLogged: true, role: role }));
-  }
+const handleLoginSuccess = (user) => {
+  // Lưu toàn bộ thông tin user trả về từ backend, bao gồm student_id nếu có
+  localStorage.setItem('user', JSON.stringify({
+    isLogged: true,
+    role: user.role,
+    student_id: user.student_id || null,
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    name: user.name
+  }));
+}
   
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -23,19 +32,19 @@ const handleLoginSuccess = (role) => {
 
     const result = await loginUser(email, password);
 
-    if (result.success)
+    if (result.success && result.user)
     {
-      handleLoginSuccess(result.role);
+      handleLoginSuccess(result.user);
       console.log("Login successful");
-      if (result.role === 'A')
+      if (result.user.role === 'A')
       {
         Navigate('/dashboard');
       }
-      else if (result.role === 'S')
+      else if (result.user.role === 'S')
       {
         Navigate('/');
       }
-      else if(result.role === 'L') 
+      else if(result.user.role === 'L') 
       {
         Navigate('/dashboard');
       }

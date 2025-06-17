@@ -61,6 +61,13 @@ const login = CatchAsyncErrors(async (req, res, next) => {
     expiresIn: '1d',
   });
 
+  // --- Bổ sung lấy student_id nếu là sinh viên ---
+  let student_id = null;
+  if (user.role === 'S') {
+    const student = await StudentModel.getStudentByUserId(user.user_id);
+    if (student) student_id = student.student_id;
+  }
+
   res
   .cookie("token",token,{
     expires: new Date(
@@ -77,6 +84,7 @@ const login = CatchAsyncErrors(async (req, res, next) => {
       email: user.email,
       name: user.name,
       role: user.role,
+      student_id,
     },
   });
 });

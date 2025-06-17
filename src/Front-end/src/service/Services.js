@@ -12,14 +12,14 @@ export const loginUser = async (email, password) => {
 
     const result = await response.json();
 
-    if (response.ok && result.token) {
+    if (response.ok && result.token && result.user) {
       try {
         localStorage.setItem("token", result.token);
       } catch (storageError) {
         console.warn("Không thể lưu token vào localStorage:", storageError);
       }
 
-      return { success: true, role: result.user.role };
+      return { success: true, user: result.user };
     } else {
       return {
         success: false,
@@ -725,3 +725,68 @@ class BorrowingHistoryService {
 
 export const borrowingHistoryService = new BorrowingHistoryService();
 export default borrowingHistoryService;
+
+/**
+ * Thêm sách vào wishlist kèm note
+ * @param {{ student_id: number, book_id: number, note: string }} data
+ */
+export const addBookToWishlist = async (data) => {
+  const token = localStorage.getItem('token');
+  const res = await fetch('http://localhost:3000/api/wishlist', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new Error(err?.message || 'POST /wishlist failed');
+  }
+  return res.json();
+};
+
+/**
+ * Lấy danh sách sách trong wishlist của một student_id
+ * @param {number} student_id
+ * @returns {Promise<{ data: object[] }>}
+ */
+export const getWishListByStudentId = async (student_id) => {
+  const token = localStorage.getItem('token');
+  const res = await fetch(`http://localhost:3000/api/wishlist?student_id=${student_id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    }
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new Error(err?.message || 'GET /wishlist failed');
+  }
+  return res.json();
+};
+
+/**
+ * Xóa sách khỏi wishlist
+ * @param {number} student_id
+ * @param {number} book_id
+ * @returns {Promise<any>}
+ */
+export const deleteBookFromWishlist = async (student_id, book_id) => {
+  const token = localStorage.getItem('token');
+  const res = await fetch('http://localhost:3000/api/wishlist', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    },
+    body: JSON.stringify({ student_id, book_id })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new Error(err?.message || 'DELETE /wishlist failed');
+  }
+  return res.json();
+};
