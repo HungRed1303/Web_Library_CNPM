@@ -11,6 +11,7 @@ type ToastType = { type: 'success' | 'error'; message: string } | null;
 type LibraryCard = {
   card_id: number;
   student_name: string;
+  student_id: number;  
   user_email: string;
   start_date: string;
   end_date: string;
@@ -197,7 +198,7 @@ const ApproveRequestLibraryCardPage: React.FC = () => {
                       {card.status.toLowerCase() === 'pending' && (
                         <div className="flex justify-center gap-2">
                           <button
-                            onClick={() => handleApprove(card.card_id)}
+                            onClick={() => handleApprove(card.student_id)}
                             className="text-green-600 hover:bg-green-100 px-3 py-1 rounded border"
                           >
                             <Check className="inline-block w-4 h-4 mr-1" />

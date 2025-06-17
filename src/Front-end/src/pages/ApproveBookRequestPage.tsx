@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Check, X, BookOpen } from "lucide-react";
 import { getAllBookRequests, issueBook, rejectBookRequest } from '../service/bookRequestService';
 
