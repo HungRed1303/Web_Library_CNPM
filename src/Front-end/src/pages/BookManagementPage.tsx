@@ -436,7 +436,13 @@ export default function BookManagementPage() {
                 ) : (
                   <input
                     type={key==="quantity"||key==="price"?"number":"text"}
+                    min={key==="quantity"||key==="price" ? "0" : undefined}
                     value={form[key] as any}
+                    onFocus={(e) => {
+                      if ((key === "quantity" || key === "price") && form[key] === 0) {
+                        e.target.value = "";
+                      }
+                    }}
                     onChange={e =>
                       setForm({
                         ...form,
