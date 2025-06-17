@@ -416,6 +416,7 @@ CREATE TABLE public.wishlist (
     created_date date DEFAULT CURRENT_DATE
 );
 
+ALTER TABLE wishlist ADD COLUMN note TEXT;
 
 ALTER TABLE public.wishlist OWNER TO postgres;
 
