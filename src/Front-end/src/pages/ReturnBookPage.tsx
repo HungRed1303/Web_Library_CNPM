@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Calendar, User, BookOpen, AlertCircle, CheckCircle, Clock, DollarSign } from "lucide-react";
-import {getAllBookIssue,handleReturnBook} from '../service/returnBookService'
+import { getAllBookIssue, handleReturnBook } from '../service/returnBookService'
 
 type ToastType = { type: "success" | "error", message: string } | null;
 
@@ -20,58 +20,6 @@ interface BookIssue {
   overdue_reminder_sent: boolean;
   overdue_reminder_sent_at: string | null;
 }
-
-// Mock data based on your API structure
-const mockData: BookIssue[] = [
-  {
-    issue_id: 5,
-    book_id: 1,
-    student_id: 7,
-    issue_date: "2025-05-24T17:00:00.000Z",
-    due_date: "2025-06-07T17:00:00.000Z",
-    return_date: null,
-    fine_amount: null,
-    status: "issuing",
-    reminder_sent: false,
-    reminder_sent_at: null,
-    overdue_reminder_sent: false,
-    overdue_reminder_sent_at: null,
-    student_name: "Hung Khah",
-    book_title: "Book A"
-  },
-  {
-    issue_id: 6,
-    book_id: 2,
-    student_id: 8,
-    issue_date: "2025-05-20T17:00:00.000Z",
-    due_date: "2025-06-03T17:00:00.000Z",
-    return_date: "2025-06-10T17:00:00.000Z",
-    fine_amount: 35,
-    status: "returned",
-    reminder_sent: true,
-    reminder_sent_at: "2025-06-01T17:00:00.000Z",
-    overdue_reminder_sent: true,
-    overdue_reminder_sent_at: "2025-06-05T17:00:00.000Z",
-    student_name: "John Smith",
-    book_title: "Advanced Mathematics"
-  },
-  {
-    issue_id: 7,
-    book_id: 3,
-    student_id: 9,
-    issue_date: "2025-05-15T17:00:00.000Z",
-    due_date: "2025-05-28T17:00:00.000Z",
-    return_date: null,
-    fine_amount: null,
-    status: "overdue",
-    reminder_sent: true,
-    reminder_sent_at: "2025-05-26T17:00:00.000Z",
-    overdue_reminder_sent: true,
-    overdue_reminder_sent_at: "2025-05-30T17:00:00.000Z",
-    student_name: "Alice Johnson",
-    book_title: "Physics Fundamentals"
-  }
-];
 
 // API Service Functions
 
@@ -96,21 +44,21 @@ const BookReturnManagement = () => {
       setIsLoading(true);
       const data = await getAllBookIssue();
       console.log("Raw data:", data);
-      
+
       // Process data to determine status and calculate fines
       const processedData = data.map((item: BookIssue) => {
         const status = determineStatus(item);
         const fine_amount = calculateFineAmount(item);
-        
+
         console.log(`Issue ${item.issue_id}: status=${status}, fine=${fine_amount}`);
-        
+
         return {
           ...item,
           status,
           fine_amount
         };
       });
-      
+
       console.log("Processed data:", processedData);
       setBooks(processedData || []);
     } catch (error) {
@@ -127,17 +75,17 @@ const BookReturnManagement = () => {
     if (book.return_date) {
       return "returned";
     }
-    
+
     // If no return_date, check if it's overdue
     const dueDate = new Date(book.due_date);
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time for accurate comparison
     dueDate.setHours(0, 0, 0, 0);
-    
+
     if (today > dueDate) {
       return "overdue";
     }
-    
+
     // Otherwise it's still issued
     return "issuing";
   };
@@ -147,13 +95,13 @@ const BookReturnManagement = () => {
     if (book.return_date && book.fine_amount !== null) {
       return book.fine_amount;
     }
-    
+
     // If book is not returned, calculate current fine
     if (!book.return_date) {
       const finePerHour = 0.1;
       const today = new Date();
       const jsDueDate = new Date(book.due_date);
-      
+
       if (today > jsDueDate) {
         const diffTime = today.getTime() - jsDueDate.getTime();
         const lateHours = Math.ceil(diffTime / (1000 * 60 * 60));
@@ -161,7 +109,7 @@ const BookReturnManagement = () => {
         return Math.round(fine * 100) / 100;
       }
     }
-    
+
     return 0;
   };
 
@@ -180,18 +128,18 @@ const BookReturnManagement = () => {
       const dueDate = new Date(book.due_date);
       returnDate.setHours(0, 0, 0, 0);
       dueDate.setHours(0, 0, 0, 0);
-      
+
       const diffTime = returnDate.getTime() - dueDate.getTime();
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       return diffDays > 0 ? diffDays : 0;
     }
-    
+
     // If book is not returned, calculate current overdue days
     const today = new Date();
     const dueDate = new Date(book.due_date);
     today.setHours(0, 0, 0, 0);
     dueDate.setHours(0, 0, 0, 0);
-    
+
     const diffTime = today.getTime() - dueDate.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays > 0 ? diffDays : 0;
@@ -201,7 +149,7 @@ const BookReturnManagement = () => {
     try {
       // Call the API to return the book
       await handleReturnBook(issueId);
-      
+
       // Update local state after successful API call
       setBooks((prevBooks) =>
         prevBooks.map((book) => {
@@ -217,9 +165,9 @@ const BookReturnManagement = () => {
           return book;
         })
       );
-      
+
       showToastMessage("success", "Book returned successfully!");
-      
+
       // Refresh data from server to get updated information
       await fetchBookIssues();
     } catch (error) {
@@ -229,18 +177,18 @@ const BookReturnManagement = () => {
   };
 
   const filteredBooks = useMemo(() => {
-    console.log("Filtering books:", { 
-      totalBooks: books.length, 
-      searchTerm, 
+    console.log("Filtering books:", {
+      totalBooks: books.length,
+      searchTerm,
       statusFilter,
       books: books.map(b => ({ id: b.issue_id, status: b.status, name: b.student_name, title: b.book_title }))
     });
-    
+
     const filtered = books.filter((book) => {
       const studentName = book.student_name || '';
       const bookTitle = book.book_title || '';
       const issueId = book.issue_id.toString();
-      
+
       // Search filter
       const matchesSearch =
         studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -258,14 +206,14 @@ const BookReturnManagement = () => {
       }
 
       const result = matchesSearch && matchesStatus;
-      
+
       if (searchTerm || statusFilter !== "all") {
         console.log(`Book ${book.issue_id}: searchMatch=${matchesSearch}, statusMatch=${matchesStatus}, result=${result}`);
       }
-      
+
       return result;
     }).sort((a, b) => a.issue_id - b.issue_id); // Sort by issue_id descending (newest first)
-    
+
     console.log("Filtered result:", filtered.length, "books");
     return filtered;
   }, [books, searchTerm, statusFilter]);
@@ -358,7 +306,7 @@ const BookReturnManagement = () => {
         </div>
       </div>
 
-  
+
       {/* Search and Filter */}
       <div className="w-full max-w-7xl bg-white rounded-2xl shadow-lg p-8 mb-6">
         <div className="flex flex-col md:flex-row justify-between gap-4">
@@ -377,11 +325,10 @@ const BookReturnManagement = () => {
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-6 py-3 text-lg rounded-xl border shadow transition-colors ${
-                  statusFilter === status
+                className={`px-6 py-3 text-lg rounded-xl border shadow transition-colors ${statusFilter === status
                     ? "bg-[#033060] text-white border-[#033060]"
                     : "bg-white text-[#033060] border-[#dbeafe] hover:bg-blue-50"
-                }`}
+                  }`}
               >
                 {status.charAt(0).toUpperCase() + status.slice(1)}
               </button>
@@ -421,25 +368,22 @@ const BookReturnManagement = () => {
                 paginatedBooks.map((book) => {
                   const daysOverdue = calculateDaysOverdue(book);
                   const fineAmount = book.fine_amount || 0;
-                  
+
                   return (
                     <tr key={book.issue_id} className="border-t text-[#033060]">
                       <td className="text-center py-4 px-6 font-semibold">{book.issue_id}</td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <User className="w-4 h-4 text-blue-600" />
                           <div>
                             <div className="font-semibold">{book.student_name || 'N/A'}</div>
-                           
+
                           </div>
                         </div>
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center gap-3">
-                          <BookOpen className="w-4 h-4 text-green-600" />
                           <div>
                             <div className="font-semibold">{book.book_title || 'N/A'}</div>
-                         
                           </div>
                         </div>
                       </td>
@@ -447,9 +391,8 @@ const BookReturnManagement = () => {
                       <td className="py-4 px-6">{formatDate(book.due_date)}</td>
                       <td className="text-center py-4 px-6">
                         {daysOverdue > 0 ? (
-                          <span className={`font-semibold ${
-                            book.status === "returned" ? "text-green-600" : "text-red-600"
-                          }`}>
+                          <span className={`font-semibold ${book.status === "returned" ? "text-green-600" : "text-red-600"
+                            }`}>
                             {daysOverdue} days
                           </span>
                         ) : (
@@ -458,9 +401,8 @@ const BookReturnManagement = () => {
                       </td>
                       <td className="text-center py-4 px-6">
                         {fineAmount > 0 ? (
-                          <span className={`font-semibold flex items-center justify-center gap-1 ${
-                            book.status === "returned" ? "text-green-600" : "text-red-600"
-                          }`}>
+                          <span className={`font-semibold flex items-center justify-center gap-1 ${book.status === "returned" ? "text-green-600" : "text-red-600"
+                            }`}>
                             <DollarSign className="w-4 h-4" />
                             {fineAmount}
                           </span>
@@ -509,9 +451,8 @@ const BookReturnManagement = () => {
             <button
               disabled={currentPage === 1}
               onClick={() => setCurrentPage(currentPage - 1)}
-              className={`px-4 py-2 rounded ${
-                currentPage === 1 ? "text-gray-300" : "text-[#033060] hover:bg-blue-100"
-              }`}
+              className={`px-4 py-2 rounded ${currentPage === 1 ? "text-gray-300" : "text-[#033060] hover:bg-blue-100"
+                }`}
             >
               Previous
             </button>
@@ -521,9 +462,8 @@ const BookReturnManagement = () => {
             <button
               disabled={currentPage === totalPages}
               onClick={() => setCurrentPage(currentPage + 1)}
-              className={`px-4 py-2 rounded ${
-                currentPage === totalPages ? "text-gray-300" : "text-[#033060] hover:bg-blue-100"
-              }`}
+              className={`px-4 py-2 rounded ${currentPage === totalPages ? "text-gray-300" : "text-[#033060] hover:bg-blue-100"
+                }`}
             >
               Next
             </button>
@@ -534,9 +474,8 @@ const BookReturnManagement = () => {
       {/* Toast */}
       {toast && (
         <div
-          className={`fixed left-1/2 -translate-x-1/2 bottom-10 px-6 py-4 rounded-xl shadow-lg z-50 text-lg font-semibold flex items-center gap-3 transition-opacity ${
-            toast.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
-          } ${showToast ? "opacity-100" : "opacity-0"}`}
+          className={`fixed left-1/2 -translate-x-1/2 bottom-10 px-6 py-4 rounded-xl shadow-lg z-50 text-lg font-semibold flex items-center gap-3 transition-opacity ${toast.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+            } ${showToast ? "opacity-100" : "opacity-0"}`}
         >
           {toast.type === "success" ? <CheckCircle className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
           {toast.message}
