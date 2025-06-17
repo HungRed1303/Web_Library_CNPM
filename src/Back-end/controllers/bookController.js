@@ -49,8 +49,13 @@ const findBooks = CatchAsyncErrors(async (req, res, next) => {
 });
 
 const createBook = CatchAsyncErrors(async (req, res, next) => {
-    const { title, publisher_id, category_ids, publication_year, quantity, available, price, author } = req.body;
+    const { title, publisher_id, category_ids, publication_year, quantity, price, author } = req.body;
     const image_url = req.file ? `/uploads/${req.file.filename}` : null;
+    var available = "unavailable"
+
+    if(quantity > 0){
+        available = "available"
+    }
 
     const book = await BookModel.createBook(title, publisher_id, publication_year, quantity, available, price, author, image_url);
 
@@ -73,12 +78,20 @@ const updateBook = CatchAsyncErrors(async (req, res, next) => {
         category_ids,
         publication_year,
         quantity,
-        availability,
+    
         price,
         author
     } = req.body;
+    
+     var available = "unavailable"
 
-    // Xử lý ảnh nếu có upload mới
+    if(quantity > 0){
+        available = "available"
+    }
+
+
+
+      // Xử lý ảnh nếu có upload mới
     let image_url = null;
     if (req.file) {
         image_url = `/uploads/${req.file.filename}`;
@@ -92,7 +105,7 @@ const updateBook = CatchAsyncErrors(async (req, res, next) => {
         publisher_id,
         publication_year,
         quantity,
-        availability,
+        available,
         price,
         author,
         image_url // truyền ảnh mới nếu có
