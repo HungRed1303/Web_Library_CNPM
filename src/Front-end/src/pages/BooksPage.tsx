@@ -2,8 +2,10 @@
 import { useState, useEffect } from "react";
 import { Search, ChevronDown, Heart } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { getAllBooks, getAllCategories, addBookToWishlist, getWishListByStudentId, deleteBookFromWishlist } from "../service/wishListService";
+import { addBookToWishlist, getWishListByStudentId, deleteBookFromWishlist } from "../service/wishListService";
 import React from "react";
+import { getAllBooks } from "../service/bookService";
+import { getAllCategories } from "../service/categoryService";
 
 
 // Giả định Service trả về mảng Book với các trường phù hợp: id, title, author, cover, category
@@ -33,6 +35,7 @@ export default function BookListPage() {
   // State cho wishlist modal
   const [wishlistStatus, setWishlistStatus] = useState<string | null>(null);
   const [wishlistBookIds, setWishlistBookIds] = useState<number[]>([]);
+  const [wishlistLoadingId, setWishlistLoadingId] = useState<number | null>(null);
 
   // Fetch sách và danh mục từ database khi component mount
   useEffect(() => {
@@ -41,7 +44,7 @@ export default function BookListPage() {
     Promise.all([
       getAllBooks(),
       getAllCategories(),
-      student_id ? getWishListByStudentId(student_id) : Promise.resolve({ data: [] })
+      student_id ? getWishListByStudentId(Number(student_id)) : Promise.resolve({ data: [] })
     ])
       .then(([booksRes, catsRes, wishlistRes]) => {
         // Xử lý sách
@@ -98,7 +101,7 @@ export default function BookListPage() {
       const user = localStorage.getItem("user");
       if (user) {
         const parsed = JSON.parse(user);
-        // Ưu tiên lấy student_id, nếu không có thì hướng dẫn đăng nhập lại
+        // Chỉ trả về student_id, không lấy user_id
         if (parsed.student_id) return parsed.student_id;
       }
     } catch {}
@@ -113,33 +116,56 @@ export default function BookListPage() {
       return;
     }
     const numBookId = Number(bookId);
+    setWishlistLoadingId(numBookId);
     if (wishlistBookIds.includes(numBookId)) {
       // Đã lưu, bấm để xóa
       try {
-        await deleteBookFromWishlist(student_id, numBookId);
+        await deleteBookFromWishlist(Number(student_id), numBookId);
         setWishlistBookIds((prev) => prev.filter((id) => id !== numBookId));
-        setWishlistStatus(null);
+        setWishlistStatus("Đã xóa khỏi wishlist!");
       } catch (err: any) {
         setWishlistStatus("Lỗi: " + (err?.message || "Không thể xóa khỏi wishlist"));
+      } finally {
+        setWishlistLoadingId(null);
       }
     } else {
-      // Chưa lưu, bấm để thêm ngay không cần note
+      // Chưa lưu, bấm để thêm
       try {
+        // Kiểm tra lại phía client để tránh gửi trùng
+        if (wishlistBookIds.includes(numBookId)) {
+          setWishlistStatus("Sách đã có trong wishlist!");
+          setWishlistLoadingId(null);
+          return;
+        }
         await addBookToWishlist({
-          student_id,
-          book_id: numBookId,
-          note: ""
+          student_id: Number(student_id),
+          book_id: numBookId
         });
         setWishlistBookIds((prev) => [...prev, numBookId]);
         setWishlistStatus("Đã thêm vào wishlist!");
       } catch (err: any) {
-        setWishlistStatus("Lỗi: " + (err?.message || "Không thể thêm vào wishlist"));
+        // Nếu lỗi do trùng (409), báo rõ
+        if (err?.message?.includes("already") || err?.message?.includes("409")) {
+          setWishlistStatus("Sách đã có trong wishlist!");
+        } else {
+          setWishlistStatus("Lỗi: " + (err?.message || "Không thể thêm vào wishlist"));
+        }
+      } finally {
+        setWishlistLoadingId(null);
       }
     }
   };
 
   return (
     <div className="min-h-screen bg-[#FEFEFE]">
+      {/* Thông báo trạng thái wishlist */}
+      {wishlistStatus && (
+        <div className="fixed top-20 right-8 z-50 bg-white border border-[#467DA7] text-[#467DA7] px-4 py-2 rounded shadow">
+          {wishlistStatus}
+          <button className="ml-2 text-gray-400" onClick={() => setWishlistStatus(null)}>×</button>
+        </div>
+      )}
+
       {/* Header / Breadcrumb */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-6 py-4 lg:px-8 flex items-center justify-between">
@@ -259,7 +285,7 @@ export default function BookListPage() {
                         <button
                           className="flex items-center justify-center p-1.5 bg-white rounded-full shadow-md"
                           onClick={() => handleToggleWishlist(book.id)}
-                          disabled={loading}
+                          disabled={wishlistLoadingId === Number(book.id)}
                           aria-label={wishlistBookIds.includes(Number(book.id)) ? "Đã lưu" : "Thêm vào wishlist"}
                           style={{ background: "none", border: "none", outline: "none", cursor: "pointer" }}
                         >

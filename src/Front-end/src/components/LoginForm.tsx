@@ -13,15 +13,17 @@ const LoginForm = () => {
   const Navigate = useNavigate()
 
 const handleLoginSuccess = (role, id, role_id) => {
-  localStorage.setItem(
-    'user',
-    JSON.stringify({
-      isLogged: true,
-      role: role,
-      user_id: id,
-      role_id: role_id // Thêm dòng này
-    })
-  );
+  const userData = {
+    isLogged: true,
+    role: role,
+    user_id: id,
+    role_id: role_id
+  };
+  // Nếu là sinh viên, lưu thêm student_id
+  if (role === 'S') {
+    userData.student_id = role_id;
+  }
+  localStorage.setItem('user', JSON.stringify(userData));
 };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {

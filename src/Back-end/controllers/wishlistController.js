@@ -23,9 +23,9 @@ const getWishListByStudentId = CatchAsyncErrors(async (req,res,next)=>{
 })
 
 const insertBookWishList = CatchAsyncErrors(async (req,res,next)=>{
-    const {student_id,book_id,note} = req.body;
+    const {student_id,book_id} = req.body;
    const created_date = toSQLDate(new Date());
-    const result = await WishlistModel.insertBookWishList(student_id,book_id,created_date,note);
+    const result = await WishlistModel.insertBookWishList(student_id,book_id,created_date);
     res.status(200).json({
         success: true,
         data: result
