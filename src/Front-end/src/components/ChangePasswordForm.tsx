@@ -155,7 +155,6 @@ export default function ChangePasswordForm() {
           CHANGE PASSWORD
         </h1>
         <div className="h-1 w-24 bg-[#033060] mx-auto mt-2 rounded-full shadow-[0_0_10px_rgba(3,48,96,0.7)]"></div>
-        <p className="text-[#033060] mt-2">Update your account password</p>
         {/* Debug info - có thể xóa sau khi test xong */}
       </div>
 

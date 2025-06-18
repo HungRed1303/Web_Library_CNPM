@@ -27,8 +27,12 @@ const StudentProfile = () => {
           throw new Error("No student ID provided in route.");
         }
         const data = await getStudentById(Number(id));
-        setStudent(data);
-        setEditedStudent(data);
+        const normalizedData = {
+          ...data,
+          class_id: data.class_id !== null ? String(data.class_id) : null,
+        };
+        setStudent(normalizedData);
+        setEditedStudent(normalizedData);
       } catch (err: any) {
         setError(err.message || "Failed to load student profile.");
       } finally {
@@ -77,16 +81,24 @@ const StudentProfile = () => {
       if (!emailRegex.test(editedStudent.email)) {
         throw new Error("Please enter a valid email address.");
       }
-
-      // Cập nhật dữ liệu
-      await updateStudent(editedStudent.student_id, editedStudent);
-      
       // Ngay lập tức load lại dữ liệu từ server
       const refreshedData = await getStudentById(Number(id));
+      const normalizedRefreshedData = {
+        ...refreshedData,
+        class_id: refreshedData.class_id !== null ? String(refreshedData.class_id) : null,
+      };
       
       // Cập nhật state với dữ liệu mới nhất từ server
-      setStudent(refreshedData);
-      setEditedStudent(refreshedData);
+      setStudent(normalizedRefreshedData);
+      setEditedStudent(normalizedRefreshedData);
+      setIsEditing(false);
+      setSuccessMessage("Student profile updated successfully!");
+      const normalizedRefreshedData2 = {
+        ...refreshedData,
+        class_id: refreshedData.class_id !== null ? String(refreshedData.class_id) : null,
+      };
+      setStudent(normalizedRefreshedData2);
+      setEditedStudent(normalizedRefreshedData2);
       setIsEditing(false);
       setSuccessMessage("Student profile updated successfully!");
       
