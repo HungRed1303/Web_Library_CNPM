@@ -29,7 +29,7 @@ export default function HomePageUser() {
         <div className="container mx-auto flex flex-col-reverse md:flex-row items-center px-6 py-16 lg:px-16">
           {/* Text & Search */}
           <div className="w-full md:w-1/2 mt-12 md:mt-0">
-            <h1 className="text-4xl font-bold text-[#467DA7] lg:text-5xl">
+            <h1 className="text-4xl font-bold text-[#033060] lg:text-5xl">
               The <span className="text-[#1F2E3D]">EleBrary</span> <br />
               eBook Library.
             </h1>
@@ -40,7 +40,7 @@ export default function HomePageUser() {
 
             {/* Search Bar */}
             <div className="mt-6 max-w-md">
-              <div className="flex items-center rounded-full border border-gray-300 bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#467DA7]">
+              <div className="flex items-center rounded-full border border-gray-300 bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#033060]">
                 <button className="px-4 text-gray-500">
                   <Search size={20} />
                 </button>
@@ -89,7 +89,7 @@ export default function HomePageUser() {
                     className="h-64 w-full rounded-t-2xl object-cover"
                   />
                   <div className="p-4 text-center">
-                    <h3 className="text-xl font-semibold text-[#1F2E3D] group-hover:text-[#467DA7] transition-colors">
+                    <h3 className="text-xl font-semibold text-[#1F2E3D] group-hover:text-[#033060] transition-colors">
                       {book.title}
                     </h3>
                     <p className="mt-1 text-sm text-gray-600">— {book.author}</p>
@@ -109,8 +109,8 @@ export default function HomePageUser() {
           <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-2">
             {/* eBooks Card */}
             <div className="flex flex-col items-center text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#467DA7]/10">
-                <Book size={32} className="text-[#467DA7]" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#033060]/10">
+                <Book size={32} className="text-[#033060]" />
               </div>
               <h3 className="mt-4 text-2xl font-semibold text-[#1F2E3D]">
                 eBooks
@@ -121,8 +121,8 @@ export default function HomePageUser() {
             </div>
             {/* Audiobooks Card */}
             <div className="flex flex-col items-center text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#467DA7]/10">
-                <Headphones size={32} className="text-[#467DA7]" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#033060]/10">
+                <Headphones size={32} className="text-[#033060]" />
               </div>
               <h3 className="mt-4 text-2xl font-semibold text-[#1F2E3D]">
                 Audiobooks

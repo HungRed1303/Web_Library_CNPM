@@ -7,6 +7,9 @@ import {
   BarChart2,
   Settings,
 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useToast } from "../hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 /**
  * HomePage – Dashboard Links
@@ -14,44 +17,81 @@ import {
  */
 
 export default function HomePage() {
-  const cards = [
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+
+  // Get user info from localStorage when component mounts
+  useEffect(() => {
+    try {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        const userData = JSON.parse(userStr);
+        // Check fields that may contain role
+        const role = userData.role || userData.role_type || userData.user_type;
+        setUserRole(role);
+        console.log("User data:", userData); // Debug log
+        console.log("User role:", role); // Debug log
+      } else {
+        // If no user data, get role separately
+        const roleFromStorage = localStorage.getItem("role");
+        setUserRole(roleFromStorage);
+        console.log("Role from storage:", roleFromStorage); // Debug log
+      }
+    } catch (error) {
+      console.error("Error parsing user data:", error);
+      // Fallback to role from localStorage
+      const roleFromStorage = localStorage.getItem("role");
+      setUserRole(roleFromStorage);
+    }
+  }, []);
+
+  // Define all cards
+  const allCards = [
     {
       title: "Manage Publishers",
       icon: <Users size={32} className="text-[#033060]" />,
       link: "/publishers",
-      description: "Thêm, sửa, xóa Publishers",
+      description: "Add, edit, delete publishers",
     },
     {
       title: "Manage Books",
       icon: <UserPlus size={32} className="text-[#033060]" />,
       link: "/managebooks",
-      description: "Quản lý thông tin sách",
+      description: "Manage book information",
     },
     {
       title: "Manage Students",
       icon: <UserCheck size={32} className="text-[#033060]" />,
       link: "/students",
-      description: "Thêm, sửa, xóa sinh viên",
-    },
-    {
-      title: "Manage Librarians",
-      icon: <Users size={32} className="text-[#033060]" />,
-      link: "/librarians",
-      description: "Thêm, sửa, xóa thủ thư",
+      description: "Add, edit, delete students",
     },
     {
       title: "Report",
       icon: <BarChart2 size={32} className="text-[#033060]" />,
       link: "/report",
-      description: "Xem thống kê & báo cáo",
+      description: "View statistics & reports",
     },
     {
       title: "Settings",
       icon: <Settings size={32} className="text-[#033060]" />,
       link: "/settings",
-      description: "Tùy chỉnh hệ thống",
+      description: "System customization",
     },
   ];
+
+  // Card only visible for Admin (role "A")
+  const adminOnlyCard = {
+    title: "Manage Librarians",
+    icon: <Users size={32} className="text-[#033060]" />,
+    link: "/librarians",
+    description: "Add, edit, delete librarians",
+  };
+
+  // Create card list based on role
+  const cards = userRole === "A" 
+    ? [...allCards.slice(0, 3), adminOnlyCard, ...allCards.slice(3)]
+    : allCards;
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] font-[Tahoma] flex flex-col items-center py-10">
@@ -61,7 +101,7 @@ export default function HomePage() {
           Library Dashboard
         </h1>
         <p className="mt-2 text-lg text-gray-600">
-          Chọn chức năng bên dưới để tiếp tục
+          Select a function below to continue
         </p>
       </header>
 
