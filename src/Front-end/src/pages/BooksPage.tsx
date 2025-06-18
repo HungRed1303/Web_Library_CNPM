@@ -101,8 +101,9 @@ export default function BookListPage() {
       const user = localStorage.getItem("user");
       if (user) {
         const parsed = JSON.parse(user);
-        // Chỉ trả về student_id, không lấy user_id
+        // Ưu tiên lấy student_id, nếu không có thì lấy user_id nếu role là Student
         if (parsed.student_id) return parsed.student_id;
+        if ((parsed.role === "S" || parsed.role === "Student") && parsed.user_id) return parsed.user_id;
       }
     } catch {}
     return null;
