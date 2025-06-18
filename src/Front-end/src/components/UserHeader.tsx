@@ -124,44 +124,14 @@ export default function Header() {
             <Search className="absolute left-4 top-1/2 h-5 w-5 text-gray-500 -translate-y-1/2" />
           </div>
 
-          {/* Categories Dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setCategoryOpen(!categoryOpen)}
-              className="flex items-center space-x-1 rounded-md px-3 py-2 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition focus:outline-none"
-              title="Danh mục"
+            {/* ALL BOOKS Link */}
+            <Link
+            to="/books"
+            className="rounded-md px-3 py-2 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition"
+            title="ALL BOOKS"
             >
-              <span>Categories</span>
-              <ChevronDown className="h-4 w-4" />
-            </button>
-            {categoryOpen && (
-              <div className="absolute left-0 mt-2 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
-                <div className="py-1">
-                  <Link
-                    to="/categories"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    title="Thể loại sách"
-                  >
-                    Thể loại sách
-                  </Link>
-                  <Link
-                    to="/books"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    title="ALL BOOKS"
-                  >
-                    ALL BOOKS
-                  </Link>
-                  <Link
-                    to="/authors"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    title="Tác giả"
-                  >
-                    Tác giả
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
+            ALL BOOKS
+            </Link>
 
           {/* Wishlist */}
           <Link

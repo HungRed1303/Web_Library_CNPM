@@ -31,10 +31,9 @@ export default function BookListPage() {
   // Fetch sách và danh mục từ database khi component mount
   useEffect(() => {
     setLoading(true);
-    // Song song fetch books và categories
     Promise.all([getAllBooks(), getAllCategories()])
       .then(([booksRes, catsRes]) => {
-        // Xử lý sách
+        // --- xử lý sách ---
         const books: Book[] = booksRes.data.map((b: any) => ({
           id: String(b.book_id),
           title: b.title,
@@ -45,15 +44,20 @@ export default function BookListPage() {
         }));
         setAllBooks(books);
         setFilteredBooks(books);
-        // Xử lý danh mục
-        const catList: string[] = Array.isArray(catsRes.data)
-          ? catsRes.data.map((c: any) => String(c))
-          : [];
-        setCategories(["Tất cả", ...catList]);
+
+        // --- xử lý danh mục ---
+        if (Array.isArray(catsRes.data)) {
+          // thay 'name' thành key thật sự trong object trả về từ API của bạn
+          const catList = catsRes.data.map((c: any) => c.name as string);
+          setCategories(["Tất cả", ...catList]);
+        } else {
+          setCategories(["Tất cả"]);
+        }
       })
       .catch(() => setError("Không tải được dữ liệu"))
       .finally(() => setLoading(false));
   }, []);
+
 
   // Mỗi khi searchTerm hoặc selectedCategory hoặc allBooks thay đổi, lọc lại
   useEffect(() => {
