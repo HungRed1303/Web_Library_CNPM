@@ -37,6 +37,9 @@ export default function BookListPage() {
   const [wishlistBookIds, setWishlistBookIds] = useState<number[]>([]);
   const [wishlistLoadingId, setWishlistLoadingId] = useState<number | null>(null);
 
+  const raw = localStorage.getItem("user");
+  const userData = raw ? JSON.parse(raw) : null;
+  const roleID = userData?.role_id;
   // Fetch sách và danh mục từ database khi component mount
   useEffect(() => {
     setLoading(true);
@@ -111,7 +114,7 @@ export default function BookListPage() {
 
   // Hàm xử lý thêm vào wishlist
   const handleToggleWishlist = async (bookId: string) => {
-    const student_id = getStudentIdFromLocalStorage();
+    const student_id = roleID;
     if (!student_id) {
       setWishlistStatus("Vui lòng đăng xuất và đăng nhập lại để sử dụng tính năng wishlist!");
       return;

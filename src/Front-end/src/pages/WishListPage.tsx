@@ -13,14 +13,17 @@ interface WishBook {
 }
 
 function getStudentIdFromLocalStorage(): number | null {
-  try {
-    const user = localStorage.getItem("user");
-    if (user) {
-      const parsed = JSON.parse(user);
-      if (parsed.student_id) return parsed.student_id;
-    }
-  } catch {}
-  return null;
+    try {
+      const user = localStorage.getItem("user");
+      if (user) {
+        const parsed = JSON.parse(user);
+        // ✅ ĐÚNG: Chỉ lấy role_id khi role là "S"
+        if (parsed.role === "S" && parsed.role_id) {
+          return parsed.role_id;
+        }
+      }
+    } catch {}
+    return null;
 }
 
 export default function WishListPage() {
@@ -37,6 +40,7 @@ export default function WishListPage() {
       return;
     }
     setLoading(true);
+    
     getWishListByStudentId(student_id)
       .then((res) => {
         const mapped = (res.data || []).map((b: any) => ({
