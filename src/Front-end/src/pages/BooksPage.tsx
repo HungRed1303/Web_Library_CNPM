@@ -104,9 +104,8 @@ export default function BookListPage() {
       const user = localStorage.getItem("user");
       if (user) {
         const parsed = JSON.parse(user);
-        // Ưu tiên lấy student_id, nếu không có thì lấy user_id nếu role là Student
-        if (parsed.student_id) return parsed.student_id;
-        if ((parsed.role === "S" || parsed.role === "Student") && parsed.user_id) return parsed.user_id;
+        // Lấy student_id chính là role_id
+        if (parsed.role_id) return parsed.role_id;
       }
     } catch {}
     return null;
@@ -114,7 +113,7 @@ export default function BookListPage() {
 
   // Hàm xử lý thêm vào wishlist
   const handleToggleWishlist = async (bookId: string) => {
-    const student_id = roleID;
+    const student_id = getStudentIdFromLocalStorage();
     if (!student_id) {
       setWishlistStatus("Vui lòng đăng xuất và đăng nhập lại để sử dụng tính năng wishlist!");
       return;

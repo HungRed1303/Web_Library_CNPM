@@ -26,6 +26,14 @@ function getStudentIdFromLocalStorage(): number | null {
     return null;
 }
 
+// Helper để tạo URL ảnh đầy đủ (giống BooksPage.tsx)
+function getImageUrl(imageUrl: string): string {
+  if (!imageUrl) return "";
+  if (imageUrl.startsWith("http")) return imageUrl;
+  const cleanPath = imageUrl.startsWith("/") ? imageUrl.substring(1) : imageUrl;
+  return `http://localhost:3000/${cleanPath}`;
+}
+
 export default function WishListPage() {
   const [books, setBooks] = useState<WishBook[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +55,7 @@ export default function WishListPage() {
           book_id: b.book_id,
           title: b.title,
           author: b.author,
-          image_url: b.image_url || "",
+          image_url: getImageUrl(b.image_url || ""),
           category: b.category || "",
           note: b.note || ""
         }));
