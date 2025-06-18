@@ -3,6 +3,8 @@ import { Book, Calendar, DollarSign, AlertCircle, RefreshCw, ArrowLeft } from "l
 import borrowingHistoryService from "../service/borrowingHistoryService";
 import { useNavigate } from "react-router-dom";
 
+
+
 export default function BorrowingHistoryPage() {
   const [borrowingHistory, setBorrowingHistory] = useState<any[]>([]);
   const [stats, setStats] = useState({
@@ -16,9 +18,30 @@ export default function BorrowingHistoryPage() {
   const [error, setError] = useState<any>(null);
   const [studentId, setStudentId] = useState<any>(null);
   const navigate = useNavigate();
-
+  const [userRole, setUserRole] = useState<string | null>(null);
   // Mock getting student ID from URL params or props
   useEffect(() => {
+        try {
+      const userStr = localStorage.getItem("user")
+      if (userStr) {
+        const userData = JSON.parse(userStr)
+        // Kiểm tra các trường có thể chứa role
+        const role = userData.role || userData.role_type || userData.user_type
+        setUserRole(role)
+        console.log("User data:", userData) // Debug log
+        console.log("User role:", role) // Debug log
+      } else {
+        // Nếu không có user data, có thể lấy role riêng
+        const roleFromStorage = localStorage.getItem("role")
+        setUserRole(roleFromStorage)
+        console.log("Role from storage:", roleFromStorage) // Debug log
+      }
+    } catch (error) {
+      console.error("Error parsing user data:", error)
+      // Fallback to role from localStorage
+      const roleFromStorage = localStorage.getItem("role")
+      setUserRole(roleFromStorage)
+    }
     // In real app, this would come from URL params or props
     const urlParams = new URLSearchParams(window.location.search);
     setStudentId(urlParams.get('studentId'));
@@ -211,7 +234,13 @@ export default function BorrowingHistoryPage() {
       {/* Return button ở góc dưới bên trái */}
       <div className="fixed bottom-4 left-4 z-50">
         <button
-          onClick={() => navigate('/students')}
+          onClick={() => {
+            if (userRole === 'A' || userRole === 'L') {
+              navigate('/students')
+            } else {
+              navigate('/home')
+            }
+          }}
           className="flex items-center gap-2 bg-[#f5f8fc] text-[#033060] border border-[#dbeafe] px-2 md:px-4 py-1.5 md:py-2 rounded-full hover:bg-[#eaf3fb] transition-colors font-semibold text-sm md:text-base"
           style={{minWidth: '36px', minHeight: '36px'}}
           aria-label="Return to student management"

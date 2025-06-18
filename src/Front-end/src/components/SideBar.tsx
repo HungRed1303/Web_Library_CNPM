@@ -21,18 +21,6 @@ interface SidebarProps {
   setMobileOpen: (open: boolean) => void;
 }
 
-const navItems = [
-  { icon: <Home size={20} />, label: "Dashboard", href: "/dashboard" },
-  { icon: <Heart size={20} />, label: "Wishlist", href: "/wishlist" },
-  { icon: <ListChecks size={20} />, label: "Categories", href: "/categories" },
-  { icon: <BarChart2 size={20} />, label: "Report", href: "/report" },
-  { icon: <Book size={20} />, label: "Manage Books", href: "/managebooks" },
-  { icon: <Users size={20} />, label: "Publishers", href: "/publishers" },
-  { icon: <User size={20} />, label: "Students", href: "/students" },
-  { icon: <UserCheck size={20} />, label: "Librarians", href: "/librarians" },
-  { icon: <Settings size={20} />, label: "Settings", href: "/settings" },
-];
-
 export default function Sidebar({
   collapsed,
   mobileOpen,
@@ -52,6 +40,32 @@ export default function Sidebar({
     S: "Student",
   };
   const displayRole = roleMap[user?.role] || "Unknown";
+  const userRole = user?.role;
+
+  // Nav items cơ bản (hiển thị cho tất cả user)
+  const baseNavItems = [
+    { icon: <Home size={20} />, label: "Dashboard", href: "/dashboard" },
+    { icon: <Heart size={20} />, label: "Wishlist", href: "/wishlist" },
+    { icon: <ListChecks size={20} />, label: "Categories", href: "/categories" },
+    { icon: <BarChart2 size={20} />, label: "Report", href: "/report" },
+    { icon: <Book size={20} />, label: "Manage Books", href: "/managebooks" },
+    { icon: <Users size={20} />, label: "Publishers", href: "/publishers" },
+    { icon: <User size={20} />, label: "Students", href: "/students" },
+    { icon: <Settings size={20} />, label: "Settings", href: "/settings" },
+  ];
+
+  // Nav item chỉ dành cho Admin
+  const adminOnlyItem = {
+    icon: <UserCheck size={20} />,
+    label: "Librarians",
+    href: "/librarians"
+  };
+
+  // Tạo danh sách nav items dựa trên role
+  // Thêm "Librarians" vào sau "Students" nếu user là Admin
+  const navItems = userRole === "A" 
+    ? [...baseNavItems.slice(0, 7), adminOnlyItem, ...baseNavItems.slice(7)]
+    : baseNavItems;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

@@ -2,10 +2,10 @@
 import { useState, useEffect } from "react";
 import { Search, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
-import { getAllCategories } from "../service/categoryService"; // Giả định có service lấy danh mục
-import {getAllBooks} from "../service/bookService";
+import { getAllCategories } from "../service/categoryService"; // Assume there is a service to get categories
+import { getAllBooks } from "../service/bookService";
 
-// Giả định Service trả về mảng Book với các trường phù hợp: id, title, author, cover, category
+// Assume Service returns an array of Book with appropriate fields: id, title, author, cover, category
 interface Book {
   id: string;
   title: string;
@@ -16,25 +16,25 @@ interface Book {
 }
 
 export default function BookListPage() {
-  // State lưu tất cả sách lấy từ DB
+  // State to store all books fetched from DB
   const [allBooks, setAllBooks] = useState<Book[]>([]);
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // State cho filter
+  // State for filter
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("Tất cả");
+  const [selectedCategory, setSelectedCategory] = useState("All");
   const [categoryOpen, setCategoryOpen] = useState(false);
-  const [categories, setCategories] = useState<string[]>(["Tất cả"]);
+  const [categories, setCategories] = useState<string[]>(["All"]);
 
-  // Fetch sách và danh mục từ database khi component mount
+  // Fetch books and categories from database when component mounts
   useEffect(() => {
     setLoading(true);
-    // Song song fetch books và categories
+    // Fetch books and categories in parallel
     Promise.all([getAllBooks(), getAllCategories()])
       .then(([booksRes, catsRes]) => {
-        // Xử lý sách
+        // Handle books
         const books: Book[] = booksRes.data.map((b: any) => ({
           id: String(b.book_id),
           title: b.title,
@@ -45,20 +45,20 @@ export default function BookListPage() {
         }));
         setAllBooks(books);
         setFilteredBooks(books);
-        // Xử lý danh mục
+        // Handle categories
         const catList: string[] = Array.isArray(catsRes.data)
           ? catsRes.data.map((c: any) => String(c))
           : [];
-        setCategories(["Tất cả", ...catList]);
+        setCategories(["All", ...catList]);
       })
-      .catch(() => setError("Không tải được dữ liệu"))
+      .catch(() => setError("Failed to load data"))
       .finally(() => setLoading(false));
   }, []);
 
-  // Mỗi khi searchTerm hoặc selectedCategory hoặc allBooks thay đổi, lọc lại
+  // Whenever searchTerm or selectedCategory or allBooks changes, filter again
   useEffect(() => {
     let temp = [...allBooks];
-    if (selectedCategory !== "Tất cả") {
+    if (selectedCategory !== "All") {
       temp = temp.filter((b) => b.category === selectedCategory);
     }
     if (searchTerm.trim() !== "") {
@@ -72,7 +72,7 @@ export default function BookListPage() {
     setFilteredBooks(temp);
   }, [searchTerm, selectedCategory, allBooks]);
 
-  // Helper để tạo URL ảnh đầy đủ
+  // Helper to create full image URL
   const getImageUrl = (imageUrl: string): string => {
     if (!imageUrl) return "";
     if (imageUrl.startsWith("http")) return imageUrl;
@@ -85,13 +85,13 @@ export default function BookListPage() {
       {/* Header / Breadcrumb */}
       <div className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-6 py-4 lg:px-8 flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-[#1F2E3D]">Thư viện sách</h1>
+          <h1 className="text-2xl font-semibold text-[#1F2E3D]">Library Books</h1>
           <nav className="text-sm text-gray-600">
-            <Link to="/home" className="hover:text-[#467DA7]">
-              Trang chủ
+            <Link to="/home" className="hover:text-[#033060]">
+              Home
             </Link>
             <span className="mx-2">/</span>
-            <span className="text-[#467DA7]">Tất cả sách</span>
+            <span className="text-[#033060]">All Books</span>
           </nav>
         </div>
       </div>
@@ -102,13 +102,13 @@ export default function BookListPage() {
           <div className="flex flex-col lg:flex-row items-center lg:justify-between gap-4">
             {/* Search */}
             <div className="w-full lg:w-1/2">
-              <div className="flex items-center rounded-full border border-gray-300 bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#467DA7]">
+              <div className="flex items-center rounded-full border border-gray-300 bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#033060]">
                 <button className="px-4 text-gray-500">
                   <Search size={20} />
                 </button>
                 <input
                   type="text"
-                  placeholder="Tìm kiếm theo tiêu đề, tác giả..."
+                  placeholder="Search by title, author..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full rounded-full px-4 py-2 text-gray-700 placeholder-gray-400 focus:outline-none"
@@ -120,7 +120,7 @@ export default function BookListPage() {
             <div className="relative w-full lg:w-1/4">
               <button
                 onClick={() => setCategoryOpen(!categoryOpen)}
-                className="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 shadow-sm hover:border-[#467DA7] hover:text-[#467DA7] transition"
+                className="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white px-4 py-2 text-gray-700 shadow-sm hover:border-[#033060] hover:text-[#033060] transition"
               >
                 <span>{selectedCategory}</span>
                 <ChevronDown className="h-4 w-4" />
@@ -137,7 +137,7 @@ export default function BookListPage() {
                       className={`block w-full px-4 py-2 text-left text-sm transition
                         ${
                           selectedCategory === cat
-                            ? "bg-[#467DA7]/10 text-[#467DA7]"
+                            ? "bg-[#033060]/10 text-[#033060]"
                             : "text-gray-700 hover:bg-gray-100"
                         }
                       `}
@@ -156,11 +156,11 @@ export default function BookListPage() {
       <section className="py-12">
         <div className="container mx-auto px-6 lg:px-8">
           {loading ? (
-            <p className="text-center text-gray-500">Đang tải dữ liệu…</p>
+            <p className="text-center text-gray-500">Loading data…</p>
           ) : error ? (
             <p className="text-center text-red-600">{error}</p>
           ) : filteredBooks.length === 0 ? (
-            <p className="text-center text-gray-500">Không tìm thấy sách phù hợp.</p>
+            <p className="text-center text-gray-500">No matching books found.</p>
           ) : (
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredBooks.map((book) => (
@@ -184,16 +184,16 @@ export default function BookListPage() {
                   )}
                   <div className="flex flex-1 flex-col justify-between p-4">
                     <div>
-                      <h3 className="text-lg font-semibold text-[#1F2E3D] group-hover:text-[#467DA7] transition-colors">
+                      <h3 className="text-lg font-semibold text-[#1F2E3D] group-hover:text-[#033060] transition-colors">
                         {book.title}
                       </h3>
-                      <p className="mt-1 text-sm text-gray-600">— {book.author}</p>
+                        <p className="mt-1 text-sm text-[#033060]">Author: {book.author}</p>
                     </div>
                     <Link
                       to={`/books/detail-book/${book.id}`}
-                      className="mt-4 inline-block self-start rounded-md bg-[#467DA7] px-4 py-2 text-sm font-medium text-white hover:bg-[#3a6b9b] transition"
+                      className="mt-4 inline-block self-start rounded-md bg-[#033060] px-4 py-2 text-sm font-medium text-white hover:bg-[#3a6b9b] transition"
                     >
-                      Xem chi tiết
+                      View Details
                     </Link>
                   </div>
                 </div>
@@ -203,7 +203,7 @@ export default function BookListPage() {
         </div>
       </section>
 
-      {/* Pagination (Ví dụ đơn giản) */}
+      {/* Pagination (Simple example) */}
       <section className="py-8 bg-white">
         <div className="container mx-auto px-6 lg:px-8 flex justify-center">
           <nav className="inline-flex -space-x-px rounded-md shadow-sm">

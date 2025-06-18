@@ -81,28 +81,24 @@ const StudentProfile = () => {
       if (!emailRegex.test(editedStudent.email)) {
         throw new Error("Please enter a valid email address.");
       }
-      // Ngay lập tức load lại dữ liệu từ server
+
+      // Update student
+      await updateStudent(Number(id), editedStudent);
+      
+      // Refresh data from server
       const refreshedData = await getStudentById(Number(id));
       const normalizedRefreshedData = {
         ...refreshedData,
         class_id: refreshedData.class_id !== null ? String(refreshedData.class_id) : null,
       };
       
-      // Cập nhật state với dữ liệu mới nhất từ server
+      // Update state with fresh data
       setStudent(normalizedRefreshedData);
       setEditedStudent(normalizedRefreshedData);
       setIsEditing(false);
       setSuccessMessage("Student profile updated successfully!");
-      const normalizedRefreshedData2 = {
-        ...refreshedData,
-        class_id: refreshedData.class_id !== null ? String(refreshedData.class_id) : null,
-      };
-      setStudent(normalizedRefreshedData2);
-      setEditedStudent(normalizedRefreshedData2);
-      setIsEditing(false);
-      setSuccessMessage("Student profile updated successfully!");
       
-      // Tự động ẩn thông báo thành công sau 3 giây
+      // Auto-hide success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage("");
       }, 3000);
@@ -143,101 +139,114 @@ const StudentProfile = () => {
 
   return (
     <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-      <div className="w-full max-w-[700px] z-10">
-        <div className="bg-cream border border-blue-600/30 rounded-2xl shadow-xl shadow-blue-600/10 pt-5 pb-5 px-40 backdrop-blur-sm">
+      <div className="w-full max-w-[800px] z-10">
+        <div className="bg-cream border border-blue-600/30 rounded-2xl shadow-xl shadow-blue-600/10 pt-8 pb-8 px-8 backdrop-blur-sm">
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-blue-800 mb-2">Student Profile</h1>
             <p className="text-blue-600">Information of student ID: {student.student_id}</p>
           </div>
 
           {error && isEditing && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
               {error}
             </div>
           )}
 
           {successMessage && (
-            <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+            <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
               {successMessage}
             </div>
           )}
 
-          <div className="space-y-4 text-blue-800">
-            <div>
-              <span className="font-semibold">Full Name:</span>{" "}
+          <div className="space-y-6 text-blue-800">
+            {/* Full Name Field */}
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <label className="font-semibold text-blue-800 w-32 mb-2 sm:mb-0 sm:mr-4 flex-shrink-0">
+                Full Name:
+              </label>
               {isEditing ? (
                 <input
                   type="text"
                   value={editedStudent?.name || ""}
                   onChange={(e) => handleInputChange("name", e.target.value)}
-                  className="ml-2 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:border-blue-500"
+                  className="flex-1 px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   placeholder="Enter full name"
                 />
               ) : (
-                student.name
+                <span className="flex-1 py-3 text-blue-700">{student.name}</span>
               )}
             </div>
             
-            <div>
-              <span className="font-semibold">Username:</span>{" "}
+            {/* Username Field */}
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <label className="font-semibold text-blue-800 w-32 mb-2 sm:mb-0 sm:mr-4 flex-shrink-0">
+                Username:
+              </label>
               {isEditing ? (
                 <input
                   type="text"
                   value={editedStudent?.username || ""}
                   onChange={(e) => handleInputChange("username", e.target.value)}
-                  className="ml-2 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:border-blue-500"
+                  className="flex-1 px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   placeholder="Enter username"
                 />
               ) : (
-                student.username
+                <span className="flex-1 py-3 text-blue-700">{student.username}</span>
               )}
             </div>
             
-            <div>
-              <span className="font-semibold">Email:</span>{" "}
+            {/* Email Field */}
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <label className="font-semibold text-blue-800 w-32 mb-2 sm:mb-0 sm:mr-4 flex-shrink-0">
+                Email:
+              </label>
               {isEditing ? (
                 <input
                   type="email"
                   value={editedStudent?.email || ""}
                   onChange={(e) => handleInputChange("email", e.target.value)}
-                  className="ml-2 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:border-blue-500"
+                  className="flex-1 px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   placeholder="Enter email"
                 />
               ) : (
-                student.email
+                <span className="flex-1 py-3 text-blue-700">{student.email}</span>
               )}
             </div>
             
-            <div>
-              <span className="font-semibold">Class ID:</span>{" "}
+            {/* Class ID Field */}
+            <div className="flex flex-col sm:flex-row sm:items-center">
+              <label className="font-semibold text-blue-800 w-32 mb-2 sm:mb-0 sm:mr-4 flex-shrink-0">
+                Class ID:
+              </label>
               {isEditing ? (
                 <input
                   type="text"
                   value={editedStudent?.class_id || ""}
                   onChange={(e) => handleInputChange("class_id", e.target.value || null)}
-                  className="ml-2 px-2 py-1 border border-blue-300 rounded focus:outline-none focus:border-blue-500"
+                  className="flex-1 px-4 py-3 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   placeholder="Enter class code"
                 />
               ) : (
-                student.class_id ?? "N/A"
+                <span className="flex-1 py-3 text-blue-700">{student.class_id || "N/A"}</span>
               )}
             </div>
           </div>
 
-          <div className="mt-6 flex justify-center space-x-4">
+          {/* Action Buttons */}
+          <div className="mt-8 flex justify-center space-x-4">
             {isEditing ? (
               <>
                 <button
                   onClick={handleSave}
                   disabled={updating}
-                  className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
                 >
-                  {updating ? "Saving..." : "Save"}
+                  {updating ? "Saving..." : "Save Changes"}
                 </button>
                 <button
                   onClick={handleCancel}
                   disabled={updating}
-                  className="px-6 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-8 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-medium"
                 >
                   Cancel
                 </button>
@@ -245,7 +254,7 @@ const StudentProfile = () => {
             ) : (
               <button
                 onClick={handleEdit}
-                className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 font-medium"
               >
                 Edit Profile
               </button>
@@ -255,6 +264,7 @@ const StudentProfile = () => {
 
         <div className="mt-8 text-center">
           <p className="text-xs text-blue-600/70">
+            {/* Footer text if needed */}
           </p>
         </div>
       </div>

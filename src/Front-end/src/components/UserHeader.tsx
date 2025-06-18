@@ -23,12 +23,12 @@ export default function Header() {
   const { toast } = useToast();
   const [isRequesting, setIsRequesting] = useState(false);
 
-  // State dùng để lưu thông tin user (đã đăng nhập hay chưa, tên, v.v.)
+  // State to store user info (logged in or not, name, etc.)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [hasLibraryCard, setHasLibraryCard] = useState(false);
 
-  // Khi component mount, kiểm tra localStorage để xác định trạng thái login
+  // On mount, check localStorage for login status
   useEffect(() => {
     try {
       const raw = localStorage.getItem("user");
@@ -36,7 +36,6 @@ export default function Header() {
         const userData = JSON.parse(raw);
         if (userData.isLogged) {
           setIsAuthenticated(true);
-          // Nếu userData có trường name, dùng nó; nếu không, bạn thay bằng userData.role hoặc field phù hợp
           setUserName(userData.name || "");
           setHasLibraryCard(userData.hasLibraryCard || false);
         } else {
@@ -56,11 +55,9 @@ export default function Header() {
     }
   }, []);
 
-  // Hàm đăng xuất (Logout) – xoá localStorage và redirect về login
+  // Logout function – remove localStorage and redirect to login
   const handleLogout = () => {
     localStorage.removeItem("user");
-    // Nếu bạn có lưu token riêng, cũng remove token ở đây
-    // localStorage.removeItem("token");
     setIsAuthenticated(false);
     setUserName(null);
     setHasLibraryCard(false);
@@ -105,7 +102,7 @@ export default function Header() {
         {/* Logo / Home */}
         <Link
           to="/home"
-          className="text-3xl font-bold text-[#467DA7] tracking-tight"
+          className="text-3xl font-bold text-[#033060] tracking-tight"
         >
           EleBrary
         </Link>
@@ -116,8 +113,8 @@ export default function Header() {
           <div className="relative">
             <input
               type="text"
-              placeholder="Tìm sách theo tên, tác giả, thể loại..."
-              className="h-10 w-72 rounded-full border border-gray-300 pl-12 pr-4 text-gray-700 placeholder-gray-400 focus:border-[#467DA7] focus:outline-none"
+              placeholder="Search books by title, author, genre..."
+              className="h-10 w-72 rounded-full border border-gray-300 pl-12 pr-4 text-gray-700 placeholder-gray-400 focus:border-[#033060] focus:outline-none font-medium"
             />
             <Search className="absolute left-4 top-1/2 h-5 w-5 text-gray-500 -translate-y-1/2" />
           </div>
@@ -126,8 +123,8 @@ export default function Header() {
           <div className="relative">
             <button
               onClick={() => setCategoryOpen(!categoryOpen)}
-              className="flex items-center space-x-1 rounded-md px-3 py-2 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition focus:outline-none"
-              title="Danh mục"
+              className="flex items-center space-x-1 rounded-md px-3 py-2 text-lg font-bold text-gray-800 hover:bg-gray-100 hover:text-[#033060] hover:border hover:border-gray-300 hover:rounded transition focus:outline-none"
+              title="Categories"
             >
               <span>Categories</span>
               <ChevronDown className="h-4 w-4" />
@@ -137,24 +134,24 @@ export default function Header() {
                 <div className="py-1">
                   <Link
                     to="/categories"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    title="Thể loại sách"
+                    className="block px-4 py-2 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#033060]"
+                    title="Book Genres"
                   >
-                    Thể loại sách
+                    Book Genres
                   </Link>
                   <Link
                     to="/books"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    title="ALL BOOKS"
+                    className="block px-4 py-2 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#033060]"
+                    title="All Books"
                   >
-                    ALL BOOKS
+                    All Books
                   </Link>
                   <Link
                     to="/authors"
-                    className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    title="Tác giả"
+                    className="block px-4 py-2 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#033060]"
+                    title="Authors"
                   >
-                    Tác giả
+                    Authors
                   </Link>
                 </div>
               </div>
@@ -164,27 +161,27 @@ export default function Header() {
           {/* Wishlist */}
           <Link
             to={isAuthenticated ? "/wishlist" : "/login"}
-            className="relative rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition"
+            className="relative rounded-md p-2 text-gray-800 hover:bg-gray-100 hover:text-[#033060] hover:border hover:border-gray-300 hover:rounded transition"
             title="Wishlist"
           >
             <Heart className="h-6 w-6" />
           </Link>
 
           {/* Borrowing History */}
-          <button
-            onClick={handleViewBorrowingHistory}
-            className="relative rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition"
+          <Link
+            to={isAuthenticated ? `/students/borrowingHistory?studentId=${roleID}` : "/login"}
+            className="relative rounded-md p-2 text-gray-800 hover:bg-gray-100 hover:text-[#033060] hover:border hover:border-gray-300 hover:rounded transition"
             title="Borrowing History"
           >
             <BookOpen className="h-6 w-6" />
             <span className="sr-only">Borrowing History</span>
-          </button>
-
+          </Link>
+          
           {/* Request Library Card */}
           <button
             onClick={handleLibraryCardRequest}
             disabled={!isAuthenticated || hasLibraryCard || isRequesting}
-            className="rounded-md px-3 py-2 text-lg font-medium text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-md px-4 py-2 text-base font-bold text-gray-800 hover:bg-gray-100 hover:text-[#033060] hover:border hover:border-gray-300 hover:rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
             title={hasLibraryCard ? "Request is pending!" : "Request Library Card"}
           >
             {isRequesting ? "Requesting..." : hasLibraryCard ? "Request is pending!" : "Request Library Card"}
@@ -198,35 +195,35 @@ export default function Header() {
               <button
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center space-x-2 rounded-md px-3 py-2 hover:bg-gray-100 hover:border hover:border-gray-300 hover:rounded transition focus:outline-none"
-                title="Tài khoản"
+                title="Account"
               >
-                <UserIcon className="h-6 w-6 text-gray-700" />
-                <span className="text-gray-700">
+                <UserIcon className="h-6 w-6 text-gray-800" />
+                <span className="text-gray-800 font-bold">
                   {userName || "User"}
                 </span>
-                <ChevronDown className="h-4 w-4 text-gray-700" />
+                <ChevronDown className="h-4 w-4 text-gray-800" />
               </button>
               {profileOpen && (
                 <div className="absolute right-0 mt-2 w-44 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
                   <div className="py-1">
                     <Link
                       to={`/student/profile/${roleID}`}
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#033060]"
                     >
-                      Thông tin cá nhân
+                      Profile
                     </Link>
                     <Link
                       onClick ={() => navigate("/password/change")}
                       to="/password/change"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      className="block px-4 py-2 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#033060]"
                     >
-                      Đổi mật khẩu
+                      Change Password
                     </Link>
                     <button
                       onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100"
+                      className="block w-full text-left px-4 py-2 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#033060]"
                     >
-                      Đăng xuất
+                      Logout
                     </button>
                   </div>
                 </div>
@@ -236,15 +233,15 @@ export default function Header() {
             <>
               <Link
                 to="/login"
-                className="rounded-lg bg-[#467DA7] px-4 py-2 text-white text-sm font-medium hover:bg-[#3a6b9b] transition-colors"
+                className="rounded-lg bg-[#033060] px-5 py-2 text-white text-base font-bold hover:bg-[#3a6b9b] transition-colors"
               >
-                Đăng nhập
+                Login
               </Link>
               <Link
                 to="/register"
-                className="rounded-lg border border-[#467DA7] px-4 py-2 text-[#467DA7] text-sm font-medium hover:bg-[#467DA7] hover:text-white transition-colors"
+                className="rounded-lg border-2 border-[#033060] px-5 py-2 text-[#033060] text-base font-bold hover:bg-[#033060] hover:text-white transition-colors"
               >
-                Đăng ký
+                Register
               </Link>
             </>
           )}
@@ -256,9 +253,9 @@ export default function Header() {
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
         >
           {mobileMenuOpen ? (
-            <X className="h-6 w-6 text-gray-700" />
+            <X className="h-6 w-6 text-gray-800" />
           ) : (
-            <Menu className="h-6 w-6 text-gray-700" />
+            <Menu className="h-6 w-6 text-gray-800" />
           )}
         </button>
       </div>
@@ -271,8 +268,8 @@ export default function Header() {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Tìm sách theo tên, tác giả, thể loại..."
-                className="h-10 w-full rounded-full border border-gray-300 pl-12 pr-4 text-gray-700 placeholder-gray-400 focus:border-[#467DA7] focus:outline-none"
+                placeholder="Search books by title, author, genre..."
+                className="h-10 w-full rounded-full border border-gray-300 pl-12 pr-4 text-gray-700 placeholder-gray-400 focus:border-[#033060] focus:outline-none font-medium"
               />
               <Search className="absolute left-4 top-1/2 h-5 w-5 text-gray-500 -translate-y-1/2" />
             </div>
@@ -281,34 +278,34 @@ export default function Header() {
             <div>
               <button
                 onClick={() => setCategoryOpen(!categoryOpen)}
-                className="flex w-full items-center justify-between rounded-lg bg-gray-100 px-4 py-2 text-left text-gray-700 hover:bg-gray-200 focus:outline-none transition"
-                title="Danh mục"
+                className="flex w-full items-center justify-between rounded-lg bg-gray-100 px-4 py-2 text-left text-gray-800 font-bold hover:bg-gray-200 focus:outline-none transition"
+                title="Categories"
               >
-                <span>Danh mục</span>
+                <span>Categories</span>
                 <ChevronDown className="h-4 w-4" />
               </button>
               {categoryOpen && (
                 <div className="mt-2 space-y-1">
                   <Link
                     to="/categories"
-                    className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    title="Thể loại sách"
+                    className="block rounded-lg px-4 py-2 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#033060]"
+                    title="Book Genres"
                   >
-                    Thể loại sách
+                    Book Genres
                   </Link>
                   <Link
                     to="/books"
-                    className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    title="ALL BOOKS"
+                    className="block rounded-lg px-4 py-2 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#033060]"
+                    title="All Books"
                   >
-                    ALL BOOKS
+                    All Books
                   </Link>
                   <Link
                     to="/authors"
-                    className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
-                    title="Tác giả"
+                    className="block rounded-lg px-4 py-2 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#033060]"
+                    title="Authors"
                   >
-                    Tác giả
+                    Authors
                   </Link>
                 </div>
               )}
@@ -318,19 +315,19 @@ export default function Header() {
             <div className="flex items-center space-x-6">
               <Link
                 to={isAuthenticated ? "/wishlist" : "/login"}
-                className="relative rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition"
-                title="Yêu thích"
+                className="relative rounded-md p-2 text-gray-800 hover:bg-gray-100 hover:text-[#033060] hover:border hover:border-gray-300 hover:rounded transition"
+                title="Wishlist"
               >
                 <Heart className="h-6 w-6" />
                 <span className="sr-only">Wishlist</span>
               </Link>
               <button
                 onClick={handleViewBorrowingHistory}
-                className="relative rounded-md p-2 text-gray-700 hover:bg-gray-100 hover:text-[#467DA7] hover:border hover:border-gray-300 hover:rounded transition"
-                title="Lịch sử mượn"
+                className="relative rounded-md p-2 text-gray-800 hover:bg-gray-100 hover:text-[#033060] hover:border hover:border-gray-300 hover:rounded transition"
+                title="Borrowing History"
               >
                 <BookOpen className="h-6 w-6" />
-                <span className="sr-only">Lịch sử mượn</span>
+                <span className="sr-only">Borrowing History</span>
               </button>
             </div>
 
@@ -338,7 +335,7 @@ export default function Header() {
             <button
               onClick={handleLibraryCardRequest}
               disabled={!isAuthenticated || hasLibraryCard || isRequesting}
-              className="block w-full rounded-lg bg-[#467DA7] px-4 py-2 text-center text-white text-sm font-medium hover:bg-[#3a6b9b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="block w-full rounded-lg bg-[#033060] px-4 py-3 text-center text-white text-base font-bold hover:bg-[#3a6b9b] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title={hasLibraryCard ? "Request is pending!" : "Request Library Card"}
             >
               {isRequesting ? "Requesting..." : hasLibraryCard ? "Request is pending!" : "Request Library Card"}
@@ -350,36 +347,36 @@ export default function Header() {
                 <div className="space-y-1">
                   <Link
                     to={`/student/profile/${roleID}`}
-                    className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    className="block rounded-lg px-4 py-2 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#033060]"
                   >
-                    Thông tin cá nhân
+                    Profile
                   </Link>
                   <button
                     onClick={() => navigate("/password/change")}
-                    className="block rounded-lg px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    className="block rounded-lg px-4 py-2 text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#033060]"
                   >
-                    Đổi mật khẩu
+                    Change Password
                   </button>
                   <button
                     onClick={handleLogout}
-                    className="block w-full rounded-lg px-4 py-2 text-left text-gray-700 hover:bg-gray-100"
+                    className="block w-full rounded-lg px-4 py-2 text-left text-gray-800 font-semibold hover:bg-gray-100 hover:text-[#033060]"
                   >
-                    Đăng xuất
+                    Logout
                   </button>
                 </div>
               ) : (
                 <div className="flex space-x-4">
                   <Link
                     to="/login"
-                    className="flex-1 rounded-lg bg-[#467DA7] px-4 py-2 text-center text-white text-sm font-medium hover:bg-[#3a6b9b] transition-colors"
+                    className="flex-1 rounded-lg bg-[#033060] px-4 py-3 text-center text-white text-base font-bold hover:bg-[#3a6b9b] transition-colors"
                   >
-                    Đăng nhập
+                    Login
                   </Link>
                   <Link
                     to="/register"
-                    className="flex-1 rounded-lg border border-[#467DA7] px-4 py-2 text-center text-[#467DA7] text-sm font-medium hover:bg-[#467DA7] hover:text-white transition-colors"
+                    className="flex-1 rounded-lg border-2 border-[#033060] px-4 py-3 text-center text-[#033060] text-base font-bold hover:bg-[#033060] hover:text-white transition-colors"
                   >
-                    Đăng ký
+                    Register
                   </Link>
                 </div>
               )}
