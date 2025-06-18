@@ -43,13 +43,18 @@ export default function BookListPage() {
     setLoading(true);
     Promise.all([getAllBooks(), getAllCategories()])
       .then(([booksRes, catsRes]) => {
+        console.log("Categories Response:", catsRes);
+        booksRes.data.forEach((b: any) => {
+          console.log("Book item:", b);
+        });
         const books: Book[] = booksRes.data.map((b: any) => ({
           id: String(b.book_id),
           title: b.title,
           author: b.author,
           cover: b.image_url ? getImageUrl(b.image_url) : "",
-          category: b.category || "",
+          category: Array.isArray(b.categories) ? b.categories[0] : "", // ✅ Sửa tại đây
         }));
+
         setAllBooks(books);
         setFilteredBooks(books);
 
@@ -178,7 +183,7 @@ export default function BookListPage() {
                       <h3 className="text-lg font-semibold text-[#1F2E3D] line-clamp-2">
                         {book.title}
                       </h3>
-                      <p className="mt-1 text-sm text-[#033060]">— {book.author}</p>
+                      <p className="mt-1 text-sm text-[#033060]">Author: {book.author}</p>
                     </div>
                     <Link
                       to={`/books/detail-book/${book.id}`}
@@ -202,11 +207,10 @@ export default function BookListPage() {
               <button
                 onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
                 disabled={currentPage === 1}
-                className={`px-3 py-1 rounded-l-md ${
-                  currentPage === 1
+                className={`px-3 py-1 rounded-l-md ${currentPage === 1
                     ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                     : "bg-white text-[#033060] hover:bg-[#467DA7]/10"
-                }`}
+                  }`}
               >
                 «
               </button>
@@ -215,11 +219,10 @@ export default function BookListPage() {
                 <button
                   key={num}
                   onClick={() => setCurrentPage(num)}
-                  className={`px-3 py-1 border-t border-b ${
-                    num === currentPage
+                  className={`px-3 py-1 border-t border-b ${num === currentPage
                       ? "bg-[#033060] text-white"
                       : "bg-white text-[#033060] hover:bg-[#467DA7]/10"
-                  }`}
+                    }`}
                 >
                   {num}
                 </button>
@@ -228,11 +231,10 @@ export default function BookListPage() {
               <button
                 onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
                 disabled={currentPage === totalPages}
-                className={`px-3 py-1 rounded-r-md ${
-                  currentPage === totalPages
+                className={`px-3 py-1 rounded-r-md ${currentPage === totalPages
                     ? "bg-gray-200 text-gray-500 cursor-not-allowed"
                     : "bg-white text-[#033060] hover:bg-[#467DA7]/10"
-                }`}
+                  }`}
               >
                 »
               </button>
