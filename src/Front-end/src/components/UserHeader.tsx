@@ -104,7 +104,7 @@ export default function Header() {
           to="/home"
           className="text-3xl font-bold text-[#033060] tracking-tight"
         >
-          EleBrary
+          The H Library
         </Link>
 
         {/* Desktop menu */}

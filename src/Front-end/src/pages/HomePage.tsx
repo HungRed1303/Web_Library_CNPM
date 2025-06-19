@@ -2,10 +2,12 @@
 import { Link } from "react-router-dom";
 import {
   Users,
-  UserCheck,
   UserPlus,
+  UserCheck,
   BarChart2,
   Settings,
+  CheckSquare,
+  RotateCw,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useToast } from "../hooks/use-toast";
@@ -27,22 +29,14 @@ export default function HomePage() {
       const userStr = localStorage.getItem("user");
       if (userStr) {
         const userData = JSON.parse(userStr);
-        // Check fields that may contain role
         const role = userData.role || userData.role_type || userData.user_type;
         setUserRole(role);
-        console.log("User data:", userData); // Debug log
-        console.log("User role:", role); // Debug log
       } else {
-        // If no user data, get role separately
-        const roleFromStorage = localStorage.getItem("role");
-        setUserRole(roleFromStorage);
-        console.log("Role from storage:", roleFromStorage); // Debug log
+        setUserRole(localStorage.getItem("role"));
       }
     } catch (error) {
       console.error("Error parsing user data:", error);
-      // Fallback to role from localStorage
-      const roleFromStorage = localStorage.getItem("role");
-      setUserRole(roleFromStorage);
+      setUserRole(localStorage.getItem("role"));
     }
   }, []);
 
@@ -67,6 +61,24 @@ export default function HomePage() {
       description: "Add, edit, delete students",
     },
     {
+      title: "Approve Book Requests",
+      icon: <CheckSquare size={32} className="text-[#033060]" />,
+      link: "/approve-book-request",
+      description: "Review and approve incoming book requests",
+    },
+    {
+      title: "Approve Library Cards",
+      icon: <UserCheck size={32} className="text-[#033060]" />,
+      link: "/approve-request-library-card",
+      description: "Approve library card applications",
+    },
+    {
+      title: "Return Book",
+      icon: <RotateCw size={32} className="text-[#033060]" />,
+      link: "/return-book",
+      description: "Process book returns",
+    },
+    {
       title: "Report",
       icon: <BarChart2 size={32} className="text-[#033060]" />,
       link: "/report",
@@ -88,10 +100,15 @@ export default function HomePage() {
     description: "Add, edit, delete librarians",
   };
 
-  // Create card list based on role
-  const cards = userRole === "A" 
-    ? [...allCards.slice(0, 3), adminOnlyCard, ...allCards.slice(3)]
-    : allCards;
+  // Build final card list based on role
+  const cards =
+    userRole === "A"
+      ? [
+          ...allCards.slice(0, 3),
+          adminOnlyCard,
+          ...allCards.slice(3),
+        ]
+      : allCards;
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] font-[Tahoma] flex flex-col items-center py-10">

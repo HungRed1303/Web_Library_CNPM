@@ -53,13 +53,7 @@ const Header = ({ collapsed, onToggleSidebar }: HeaderProps) => {
         {collapsed ? <Menu size={28} strokeWidth={2.2} /> : <X size={28} strokeWidth={2.2} />}
       </button>
 
-      <div className="flex-1 max-w-xs mx-6">
-        <input
-          type="text"
-          placeholder="Search books..."
-          className="w-full px-4 py-2 border border-[#467DA7] rounded focus:outline-none focus:ring-2 focus:ring-[#467DA7] text-sm text-[#467DA7] placeholder:text-[#999] transition-colors duration-150"
-        />
-      </div>
+      {/* Thanh tìm kiếm đã bị xóa ở đây */}
 
       <div className="relative" ref={menuRef}>
         <img

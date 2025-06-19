@@ -1,30 +1,70 @@
-// src/pages/HomePage.tsx
+// src/pages/HomePageUser.tsx
+import React, { useState, useEffect } from "react";
 import { Book, Headphones, Search } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { getAllBooks } from "../service/bookService";
+
+interface BookItem {
+  id: string;
+  title: string;
+  author: string;
+  cover: string;
+}
+
+/** Utility để chuyển path ảnh thành URL đầy đủ */
+function getImageUrl(path: string): string {
+  if (path.startsWith("http")) return path;
+  return `http://localhost:3000/${path.replace(/^\//, "")}`;
+}
 
 export default function HomePageUser() {
-  const popularBooks = [
-    {
-      title: "Tung Tung Sahur",
-      author: "William Camy",
-      cover: "/public/book-cover1.jpg",
-    },
-    {
-      title: "Tralalelo Tralala",
-      author: "Kevin Kurt",
-      cover: "/public/book-cover2.jpg",
-    },
-    {
-      title: "Bombardilo Crocodilo",
-      author: "Addison Mark",
-      cover: "/public/book-cover3.jpg",
-    },
-  ];
+  const [popularBooks, setPopularBooks] = useState<BookItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const navigate = useNavigate();
+
+  // Fetch & shuffle popular books
+  useEffect(() => {
+    async function fetchAndShuffle() {
+      try {
+        const res = await getAllBooks();
+        const books: BookItem[] = res.data.map((b: any) => ({
+          id: String(b.book_id),
+          title: b.title,
+          author: b.author,
+          cover: b.image_url ? getImageUrl(b.image_url) : "/public/placeholder.jpg",
+        }));
+
+        // Fisher–Yates shuffle
+        for (let i = books.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [books[i], books[j]] = [books[j], books[i]];
+        }
+
+        setPopularBooks(books.slice(0, 3));
+      } catch (err) {
+        console.error("Failed to fetch books:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchAndShuffle();
+  }, []);
+
+  // Khi người dùng bấm Enter hoặc click button tìm kiếm
+  const handleSearch = () => {
+    const query = searchTerm.trim();
+    if (query) {
+      navigate(`/books?search=${encodeURIComponent(query)}`);
+    } else {
+      navigate("/books");
+    }
+  };
 
   return (
     <>
-      {/* =======================================
-          Hero Section
-       ======================================= */}
+      {/* Hero Section */}
       <section className="relative overflow-hidden bg-[#FEFEFE]">
         <div className="container mx-auto flex flex-col-reverse md:flex-row items-center px-6 py-16 lg:px-16">
           {/* Text & Search */}
@@ -41,13 +81,21 @@ export default function HomePageUser() {
             {/* Search Bar */}
             <div className="mt-6 max-w-md">
               <div className="flex items-center rounded-full border border-gray-300 bg-white shadow-sm focus-within:ring-2 focus-within:ring-[#033060]">
-                <button className="px-4 text-gray-500">
+                <button
+                  onClick={handleSearch}
+                  className="px-4 text-gray-500"
+                >
                   <Search size={20} />
                 </button>
                 <input
                   type="text"
-                  placeholder="Search by book title, author name..."
+                  placeholder="Search by title, author..."
                   className="w-full rounded-full px-4 py-2 text-gray-700 placeholder-gray-400 focus:outline-none"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleSearch();
+                  }}
                 />
               </div>
             </div>
@@ -57,7 +105,6 @@ export default function HomePageUser() {
           <div className="w-full md:w-1/2 flex justify-center relative">
             <div className="absolute -top-10 -left-10 h-[200px] w-[200px] rounded-full bg-[#F5F7FA]" />
             <div className="absolute -bottom-16 -right-16 h-[260px] w-[260px] rounded-full bg-[#FFE082]" />
-
             <img
               src="/public/illustration.svg"
               alt="Illustration"
@@ -67,43 +114,46 @@ export default function HomePageUser() {
         </div>
       </section>
 
-      {/* =======================================
-          Popular Stories This Week
-       ======================================= */}
+      {/* Popular Stories This Week */}
       <section className="bg-gray-50 py-16">
         <div className="container mx-auto px-6 lg:px-8">
           <h2 className="text-center text-3xl font-semibold text-[#1F2E3D]">
-            Popular Stories This Week
+            Recommended For You
           </h2>
 
-          <div className="relative mt-10">
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {popularBooks.map((book) => (
-                <div
-                  key={book.title}
-                  className="group rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow"
-                >
-                  <img
-                    src={book.cover}
-                    alt={book.title}
-                    className="h-64 w-full rounded-t-2xl object-cover"
-                  />
-                  <div className="p-4 text-center">
-                    <h3 className="text-xl font-semibold text-[#1F2E3D] group-hover:text-[#033060] transition-colors">
-                      {book.title}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-600">— {book.author}</p>
-                  </div>
-                </div>
-              ))}
+          {loading ? (
+            <div className="mt-10 flex justify-center">
+              <div className="animate-spin h-8 w-8 border-4 border-t-[#033060] rounded-full"></div>
             </div>
-          </div>
+          ) : (
+            <div className="relative mt-10">
+              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {popularBooks.map((book) => (
+                  <Link
+                    key={book.id}
+                    to={`/books/detail-book/${book.id}`}
+                    className="group block rounded-2xl bg-white shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <img
+                      src={book.cover}
+                      alt={book.title}
+                      className="h-64 w-full rounded-t-2xl object-cover"
+                    />
+                    <div className="p-4 text-center">
+                      <h3 className="text-xl font-semibold text-[#1F2E3D] group-hover:text-[#033060] transition-colors">
+                        {book.title}
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-600">— {book.author}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
-      {/* =======================================
-          Features: eBooks & Audiobooks
-       ======================================= */}
+      {/* Features Section */}
       <section className="py-16">
         <div className="container mx-auto px-6 lg:px-8">
           <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-2">
