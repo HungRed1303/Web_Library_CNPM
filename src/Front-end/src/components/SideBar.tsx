@@ -45,7 +45,6 @@ export default function Sidebar({
   // Nav items cơ bản (hiển thị cho tất cả user)
   const baseNavItems = [
     { icon: <Home size={20} />, label: "Dashboard", href: "/dashboard" },
-    { icon: <Heart size={20} />, label: "Wishlist", href: "/wishlist" },
     { icon: <ListChecks size={20} />, label: "Categories", href: "/categories" },
     { icon: <BarChart2 size={20} />, label: "Report", href: "/report" },
     { icon: <Book size={20} />, label: "Manage Books", href: "/managebooks" },

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { ChevronLeft, BookOpen, Tag, Loader2 } from "lucide-react"
 
 import { useParams } from 'react-router-dom';
-import {getBookById,actualHandleBorrowBook } from '../service/detailbookService'
+import { getBookById, actualHandleBorrowBook } from '../service/detailbookService'
 type BookData = {
   book_id: number;
   title: string;
@@ -17,7 +17,6 @@ type BookData = {
   categories: string[];
 };
 
-
 export default function BookDetailPage() {
   const { id } = useParams<{ id: string }>();
   const bookId = parseInt(id || '0');
@@ -27,7 +26,7 @@ export default function BookDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [isBorrowed, setIsBorrowed] = useState(false);
 
-  // Helper để tạo URL ảnh đầy đủ (tương tự BookListPage)
+  // Helper to create full image URL (similar to BookListPage)
   const getImageUrl = (imageUrl: string | null): string => {
     if (!imageUrl) return "";
     if (imageUrl.startsWith("http")) return imageUrl;
@@ -35,13 +34,12 @@ export default function BookDetailPage() {
     return `http://localhost:3000/${cleanPath}`;
   };
 
- 
   const handleBorrowBook = async (book_id: number) => {
     try {
       await actualHandleBorrowBook(book_id);
       setIsBorrowed(true);
     } catch (error) {
-      console.error("Mượn sách lỗi", error);
+      console.error("Borrow book error", error);
     }
   };
 
@@ -63,7 +61,7 @@ export default function BookDetailPage() {
     fetchBookData()
   }, [bookId])
 
-  // Tạo URL ảnh cho sách (sử dụng logic tương tự BookListPage)
+  // Create image URL for book (use logic similar to BookListPage)
   const bookImageUrl = bookData?.image_url ? getImageUrl(bookData.image_url) : "";
 
   if (loading) {
@@ -71,7 +69,7 @@ export default function BookDetailPage() {
       <div className="min-h-screen bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] flex items-center justify-center">
         <div className="flex items-center gap-2 text-[#033060]">
           <Loader2 className="w-6 h-6 animate-spin" />
-          <span className="text-lg">Đang tải thông tin sách...</span>
+          <span className="text-lg">Loading book information...</span>
         </div>
       </div>
     )
@@ -81,12 +79,12 @@ export default function BookDetailPage() {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7] flex items-center justify-center">
         <div className="text-center">
-          <div className="text-red-500 text-lg mb-4">Lỗi: {error}</div>
+          <div className="text-red-500 text-lg mb-4">Error: {error}</div>
           <button
             onClick={() => window.location.reload()}
             className="bg-[#033060] text-white px-4 py-2 rounded-lg hover:bg-[#033060]/90"
           >
-            Thử lại
+            Retry
           </button>
         </div>
       </div>
@@ -105,7 +103,7 @@ export default function BookDetailPage() {
             className="flex items-center gap-2 hover:text-[#033060] cursor-pointer transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
-            <span>Quay lại</span>
+            <span>Back</span>
           </button>
         </nav>
 
@@ -120,7 +118,7 @@ export default function BookDetailPage() {
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     (e.currentTarget as HTMLImageElement).style.display = 'none';
-                    // Tạo placeholder element
+                    // Create placeholder element
                     const placeholder = document.createElement('div');
                     placeholder.className = 'w-full h-full bg-gray-100 flex items-center justify-center';
                     placeholder.innerHTML = '<span class="text-gray-400">No Image</span>';
@@ -139,7 +137,7 @@ export default function BookDetailPage() {
                     ? 'bg-green-500 text-white'
                     : 'bg-red-500 text-white'
                   }`}>
-                  {bookData?.availability === 'available' ? 'Có sẵn' : 'Hết sách'}
+                  {bookData?.availability === 'available' ? 'Available' : 'Unavailable'}
                 </span>
               </div>
             </div>
@@ -149,48 +147,48 @@ export default function BookDetailPage() {
           <div className="space-y-6">
             <div>
               <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2 leading-tight">
-                {bookData?.title || 'Không có tiêu đề'}
+                {bookData?.title || 'No title'}
               </h2>
               <p className="text-xl text-gray-600 mb-1">
-                Tác giả: {bookData?.author || 'Không rõ tác giả'}
+                Author: {bookData?.author || 'Unknown author'}
               </p>
               <p className="text-gray-500 font-mono">
-                Mã sách: {bookData?.book_id ? `LT-${String(bookData.book_id).padStart(3, '0')}` : 'N/A'}
+                Book ID: {bookData?.book_id ? `LT-${String(bookData.book_id).padStart(3, '0')}` : 'N/A'}
               </p>
             </div>
 
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-100">
-              <h3 className="font-semibold text-gray-900 mb-4 text-lg">Thông tin chi tiết</h3>
+              <h3 className="font-semibold text-gray-900 mb-4 text-lg">Details</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div className="space-y-1">
-                  <span className="text-gray-600 block">Nhà xuất bản:</span>
+                  <span className="text-gray-600 block">Publisher:</span>
                   <p className="font-medium text-gray-900">
-                    {bookData?.publisher_name || 'Không rõ nhà xuất bản'}
+                    {bookData?.publisher_name || 'Unknown publisher'}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-gray-600 block">Năm xuất bản:</span>
+                  <span className="text-gray-600 block">Publication year:</span>
                   <p className="font-medium text-gray-900">
-                    {bookData?.publication_year || 'Không rõ năm xuất bản'}
+                    {bookData?.publication_year || 'Unknown year'}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-gray-600 block">Giá:</span>
+                  <span className="text-gray-600 block">Price:</span>
                   <p className="font-medium text-gray-900">
-                    {bookData?.price ? `${bookData.price.toLocaleString('vi-VN')} VNĐ` : 'Chưa có giá'}
+                    {bookData?.price ? `${bookData.price.toLocaleString('en-US')} VND` : 'No price'}
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-gray-600 block">Số lượng:</span>
+                  <span className="text-gray-600 block">Quantity:</span>
                   <p className="font-medium text-gray-900">
-                    {bookData?.quantity || 0} bản
+                    {bookData?.quantity || 0} copies
                   </p>
                 </div>
               </div>
             </div>
 
             <div>
-              <h3 className="font-semibold text-gray-900 mb-3 text-lg">Thể loại</h3>
+              <h3 className="font-semibold text-gray-900 mb-3 text-lg">Categories</h3>
               <div className="flex flex-wrap gap-2">
                 {bookData?.categories && bookData.categories.length > 0 ? (
                   bookData.categories.map((category, index) => (
@@ -203,7 +201,7 @@ export default function BookDetailPage() {
                     </span>
                   ))
                 ) : (
-                  <span className="text-gray-500">Chưa phân loại</span>
+                  <span className="text-gray-500">Uncategorized</span>
                 )}
               </div>
             </div>
@@ -217,8 +215,8 @@ export default function BookDetailPage() {
                 <BookOpen className="w-5 h-5 flex-shrink-0" />
                 <span className="font-semibold">
                   {bookData?.availability === 'available'
-                    ? `Còn ${bookData?.quantity || 0} bản, thời gian mượn tối đa: 14 ngày`
-                    : 'Hiện tại không có sách'
+                    ? `Remaining ${bookData?.quantity || 0} copies, max borrow time: 14 days`
+                    : 'Currently unavailable'
                   }
                 </span>
               </div>
@@ -236,13 +234,13 @@ export default function BookDetailPage() {
                   }`}
               >
                 {isBorrowed
-                  ? 'Đã gửi yêu cầu'
+                  ? 'Request sent'
                   : bookData?.availability === 'available'
-                    ? 'Mượn ngay'
-                    : 'Hết sách'}
+                    ? 'Borrow now'
+                    : 'Unavailable'}
               </button>
               <button className="flex-1 border-2 border-[#033060] text-[#033060] hover:bg-[#033060]/5 rounded-2xl py-3 px-6 text-lg font-semibold transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
-                Thêm vào yêu thích
+                Add to favorites
               </button>
             </div>
           </div>
@@ -251,4 +249,3 @@ export default function BookDetailPage() {
     </div>
   )
 }
-

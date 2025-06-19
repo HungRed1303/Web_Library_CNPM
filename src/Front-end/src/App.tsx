@@ -32,6 +32,8 @@ import BookDetailPage from "./pages/DetailBookPage";
 import ReturnBookPage from "./pages/ReturnBookPage";
 import ReportPage from "./pages/ReportPage"; // Placeholder for report page
 
+import WishListPage from "./pages/WishListPage";
+
 function App() {
   return (
     <Router>
@@ -43,6 +45,7 @@ function App() {
           <Route path="/student/profile/:id" element={<StudentProfilePage />} />
           <Route path="/books/detail-book/:id" element={<BookDetailPage />} />
           <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
+          <Route path="/wishlist" element={<WishListPage />} />
         </Route>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
