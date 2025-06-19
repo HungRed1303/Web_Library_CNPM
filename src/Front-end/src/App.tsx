@@ -87,9 +87,8 @@ function App() {
           <Route path="/publishers" element={<PublisherManagementPage />} />
           <Route path="/approve-book-request" element={<ApproveBookRequestPage/>} />
           <Route path="/approve-request-library-card" element={<ApproveRequestLibraryCardPage/>} />
-
+          <Route path="/dashboard/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
           <Route path="/return-book" element = {<ReturnBookPage/>}/>
-          <Route path="/students/borrowingHistory" element={<ViewBorrowingHistoryPage />} />
         </Route>
         
         {/* ---------- Catch-All Route ---------- */}

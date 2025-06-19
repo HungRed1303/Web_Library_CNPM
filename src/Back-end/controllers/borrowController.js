@@ -194,7 +194,8 @@ const issueBook = CatchAsyncErrors(async (req, res, next) => {
         quantity, 
         availability, 
         book.price, 
-        book.author
+        book.author,
+        book.image_url
     );
 
     const issueDate = new Date();
@@ -304,7 +305,8 @@ const returnBook = CatchAsyncErrors(async (req, res, next) => {
         quantity, 
         availability, 
         book.price, 
-        book.author
+        book.author,
+        book.image_url
     );
 
     const returnDate = toSQLDate(new Date());

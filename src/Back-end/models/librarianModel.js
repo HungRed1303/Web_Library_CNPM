@@ -32,9 +32,10 @@ const createLibrarian = async (user_id) => {
 
 const updateLibrarian = async (librarian_id, username, email, name, start_date, end_date) => {
   // Gán mặc định end_date = null nếu không truyền
-  if (end_date === undefined) {
+  if (end_date === undefined || end_date === null || end_date === '') {
     end_date = null;
   }
+
 
   const result1 = await pool.query(
     `UPDATE users
@@ -43,8 +44,8 @@ const updateLibrarian = async (librarian_id, username, email, name, start_date, 
      `,
     [username, email, name, librarian_id]
   );
-  
-  if (result1.rowCount ==0){
+
+  if (result1.rowCount == 0) {
     return null;
   }
 

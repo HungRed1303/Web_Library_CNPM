@@ -318,7 +318,7 @@ export default function StudentManagementPage() {
   const paginatedStudents = sortedStudents.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const handleViewBorrowingHistory = (studentId: number) => {
-    navigate(`/students/borrowingHistory?studentId=${studentId}`)
+    navigate(`/dashboard/students/borrowingHistory?studentId=${studentId}`)
   }
 
   return (
@@ -346,14 +346,6 @@ export default function StudentManagementPage() {
             />
           </div>
         </div>
-        <button
-          onClick={openCreateModal}
-          className="flex items-center gap-2 bg-[#033060] text-white font-semibold px-8 py-3 rounded-xl shadow hover:bg-[#021c3a] border border-[#033060] transition-all duration-200 text-lg min-w-[200px] justify-center"
-          style={{boxShadow: '0 2px 8px 0 #b6c6e3'}}
-        >
-          <UserPlus className="h-5 w-5" />
-          Add Student
-        </button>
       </div>
 
       {/* Table */}

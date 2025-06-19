@@ -70,8 +70,7 @@ export default function HomePageUser() {
           {/* Text & Search */}
           <div className="w-full md:w-1/2 mt-12 md:mt-0">
             <h1 className="text-4xl font-bold text-[#033060] lg:text-5xl">
-              The <span className="text-[#1F2E3D]">EleBrary</span> <br />
-              eBook Library.
+              The <span className="text-[#1F2E3D]">H</span> Library.
             </h1>
             <p className="mt-4 text-lg text-gray-600">
               Browse from the largest collection of ebooks. <br />

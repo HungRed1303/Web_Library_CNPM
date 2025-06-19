@@ -49,7 +49,6 @@ export default function Sidebar({
     { icon: <CheckSquare size={20} />, label: "Approve Book Requests", href: "/approve-book-request" },
     { icon: <RotateCw size={20} />, label: "Return Book", href: "/return-book" },
     { icon: <BarChart2 size={20} />, label: "Report", href: "/report" },
-    { icon: <Settings size={20} />, label: "Settings", href: "/settings" },
   ];
 
   // Admin-only

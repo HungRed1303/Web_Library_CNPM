@@ -365,14 +365,6 @@ export default function LibrarianManagementPage() {
             />
           </div>
         </div>
-        <button
-          onClick={openCreateModal}
-          className="flex items-center gap-2 bg-[#033060] text-white font-semibold px-8 py-3 rounded-xl shadow hover:bg-[#021c3a] border border-[#033060] transition-all duration-200 text-lg min-w-[200px] justify-center"
-          style={{ boxShadow: "0 2px 8px 0 #b6c6e3" }}
-        >
-          <UserPlus className="h-5 w-5" />
-          Add Librarian
-        </button>
       </div>
 
       {/* Table */}

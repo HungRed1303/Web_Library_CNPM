@@ -84,12 +84,6 @@ export default function HomePage() {
       link: "/report",
       description: "View statistics & reports",
     },
-    {
-      title: "Settings",
-      icon: <Settings size={32} className="text-[#033060]" />,
-      link: "/settings",
-      description: "System customization",
-    },
   ];
 
   // Card only visible for Admin (role "A")
