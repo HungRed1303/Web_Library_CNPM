@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react"
-import { ChevronLeft, BookOpen, Tag, Loader2 } from "lucide-react"
+import { ChevronLeft, BookOpen, Tag, Loader2, Heart } from "lucide-react"
 
 import { useParams } from 'react-router-dom';
 import { getBookById, actualHandleBorrowBook } from '../service/detailbookService'
+import { addBookToWishlist, getWishListByStudentId, deleteBookFromWishlist } from "../service/wishListService";
+
 type BookData = {
   book_id: number;
   title: string;
@@ -26,6 +28,11 @@ export default function BookDetailPage() {
   const [error, setError] = useState<string | null>(null)
   const [isBorrowed, setIsBorrowed] = useState(false);
 
+  // Wishlist states
+  const [wishlistStatus, setWishlistStatus] = useState<string | null>(null);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
+
   // Helper to create full image URL (similar to BookListPage)
   const getImageUrl = (imageUrl: string | null): string => {
     if (!imageUrl) return "";
@@ -33,6 +40,18 @@ export default function BookDetailPage() {
     const cleanPath = imageUrl.startsWith("/") ? imageUrl.substring(1) : imageUrl;
     return `http://localhost:3000/${cleanPath}`;
   };
+
+  // Helper lấy student_id từ localStorage
+  function getStudentIdFromLocalStorage(): number | null {
+    try {
+      const user = localStorage.getItem("user");
+      if (user) {
+        const parsed = JSON.parse(user);
+        if (parsed.role_id) return parsed.role_id;
+      }
+    } catch {}
+    return null;
+  }
 
   const handleBorrowBook = async (book_id: number) => {
     try {
@@ -43,6 +62,50 @@ export default function BookDetailPage() {
     }
   };
 
+  // Hàm xử lý thêm/xóa wishlist
+  const handleToggleWishlist = async () => {
+    const student_id = getStudentIdFromLocalStorage();
+    if (!student_id) {
+      setWishlistStatus("Please login to use wishlist feature!");
+      setTimeout(() => setWishlistStatus(null), 3000);
+      return;
+    }
+
+    if (!bookData?.book_id) return;
+
+    setWishlistLoading(true);
+
+    try {
+      if (isInWishlist) {
+        // Remove from wishlist
+        await deleteBookFromWishlist(Number(student_id), bookData.book_id);
+        setIsInWishlist(false);
+        setWishlistStatus("Removed from favorites!");
+      } else {
+        // Add to wishlist
+        await addBookToWishlist({
+          student_id: Number(student_id),
+          book_id: bookData.book_id
+        });
+        setIsInWishlist(true);
+        setWishlistStatus("Added to favorites!");
+      }
+      
+      setTimeout(() => setWishlistStatus(null), 3000);
+    } catch (err: any) {
+      console.error("Wishlist error:", err);
+      if (err?.message?.includes("already") || err?.message?.includes("409")) {
+        setWishlistStatus("Book already in wishlist!");
+        setIsInWishlist(true);
+      } else {
+        setWishlistStatus("Error: " + (err?.message || "Unable to update wishlist"));
+      }
+      setTimeout(() => setWishlistStatus(null), 3000);
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
+
   useEffect(() => {
     const fetchBookData = async () => {
       try {
@@ -50,6 +113,18 @@ export default function BookDetailPage() {
         const data = await getBookById(bookId)
         console.log('Book data received:', data)
         setBookData(data)
+
+        // Check if book is in wishlist
+        const student_id = getStudentIdFromLocalStorage();
+        if (student_id && data?.book_id) {
+          try {
+            const wishlistRes = await getWishListByStudentId(Number(student_id));
+            const wishlistBookIds = (wishlistRes.data || []).map((w: any) => Number(w.book_id));
+            setIsInWishlist(wishlistBookIds.includes(data.book_id));
+          } catch (wishlistError) {
+            console.error('Error fetching wishlist:', wishlistError);
+          }
+        }
       } catch (err) {
         console.error('Error fetching book:', err)
         setError(err instanceof Error ? err.message : 'Unknown error')
@@ -96,6 +171,19 @@ export default function BookDetailPage() {
       className="min-h-screen bg-gradient-to-b from-[#f5f8fc] via-[#eaf3fb] to-[#e3ecf7]"
       style={{ fontFamily: "Poppins, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
     >
+      {/* Thông báo trạng thái wishlist */}
+      {wishlistStatus && (
+        <div className="fixed top-20 right-8 z-50 bg-white border border-[#467DA7] text-[#467DA7] px-4 py-2 rounded shadow-lg animate-fade-in">
+          {wishlistStatus}
+          <button 
+            className="ml-2 text-gray-400 hover:text-gray-600" 
+            onClick={() => setWishlistStatus(null)}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
           <button
@@ -239,8 +327,24 @@ export default function BookDetailPage() {
                     ? 'Borrow now'
                     : 'Unavailable'}
               </button>
-              <button className="flex-1 border-2 border-[#033060] text-[#033060] hover:bg-[#033060]/5 rounded-2xl py-3 px-6 text-lg font-semibold transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]">
-                Add to favorites
+              <button 
+                onClick={handleToggleWishlist}
+                disabled={wishlistLoading}
+                className="flex-1 border-2 border-[#033060] text-[#033060] hover:bg-[#033060]/5 rounded-2xl py-3 px-6 text-lg font-semibold transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {wishlistLoading ? (
+                  <div className="animate-spin h-5 w-5 border-2 border-[#033060] border-t-transparent rounded-full" />
+                ) : (
+                  <Heart
+                    size={20}
+                    fill={isInWishlist ? "#e63946" : "none"}
+                    stroke={isInWishlist ? "#e63946" : "#033060"}
+                    className="transition-colors duration-200"
+                  />
+                )}
+                <span>
+                  {isInWishlist ? 'Remove from favorites' : 'Add to favorites'}
+                </span>
               </button>
             </div>
           </div>
